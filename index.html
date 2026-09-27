@@ -126,6 +126,11 @@ button{
   cursor:pointer;
 }
 
+button:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
 button:active{
   transform:scale(.99);
 }
@@ -156,12 +161,10 @@ button:active{
   text-align:center;
   cursor:pointer;
   background:#0b1020;
-  transition:.2s;
 }
 
 .dropzone:hover{
   border-color:#7083ff;
-  background:#0d1327;
 }
 
 .dropIcon{
@@ -207,13 +210,25 @@ button:active{
   width:0%;
   height:100%;
   background:linear-gradient(90deg,#586cff,#19d4a2);
-  transition:width .25s;
+  transition:width .3s;
 }
 
 .progressText{
   margin-top:8px;
   font-size:13px;
   color:#aeb9d1;
+  line-height:1.6;
+}
+
+.note{
+  background:#171e35;
+  border-left:4px solid #687cff;
+  border-radius:10px;
+  padding:13px;
+  color:#adb8d0;
+  font-size:13px;
+  line-height:1.6;
+  margin-top:14px;
 }
 
 .action{
@@ -231,15 +246,25 @@ button:active{
   display:none!important;
 }
 
-.note{
-  background:#171e35;
-  border-left:4px solid #687cff;
-  border-radius:10px;
-  padding:13px;
-  color:#adb8d0;
-  font-size:13px;
-  line-height:1.6;
-  margin-top:14px;
+.srtBox{
+  width:100%;
+  min-height:260px;
+  margin-top:15px;
+  border:1px solid #293451;
+  border-radius:15px;
+  background:#070b19;
+  color:#fff;
+  padding:15px;
+  font-size:14px;
+  line-height:1.7;
+  resize:vertical;
+  outline:none;
+}
+
+.small{
+  font-size:12px;
+  color:#77839d;
+  margin-top:8px;
 }
 </style>
 </head>
@@ -247,23 +272,27 @@ button:active{
 <body>
 
 <header class="header">
+
   <div class="logo">
     <div class="logoIcon">မ</div>
     <div>Myanmar <span>SRT</span></div>
   </div>
 
-  <div class="menu" onclick="toggleSettings()">☰</div>
+  <div class="menu" onclick="goSettings()">☰</div>
+
 </header>
+
 
 <main class="container">
 
-  <!-- SETTINGS -->
+  <!-- API KEY -->
+
   <section class="card" id="settingsCard">
 
-    <h2>⚙️ API Key Settings</h2>
+    <h2>🔑 Gemini API Key</h2>
 
     <div class="desc">
-      ကိုယ့် Gemini / Groq API Key ကို ထည့်ပြီး ကိုယ်ပိုင် API quota နဲ့ အသုံးပြုနိုင်ပါတယ်။
+      ကိုယ့် Gemini API Key ကိုထည့်ပြီး ကိုယ်ပိုင် Gemini quota နဲ့ Video ကို Myanmar SRT ပြောင်းနိုင်ပါတယ်။
     </div>
 
     <label>Gemini API Key</label>
@@ -276,50 +305,38 @@ button:active{
     >
 
     <button onclick="saveGemini()">
-      Gemini Key သိမ်းမည်
+      💾 Key သိမ်းမည်
     </button>
 
     <div id="geminiStatus" class="status">
       Key: ❌ မရှိသေး
     </div>
 
-
-    <div style="height:24px"></div>
-
-
-    <label>Groq API Key</label>
-
-    <input
-      id="groqKey"
-      type="password"
-      placeholder="Groq API key ထည့်ပါ"
-      autocomplete="off"
+    <button
+      class="secondary"
+      onclick="clearGemini()"
     >
-
-    <button onclick="saveGroq()">
-      Groq Key သိမ်းမည်
+      🗑️ Key ဖျက်မည်
     </button>
 
-    <div id="groqStatus" class="status">
-      Key: ❌ မရှိသေး
-    </div>
-
     <div class="note">
-      🔐 API Key ကို GitHub code ထဲ မရေးထားပါ။
-      ဒီ UI က user ထည့်တဲ့ Key ကို backend သို့ အသုံးပြုရန် ပြင်ဆင်ထားတာပါ။
+      🔐 ဒီ website က user ထည့်တဲ့ Gemini Key ကို
+      ဒီ browser ရဲ့ localStorage ထဲမှာသာ သိမ်းထားပါတယ်။
+      Public website အတွက် shared API Key မထည့်ပါနဲ့။
     </div>
 
   </section>
 
 
-  <!-- FILE UPLOAD -->
+  <!-- FILE -->
+
   <section class="card">
 
-    <h2>📁 File ထည့်ရန်</h2>
+    <h2>🎬 Video / SRT ထည့်ရန်</h2>
 
     <div class="desc">
-      SRT ဖိုင်ကို တိုက်ရိုက်ဘာသာပြန်နိုင်ပါတယ်။
-      Video ကိုလည်း နောက်အဆင့်မှာ processing လုပ်နိုင်အောင် UI ကို ပြင်ဆင်ထားပါတယ်။
+      Video ကို Gemini Files API သို့ တိုက်ရိုက် upload လုပ်ပြီး
+      Myanmar SRT ထုတ်ပေးပါမယ်။
     </div>
 
     <div
@@ -330,12 +347,12 @@ button:active{
       <div class="dropIcon">📤</div>
 
       <div class="dropTitle">
-        SRT / Video ဖိုင်ရွေးပါ
+        Video / SRT ဖိုင်ရွေးပါ
       </div>
 
       <div class="dropText">
-        SRT → Myanmar SRT<br>
-        Video → နောက်အဆင့်တွင် Auto Subtitle
+        MP4 • MOV • MKV • WEBM • AVI<br>
+        300MB အထိ
       </div>
 
     </div>
@@ -343,7 +360,7 @@ button:active{
     <input
       id="fileInput"
       type="file"
-      accept=".srt,.mp4,.mkv,.mov,.webm,.avi"
+      accept=".srt,.mp4,.mkv,.mov,.webm,.avi,video/*"
       class="hidden"
       onchange="selectFile(this)"
     >
@@ -368,7 +385,7 @@ button:active{
         id="translateBtn"
         onclick="startTranslate()"
       >
-        🇲🇲 Myanmar ဘာသာပြန်မည်
+        🇲🇲 Myanmar SRT ထုတ်မည်
       </button>
 
     </div>
@@ -376,18 +393,28 @@ button:active{
   </section>
 
 
-  <!-- OUTPUT -->
-  <section class="card hidden" id="resultCard">
+  <!-- RESULT -->
 
-    <h2>✅ ပြီးပါပြီ</h2>
+  <section
+    class="card hidden"
+    id="resultCard"
+  >
+
+    <h2>✅ Myanmar SRT ပြီးပါပြီ</h2>
 
     <div class="desc">
-      ဘာသာပြန်ပြီးသော ဖိုင်ကို ဒီနေရာမှာ Download လုပ်နိုင်ပါမယ်။
+      အောက်မှာ SRT ကိုစစ်ပြီး Download လုပ်နိုင်ပါတယ်။
     </div>
 
+    <textarea
+      id="srtOutput"
+      class="srtBox"
+      spellcheck="false"
+    ></textarea>
+
     <button
-      class="secondary"
       id="downloadBtn"
+      class="secondary"
     >
       ⬇️ Myanmar SRT Download
     </button>
@@ -396,46 +423,87 @@ button:active{
 
 </main>
 
+
 <div class="footer">
-  Myanmar SRT Translator • Gemini + Groq
+  Myanmar SRT • Gemini Files API
 </div>
 
 
-<script>
+<script type="module">
+
+/*
+========================================================
+  GOOGLE GEMINI SDK
+  Browser compatible
+  Pinned below 3.0 as recommended by Google SDK docs.
+========================================================
+*/
+
+import {
+  GoogleGenAI
+} from "https://esm.sh/@google/genai@2.24.0";
+
+
+/*
+========================================================
+  SETTINGS
+========================================================
+*/
+
+const MODEL = "gemini-3.8-flash";
+
+const MAX_VIDEO_SIZE =
+  300 * 1024 * 1024;
+
+
+/*
+========================================================
+  STATE
+========================================================
+*/
 
 let selectedFile = null;
 
 
-/* =========================
-   LOAD SAVED KEYS
-========================= */
+/*
+========================================================
+  LOAD KEY
+========================================================
+*/
 
 window.addEventListener("DOMContentLoaded", () => {
 
-  const gemini = localStorage.getItem("gemini_api_key");
-  const groq = localStorage.getItem("groq_api_key");
+  const key =
+    localStorage.getItem("gemini_api_key");
 
-  if(gemini){
-    document.getElementById("geminiKey").value = gemini;
-    setStatus("geminiStatus", "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်", true);
-  }
+  if(key){
 
-  if(groq){
-    document.getElementById("groqKey").value = groq;
-    setStatus("groqStatus", "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်", true);
+    document.getElementById("geminiKey").value =
+      key;
+
+    setStatus(
+      "geminiStatus",
+      "Key: ✅ သိမ်းထားသည်",
+      true
+    );
   }
 
 });
 
 
-/* =========================
-   SAVE GEMINI KEY
-========================= */
+/*
+========================================================
+  SAVE KEY
+========================================================
+*/
 
-function saveGemini(){
+window.saveGemini = function(){
 
   const key =
-    document.getElementById("geminiKey").value.trim();
+    document
+      .getElementById("geminiKey")
+      .value
+      .trim();
 
   if(!key){
 
@@ -455,48 +523,43 @@ function saveGemini(){
 
   setStatus(
     "geminiStatus",
-    "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်",
+    "Key: ✅ သိမ်းပြီးပါပြီ",
     true
   );
-}
+
+};
 
 
-/* =========================
-   SAVE GROQ KEY
-========================= */
+/*
+========================================================
+  CLEAR KEY
+========================================================
+*/
 
-function saveGroq(){
+window.clearGemini = function(){
 
-  const key =
-    document.getElementById("groqKey").value.trim();
-
-  if(!key){
-
-    setStatus(
-      "groqStatus",
-      "Key: ❌ Key မထည့်ရသေးပါ",
-      false
-    );
-
-    return;
-  }
-
-  localStorage.setItem(
-    "groq_api_key",
-    key
+  localStorage.removeItem(
+    "gemini_api_key"
   );
+
+  document.getElementById(
+    "geminiKey"
+  ).value = "";
 
   setStatus(
-    "groqStatus",
-    "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်",
-    true
+    "geminiStatus",
+    "Key: ❌ ဖျက်ပြီးပါပြီ",
+    false
   );
-}
+
+};
 
 
-/* =========================
-   STATUS
-========================= */
+/*
+========================================================
+  STATUS
+========================================================
+*/
 
 function setStatus(id,text,ok){
 
@@ -506,77 +569,128 @@ function setStatus(id,text,ok){
   el.textContent = text;
 
   el.className =
-    ok ? "status ok" : "status bad";
+    ok
+      ? "status ok"
+      : "status bad";
+
 }
 
 
-/* =========================
-   FILE SELECT
-========================= */
+/*
+========================================================
+  FILE SELECT
+========================================================
+*/
 
-function selectFile(input){
+window.selectFile = function(input){
 
-  if(!input.files || !input.files.length){
+  if(
+    !input.files ||
+    !input.files.length
+  ){
     return;
   }
 
-  selectedFile = input.files[0];
+  selectedFile =
+    input.files[0];
 
   const sizeMB =
-    selectedFile.size / 1024 / 1024;
+    selectedFile.size /
+    1024 /
+    1024;
 
   const info =
-    document.getElementById("fileInfo");
+    document.getElementById(
+      "fileInfo"
+    );
 
-  info.style.display = "block";
+  info.style.display =
+    "block";
 
   info.innerHTML =
     `
-    <b>📄 ${escapeHtml(selectedFile.name)}</b><br>
-    Size: ${sizeMB.toFixed(2)} MB<br>
-    Type: ${escapeHtml(selectedFile.type || "Unknown")}
+      <b>📄 ${escapeHtml(selectedFile.name)}</b>
+      <br>
+      Size: ${sizeMB.toFixed(2)} MB
+      <br>
+      Type: ${escapeHtml(
+        selectedFile.type || "Unknown"
+      )}
     `;
 
-  if(sizeMB > 300){
+
+  if(
+    selectedFile.size >
+    MAX_VIDEO_SIZE
+  ){
 
     info.innerHTML +=
-      `<br><span style="color:#ff6b75">
-      ⚠️ ဖိုင်အရွယ်အစား 300MB ကျော်နေပါတယ်။
-      </span>`;
+      `
+      <br>
+      <span style="color:#ff6b75">
+      ❌ 300MB ကျော်နေပါတယ်။
+      </span>
+      `;
 
   }else{
 
     info.innerHTML +=
-      `<br><span style="color:#35dfad">
+      `
+      <br>
+      <span style="color:#35dfad">
       ✅ 300MB အတွင်း
-      </span>`;
+      </span>
+      `;
+
   }
-}
+
+};
 
 
-/* =========================
-   TRANSLATE
-========================= */
+/*
+========================================================
+  MAIN
+========================================================
+*/
 
-async function startTranslate(){
+window.startTranslate =
+async function(){
 
   if(!selectedFile){
 
-    alert("အရင်ဆုံး SRT သို့မဟုတ် Video ဖိုင်ရွေးပါ။");
+    alert(
+      "အရင်ဆုံး Video သို့မဟုတ် SRT ဖိုင်ရွေးပါ။"
+    );
 
     return;
   }
 
-  const gemini =
-    localStorage.getItem("gemini_api_key");
 
-  const groq =
-    localStorage.getItem("groq_api_key");
+  const geminiKey =
+    localStorage.getItem(
+      "gemini_api_key"
+    );
 
-  if(!gemini && !groq){
+
+  if(!geminiKey){
 
     alert(
-      "Gemini API Key သို့မဟုတ် Groq API Key အနည်းဆုံးတစ်ခု ထည့်ပါ။"
+      "အရင်ဆုံး Gemini API Key ထည့်ပါ။"
+    );
+
+    goSettings();
+
+    return;
+  }
+
+
+  if(
+    selectedFile.size >
+    MAX_VIDEO_SIZE
+  ){
+
+    alert(
+      "Video size က 300MB ကျော်နေပါတယ်။"
     );
 
     return;
@@ -584,223 +698,570 @@ async function startTranslate(){
 
 
   const progressWrap =
-    document.getElementById("progressWrap");
+    document.getElementById(
+      "progressWrap"
+    );
 
   const progress =
-    document.getElementById("progress");
+    document.getElementById(
+      "progress"
+    );
 
   const progressText =
-    document.getElementById("progressText");
+    document.getElementById(
+      "progressText"
+    );
 
   const btn =
-    document.getElementById("translateBtn");
+    document.getElementById(
+      "translateBtn"
+    );
 
-  progressWrap.style.display = "block";
+
+  progressWrap.style.display =
+    "block";
 
   btn.disabled = true;
 
-  btn.textContent = "⏳ Processing...";
+  btn.textContent =
+    "⏳ Processing...";
 
-  progress.style.width = "10%";
-
-  progressText.textContent =
-    "Server ကို ဆက်သွယ်နေသည်...";
-
-
-  /*
-    STEP 3 မှာ ဒီနေရာကို
-    Hugging Face API နဲ့ အမှန်တကယ်ချိတ်မယ်။
-  */
 
   try{
 
-    const formData =
-      new FormData();
-
-    formData.append(
-      "file",
-      selectedFile
-    );
-
     /*
-      API URL ကို STEP 3 မှာ ထည့်မယ်။
-
-      ဥပမာ:
-
-      const API_URL =
-        "https://YOUR-SPACE.hf.space";
+    ================================================
+      CREATE GEMINI CLIENT
+    ================================================
     */
 
-    const API_URL =
-      window.MYANMAR_SRT_API || "";
+    const ai =
+      new GoogleGenAI({
+        apiKey: geminiKey
+      });
 
-    if(!API_URL){
 
-      await fakeProgress();
+    /*
+    ================================================
+      SRT FILE
+    ================================================
+    */
 
-      throw new Error(
-        "Backend မချိတ်ရသေးပါ။ STEP 3 မှာ Hugging Face Backend ချိတ်ပါမယ်။"
-      );
+    if(
+      selectedFile.name
+        .toLowerCase()
+        .endsWith(".srt")
+    ){
+
+      progress.style.width =
+        "20%";
+
+      progressText.textContent =
+        "SRT ဖိုင်ကို ဖတ်နေသည်...";
+
+
+      const srtText =
+        await selectedFile.text();
+
+
+      progress.style.width =
+        "45%";
+
+      progressText.textContent =
+        "Myanmar ဘာသာပြန်နေသည်...";
+
+
+      const response =
+        await ai.models.generateContent({
+
+          model: MODEL,
+
+          contents: `
+You are a professional Myanmar subtitle translator.
+
+Translate the following SRT into natural, easy-to-understand Myanmar Burmese.
+
+IMPORTANT:
+1. Keep ALL subtitle numbers exactly.
+2. Keep ALL timestamps exactly.
+3. Do NOT change timestamps.
+4. Do NOT merge subtitle blocks.
+5. Do NOT remove subtitle blocks.
+6. Translate ONLY the spoken text.
+7. Output ONLY valid SRT.
+8. Do not add explanations.
+
+SRT:
+
+${srtText}
+`
+
+        });
+
+
+      const result =
+        cleanSRT(
+          response.text || ""
+        );
+
+
+      showResult(result);
+
+      return;
     }
 
 
-    progress.style.width = "30%";
+    /*
+    ================================================
+      VIDEO FILE
+    ================================================
+    */
+
+    progress.style.width =
+      "10%";
 
     progressText.textContent =
-      "ဖိုင်ကို Server သို့ ပို့နေသည်...";
+      "Gemini Files API သို့ Video ပို့နေသည်...";
 
+
+    /*
+      Browser SDK supports Blob/File upload.
+    */
+
+    const uploadedFile =
+      await ai.files.upload({
+
+        file: selectedFile,
+
+        config:{
+          displayName:
+            selectedFile.name,
+
+          mimeType:
+            selectedFile.type ||
+            "video/mp4"
+        }
+
+      });
+
+
+    progress.style.width =
+      "55%";
+
+    progressText.textContent =
+      "Video ကို Gemini က Processing လုပ်နေသည်...";
+
+
+    /*
+    ================================================
+      WAIT FOR VIDEO TO BECOME ACTIVE
+    ================================================
+    */
+
+    let fileInfo =
+      uploadedFile;
+
+
+    while(
+      fileInfo.state ===
+      "PROCESSING"
+    ){
+
+      await sleep(5000);
+
+      fileInfo =
+        await ai.files.get({
+          name:
+            uploadedFile.name
+        });
+
+    }
+
+
+    if(
+      fileInfo.state !==
+      "ACTIVE"
+    ){
+
+      throw new Error(
+        "Gemini Video processing မအောင်မြင်ပါ။"
+      );
+
+    }
+
+
+    progress.style.width =
+      "70%";
+
+    progressText.textContent =
+      "Video ကိုဖတ်ပြီး Myanmar SRT ရေးနေသည်...";
+
+
+    /*
+    ================================================
+      GENERATE SRT
+    ================================================
+    */
 
     const response =
-      await fetch(
-        API_URL + "/api/translate",
-        {
-          method:"POST",
+      await ai.models.generateContent({
 
-          headers:{
-            "X-Gemini-Key": gemini || "",
-            "X-Groq-Key": groq || ""
+        model: MODEL,
+
+        contents:[
+
+          {
+            fileData:{
+              fileUri:
+                fileInfo.uri,
+
+              mimeType:
+                fileInfo.mimeType ||
+                selectedFile.type ||
+                "video/mp4"
+            }
           },
 
-          body:formData
-        }
+          {
+            text:`
+You are an expert video subtitle creator.
+
+Watch and understand the entire video.
+
+Create a complete Myanmar Burmese SRT subtitle file for the spoken dialogue.
+
+IMPORTANT RULES:
+
+1. Cover the ENTIRE video from beginning to end.
+2. Do not summarize.
+3. Do not skip dialogue.
+4. Translate the actual spoken dialogue into natural Myanmar Burmese.
+5. Create accurate subtitle timestamps based on the video.
+6. Timestamps must be in:
+   HH:MM:SS,mmm
+7. Keep subtitle blocks short enough to read naturally.
+8. Do not put more than 2 lines in one subtitle block when possible.
+9. Do not include explanations.
+10. Do not use Markdown code fences.
+11. Output ONLY valid SRT.
+12. Start with subtitle number 1.
+13. Continue subtitle numbering sequentially.
+14. Include the complete ending dialogue.
+
+Example format:
+
+1
+00:00:01,000 --> 00:00:03,500
+မင်္ဂလာပါ။
+
+2
+00:00:03,500 --> 00:00:06,500
+ဒီနေ့ ကျွန်တော်တို့
+အရေးကြီးတဲ့အကြောင်း ပြောမယ်။
+
+Return ONLY the SRT.
+`
+          }
+
+        ]
+
+      });
+
+
+    progress.style.width =
+      "95%";
+
+    progressText.textContent =
+      "SRT ပြင်ဆင်နေသည်...";
+
+
+    const result =
+      cleanSRT(
+        response.text || ""
       );
 
 
-    if(!response.ok){
+    if(!result){
 
       throw new Error(
-        "Server Error: " +
-        response.status
+        "Gemini က SRT မထုတ်ပေးနိုင်ပါ။"
       );
+
     }
 
 
-    progress.style.width = "80%";
+    progress.style.width =
+      "100%";
 
     progressText.textContent =
-      "Myanmar ဘာသာပြန်နေသည်...";
+      "✅ Myanmar SRT ပြီးပါပြီ";
 
 
-    const blob =
-      await response.blob();
-
-
-    progress.style.width = "100%";
-
-    progressText.textContent =
-      "ပြီးပါပြီ ✅";
-
-
-    const url =
-      URL.createObjectURL(blob);
-
-    const downloadBtn =
-      document.getElementById("downloadBtn");
-
-    downloadBtn.onclick = () => {
-
-      const a =
-        document.createElement("a");
-
-      a.href = url;
-
-      a.download =
-        "Myanmar_Translated.srt";
-
-      a.click();
-    };
-
-
-    document
-      .getElementById("resultCard")
-      .classList.remove("hidden");
+    showResult(result);
 
 
   }catch(error){
 
-    progress.style.width = "100%";
+    console.error(error);
+
+    progress.style.width =
+      "100%";
 
     progressText.textContent =
-      "❌ " + error.message;
+      "❌ Error";
 
-    alert(error.message);
+
+    let message =
+      error?.message ||
+      String(error);
+
+
+    if(
+      message.includes("401") ||
+      message.includes("API key") ||
+      message.includes("API_KEY")
+    ){
+
+      message =
+        "Gemini API Key မမှန်ပါ။";
+
+    }
+
+
+    if(
+      message.includes("403")
+    ){
+
+      message =
+        "Gemini API Key permission / quota ပြဿနာရှိပါတယ်။";
+
+    }
+
+
+    alert(
+      "❌ " + message
+    );
+
 
   }finally{
 
-    btn.disabled = false;
+    btn.disabled =
+      false;
 
     btn.textContent =
-      "🇲🇲 Myanmar ဘာသာပြန်မည်";
+      "🇲🇲 Myanmar SRT ထုတ်မည်";
+
   }
 
-}
+};
 
 
-/* =========================
-   TEMP PROGRESS
-========================= */
+/*
+========================================================
+  SHOW RESULT
+========================================================
+*/
 
-function fakeProgress(){
+function showResult(srt){
 
-  return new Promise(resolve => {
+  const resultCard =
+    document.getElementById(
+      "resultCard"
+    );
 
-    let p = 10;
+  const output =
+    document.getElementById(
+      "srtOutput"
+    );
 
-    const timer =
-      setInterval(() => {
+  output.value =
+    srt;
 
-        p += 10;
+  resultCard.classList.remove(
+    "hidden"
+  );
 
-        document
-          .getElementById("progress")
-          .style.width = p + "%";
 
-        document
-          .getElementById("progressText")
-          .textContent =
-          "Backend တည်ဆောက်နေဆဲ...";
+  document.getElementById(
+    "downloadBtn"
+  ).onclick =
+  () => {
 
-        if(p >= 100){
-
-          clearInterval(timer);
-
-          resolve();
+    const blob =
+      new Blob(
+        [output.value],
+        {
+          type:
+            "application/x-subrip;charset=utf-8"
         }
-
-      },100);
-  });
-
-}
+      );
 
 
-/* =========================
-   SETTINGS MENU
-========================= */
+    const url =
+      URL.createObjectURL(
+        blob
+      );
 
-function toggleSettings(){
 
-  const card =
-    document.getElementById("settingsCard");
+    const a =
+      document.createElement(
+        "a"
+      );
 
-  card.scrollIntoView({
+    a.href =
+      url;
+
+    a.download =
+      "Myanmar_SRT.srt";
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    setTimeout(
+      () =>
+        URL.revokeObjectURL(url),
+      1000
+    );
+
+  };
+
+
+  resultCard.scrollIntoView({
     behavior:"smooth"
   });
 
 }
 
 
-/* =========================
-   HTML ESCAPE
-========================= */
+/*
+========================================================
+  CLEAN GEMINI OUTPUT
+========================================================
+*/
+
+function cleanSRT(text){
+
+  let result =
+    String(text || "")
+      .trim();
+
+
+  /*
+    Remove markdown fences if Gemini
+    accidentally adds them.
+  */
+
+  result =
+    result
+      .replace(/^```srt\s*/i,"")
+      .replace(/^```\s*/,"")
+      .replace(/\s*```$/,"")
+      .trim();
+
+
+  /*
+    Remove accidental leading text
+    before first subtitle number.
+  */
+
+  const firstBlock =
+    result.search(
+      /(?:^|\n)\s*1\s*\n\d{2}:\d{2}:\d{2},\d{3}\s+-->\s+/m
+    );
+
+
+  if(firstBlock > 0){
+
+    result =
+      result.substring(
+        firstBlock
+      );
+
+  }
+
+
+  return result.trim();
+
+}
+
+
+/*
+========================================================
+  SLEEP
+========================================================
+*/
+
+function sleep(ms){
+
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        ms
+      )
+  );
+
+}
+
+
+/*
+========================================================
+  SETTINGS
+========================================================
+*/
+
+window.goSettings =
+function(){
+
+  document
+    .getElementById(
+      "settingsCard"
+    )
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+};
+
+
+/*
+========================================================
+  ESCAPE HTML
+========================================================
+*/
 
 function escapeHtml(value){
 
   return String(value)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
 }
 
 </script>
