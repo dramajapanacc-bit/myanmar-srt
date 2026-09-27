@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#080b18">
+
+<title>Myanmar SRT</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  font-family:Arial,"Noto Sans Myanmar",sans-serif;
+  background:#070a16;
+  color:#fff;
+  min-height:100vh;
+}
+
+.header{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 22px;
+  background:#080b1c;
+  border-bottom:1px solid #1d2440;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:21px;
+  font-weight:700;
+}
+
+.logoIcon{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#7c4dff,#4d6cff);
+  font-size:23px;
+}
+
+.logo span{
+  color:#8095ff;
+}
+
+.menu{
+  font-size:27px;
+  cursor:pointer;
+}
+
+.container{
+  width:min(760px,calc(100% - 28px));
+  margin:24px auto 60px;
+}
+
+.card{
+  background:#10172b;
+  border:1px solid #202b48;
+  border-radius:22px;
+  padding:22px;
+  margin-bottom:18px;
+  box-shadow:0 10px 35px rgba(0,0,0,.22);
+}
+
+h2{
+  font-size:20px;
+  margin-bottom:8px;
+}
+
+.desc{
+  color:#aab4ca;
+  line-height:1.65;
+  font-size:14px;
+  margin-bottom:18px;
+}
+
+label{
+  display:block;
+  color:#cbd3e5;
+  font-size:14px;
+  margin-bottom:8px;
+}
+
+input[type="password"],
+input[type="text"]{
+  width:100%;
+  height:54px;
+  border-radius:15px;
+  border:1px solid #293451;
+  background:#070b19;
+  color:#fff;
+  outline:none;
+  padding:0 16px;
+  font-size:15px;
+}
+
+input:focus{
+  border-color:#667cff;
+}
+
+button{
+  width:100%;
+  height:52px;
+  border:0;
+  border-radius:15px;
+  margin-top:12px;
+  background:#16c79a;
+  color:#04120e;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(.99);
+}
+
+.secondary{
+  background:#1a2340;
+  color:#dce3f5;
+}
+
+.status{
+  margin-top:10px;
+  color:#aeb9d1;
+  font-size:13px;
+}
+
+.status.ok{
+  color:#35dfad;
+}
+
+.status.bad{
+  color:#ff6b75;
+}
+
+.dropzone{
+  border:2px dashed #344064;
+  border-radius:18px;
+  padding:32px 18px;
+  text-align:center;
+  cursor:pointer;
+  background:#0b1020;
+  transition:.2s;
+}
+
+.dropzone:hover{
+  border-color:#7083ff;
+  background:#0d1327;
+}
+
+.dropIcon{
+  font-size:42px;
+  margin-bottom:10px;
+}
+
+.dropTitle{
+  font-size:17px;
+  font-weight:700;
+}
+
+.dropText{
+  color:#929db7;
+  font-size:13px;
+  margin-top:8px;
+  line-height:1.6;
+}
+
+.fileInfo{
+  margin-top:14px;
+  padding:14px;
+  background:#0a0f1f;
+  border-radius:14px;
+  display:none;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.progressWrap{
+  display:none;
+  margin-top:18px;
+}
+
+.progressBar{
+  height:9px;
+  border-radius:20px;
+  background:#202a44;
+  overflow:hidden;
+}
+
+.progress{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#586cff,#19d4a2);
+  transition:width .25s;
+}
+
+.progressText{
+  margin-top:8px;
+  font-size:13px;
+  color:#aeb9d1;
+}
+
+.action{
+  margin-top:18px;
+}
+
+.footer{
+  text-align:center;
+  color:#59647e;
+  font-size:12px;
+  padding:10px 0 30px;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.note{
+  background:#171e35;
+  border-left:4px solid #687cff;
+  border-radius:10px;
+  padding:13px;
+  color:#adb8d0;
+  font-size:13px;
+  line-height:1.6;
+  margin-top:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logoIcon">မ</div>
+    <div>Myanmar <span>SRT</span></div>
+  </div>
+
+  <div class="menu" onclick="toggleSettings()">☰</div>
+</header>
+
+<main class="container">
+
+  <!-- SETTINGS -->
+  <section class="card" id="settingsCard">
+
+    <h2>⚙️ API Key Settings</h2>
+
+    <div class="desc">
+      ကိုယ့် Gemini / Groq API Key ကို ထည့်ပြီး ကိုယ်ပိုင် API quota နဲ့ အသုံးပြုနိုင်ပါတယ်။
+    </div>
+
+    <label>Gemini API Key</label>
+
+    <input
+      id="geminiKey"
+      type="password"
+      placeholder="Gemini API key ထည့်ပါ"
+      autocomplete="off"
+    >
+
+    <button onclick="saveGemini()">
+      Gemini Key သိမ်းမည်
+    </button>
+
+    <div id="geminiStatus" class="status">
+      Key: ❌ မရှိသေး
+    </div>
+
+
+    <div style="height:24px"></div>
+
+
+    <label>Groq API Key</label>
+
+    <input
+      id="groqKey"
+      type="password"
+      placeholder="Groq API key ထည့်ပါ"
+      autocomplete="off"
+    >
+
+    <button onclick="saveGroq()">
+      Groq Key သိမ်းမည်
+    </button>
+
+    <div id="groqStatus" class="status">
+      Key: ❌ မရှိသေး
+    </div>
+
+    <div class="note">
+      🔐 API Key ကို GitHub code ထဲ မရေးထားပါ။
+      ဒီ UI က user ထည့်တဲ့ Key ကို backend သို့ အသုံးပြုရန် ပြင်ဆင်ထားတာပါ။
+    </div>
+
+  </section>
+
+
+  <!-- FILE UPLOAD -->
+  <section class="card">
+
+    <h2>📁 File ထည့်ရန်</h2>
+
+    <div class="desc">
+      SRT ဖိုင်ကို တိုက်ရိုက်ဘာသာပြန်နိုင်ပါတယ်။
+      Video ကိုလည်း နောက်အဆင့်မှာ processing လုပ်နိုင်အောင် UI ကို ပြင်ဆင်ထားပါတယ်။
+    </div>
+
+    <div
+      class="dropzone"
+      onclick="document.getElementById('fileInput').click()"
+    >
+
+      <div class="dropIcon">📤</div>
+
+      <div class="dropTitle">
+        SRT / Video ဖိုင်ရွေးပါ
+      </div>
+
+      <div class="dropText">
+        SRT → Myanmar SRT<br>
+        Video → နောက်အဆင့်တွင် Auto Subtitle
+      </div>
+
+    </div>
+
+    <input
+      id="fileInput"
+      type="file"
+      accept=".srt,.mp4,.mkv,.mov,.webm,.avi"
+      class="hidden"
+      onchange="selectFile(this)"
+    >
+
+    <div id="fileInfo" class="fileInfo"></div>
+
+    <div id="progressWrap" class="progressWrap">
+
+      <div class="progressBar">
+        <div id="progress" class="progress"></div>
+      </div>
+
+      <div id="progressText" class="progressText">
+        Ready
+      </div>
+
+    </div>
+
+    <div class="action">
+
+      <button
+        id="translateBtn"
+        onclick="startTranslate()"
+      >
+        🇲🇲 Myanmar ဘာသာပြန်မည်
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- OUTPUT -->
+  <section class="card hidden" id="resultCard">
+
+    <h2>✅ ပြီးပါပြီ</h2>
+
+    <div class="desc">
+      ဘာသာပြန်ပြီးသော ဖိုင်ကို ဒီနေရာမှာ Download လုပ်နိုင်ပါမယ်။
+    </div>
+
+    <button
+      class="secondary"
+      id="downloadBtn"
+    >
+      ⬇️ Myanmar SRT Download
+    </button>
+
+  </section>
+
+</main>
+
+<div class="footer">
+  Myanmar SRT Translator • Gemini + Groq
+</div>
+
+
+<script>
+
+let selectedFile = null;
+
+
+/* =========================
+   LOAD SAVED KEYS
+========================= */
+
+window.addEventListener("DOMContentLoaded", () => {
+
+  const gemini = localStorage.getItem("gemini_api_key");
+  const groq = localStorage.getItem("groq_api_key");
+
+  if(gemini){
+    document.getElementById("geminiKey").value = gemini;
+    setStatus("geminiStatus", "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်", true);
+  }
+
+  if(groq){
+    document.getElementById("groqKey").value = groq;
+    setStatus("groqStatus", "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်", true);
+  }
+
+});
+
+
+/* =========================
+   SAVE GEMINI KEY
+========================= */
+
+function saveGemini(){
+
+  const key =
+    document.getElementById("geminiKey").value.trim();
+
+  if(!key){
+
+    setStatus(
+      "geminiStatus",
+      "Key: ❌ Key မထည့်ရသေးပါ",
+      false
+    );
+
+    return;
+  }
+
+  localStorage.setItem(
+    "gemini_api_key",
+    key
+  );
+
+  setStatus(
+    "geminiStatus",
+    "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်",
+    true
+  );
+}
+
+
+/* =========================
+   SAVE GROQ KEY
+========================= */
+
+function saveGroq(){
+
+  const key =
+    document.getElementById("groqKey").value.trim();
+
+  if(!key){
+
+    setStatus(
+      "groqStatus",
+      "Key: ❌ Key မထည့်ရသေးပါ",
+      false
+    );
+
+    return;
+  }
+
+  localStorage.setItem(
+    "groq_api_key",
+    key
+  );
+
+  setStatus(
+    "groqStatus",
+    "Key: ✅ အသုံးပြုရန် သိမ်းထားသည်",
+    true
+  );
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+function setStatus(id,text,ok){
+
+  const el =
+    document.getElementById(id);
+
+  el.textContent = text;
+
+  el.className =
+    ok ? "status ok" : "status bad";
+}
+
+
+/* =========================
+   FILE SELECT
+========================= */
+
+function selectFile(input){
+
+  if(!input.files || !input.files.length){
+    return;
+  }
+
+  selectedFile = input.files[0];
+
+  const sizeMB =
+    selectedFile.size / 1024 / 1024;
+
+  const info =
+    document.getElementById("fileInfo");
+
+  info.style.display = "block";
+
+  info.innerHTML =
+    `
+    <b>📄 ${escapeHtml(selectedFile.name)}</b><br>
+    Size: ${sizeMB.toFixed(2)} MB<br>
+    Type: ${escapeHtml(selectedFile.type || "Unknown")}
+    `;
+
+  if(sizeMB > 300){
+
+    info.innerHTML +=
+      `<br><span style="color:#ff6b75">
+      ⚠️ ဖိုင်အရွယ်အစား 300MB ကျော်နေပါတယ်။
+      </span>`;
+
+  }else{
+
+    info.innerHTML +=
+      `<br><span style="color:#35dfad">
+      ✅ 300MB အတွင်း
+      </span>`;
+  }
+}
+
+
+/* =========================
+   TRANSLATE
+========================= */
+
+async function startTranslate(){
+
+  if(!selectedFile){
+
+    alert("အရင်ဆုံး SRT သို့မဟုတ် Video ဖိုင်ရွေးပါ။");
+
+    return;
+  }
+
+  const gemini =
+    localStorage.getItem("gemini_api_key");
+
+  const groq =
+    localStorage.getItem("groq_api_key");
+
+  if(!gemini && !groq){
+
+    alert(
+      "Gemini API Key သို့မဟုတ် Groq API Key အနည်းဆုံးတစ်ခု ထည့်ပါ။"
+    );
+
+    return;
+  }
+
+
+  const progressWrap =
+    document.getElementById("progressWrap");
+
+  const progress =
+    document.getElementById("progress");
+
+  const progressText =
+    document.getElementById("progressText");
+
+  const btn =
+    document.getElementById("translateBtn");
+
+  progressWrap.style.display = "block";
+
+  btn.disabled = true;
+
+  btn.textContent = "⏳ Processing...";
+
+  progress.style.width = "10%";
+
+  progressText.textContent =
+    "Server ကို ဆက်သွယ်နေသည်...";
+
+
+  /*
+    STEP 3 မှာ ဒီနေရာကို
+    Hugging Face API နဲ့ အမှန်တကယ်ချိတ်မယ်။
+  */
+
+  try{
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "file",
+      selectedFile
+    );
+
+    /*
+      API URL ကို STEP 3 မှာ ထည့်မယ်။
+
+      ဥပမာ:
+
+      const API_URL =
+        "https://YOUR-SPACE.hf.space";
+    */
+
+    const API_URL =
+      window.MYANMAR_SRT_API || "";
+
+    if(!API_URL){
+
+      await fakeProgress();
+
+      throw new Error(
+        "Backend မချိတ်ရသေးပါ။ STEP 3 မှာ Hugging Face Backend ချိတ်ပါမယ်။"
+      );
+    }
+
+
+    progress.style.width = "30%";
+
+    progressText.textContent =
+      "ဖိုင်ကို Server သို့ ပို့နေသည်...";
+
+
+    const response =
+      await fetch(
+        API_URL + "/api/translate",
+        {
+          method:"POST",
+
+          headers:{
+            "X-Gemini-Key": gemini || "",
+            "X-Groq-Key": groq || ""
+          },
+
+          body:formData
+        }
+      );
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "Server Error: " +
+        response.status
+      );
+    }
+
+
+    progress.style.width = "80%";
+
+    progressText.textContent =
+      "Myanmar ဘာသာပြန်နေသည်...";
+
+
+    const blob =
+      await response.blob();
+
+
+    progress.style.width = "100%";
+
+    progressText.textContent =
+      "ပြီးပါပြီ ✅";
+
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const downloadBtn =
+      document.getElementById("downloadBtn");
+
+    downloadBtn.onclick = () => {
+
+      const a =
+        document.createElement("a");
+
+      a.href = url;
+
+      a.download =
+        "Myanmar_Translated.srt";
+
+      a.click();
+    };
+
+
+    document
+      .getElementById("resultCard")
+      .classList.remove("hidden");
+
+
+  }catch(error){
+
+    progress.style.width = "100%";
+
+    progressText.textContent =
+      "❌ " + error.message;
+
+    alert(error.message);
+
+  }finally{
+
+    btn.disabled = false;
+
+    btn.textContent =
+      "🇲🇲 Myanmar ဘာသာပြန်မည်";
+  }
+
+}
+
+
+/* =========================
+   TEMP PROGRESS
+========================= */
+
+function fakeProgress(){
+
+  return new Promise(resolve => {
+
+    let p = 10;
+
+    const timer =
+      setInterval(() => {
+
+        p += 10;
+
+        document
+          .getElementById("progress")
+          .style.width = p + "%";
+
+        document
+          .getElementById("progressText")
+          .textContent =
+          "Backend တည်ဆောက်နေဆဲ...";
+
+        if(p >= 100){
+
+          clearInterval(timer);
+
+          resolve();
+        }
+
+      },100);
+  });
+
+}
+
+
+/* =========================
+   SETTINGS MENU
+========================= */
+
+function toggleSettings(){
+
+  const card =
+    document.getElementById("settingsCard");
+
+  card.scrollIntoView({
+    behavior:"smooth"
+  });
+
+}
+
+
+/* =========================
+   HTML ESCAPE
+========================= */
+
+function escapeHtml(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+</script>
+
+</body>
+</html>
