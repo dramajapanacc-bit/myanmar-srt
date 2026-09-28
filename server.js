@@ -1942,20 +1942,19 @@ app.get(
 // SPA fallback
 // ------------------------------------------------------------
 
-app.get("*", (req, res) => {
-  const indexPath =
-    path.join(
-      PUBLIC_DIR,
-      "index.html"
-    );
+app.use((req, res) => {
+  const indexPath = path.join(
+    PUBLIC_DIR,
+    "index.html"
+  );
 
   if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send(
-      "index.html not found"
-    );
+    return res.sendFile(indexPath);
   }
+
+  return res.status(404).send(
+    "index.html not found"
+  );
 });
 
 // ------------------------------------------------------------
