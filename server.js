@@ -30,7 +30,7 @@ fs.mkdirSync(outputDir, { recursive: true });
 const upload = multer({
   dest: uploadDir,
   limits: {
-    fileSize: 100 * 1024 * 1024
+    fileSize: 300 * 1024 * 1024
   }
 });
 
@@ -40,7 +40,7 @@ const upload = multer({
 ========================= */
 
 const MAX_SIZE =
-  100 * 1024 * 1024;
+  300 * 1024 * 1024;
 
 const MAX_MINUTES = 5;
 
@@ -113,7 +113,7 @@ app.post(
 
         return res.status(400).json({
           error:
-            "Video size က 100MB ထက်မကျော်ရပါ"
+            "Video size က 300MB ထက်မကျော်ရပါ"
         });
 
       }
@@ -1006,7 +1006,7 @@ app.post(
 
         return res.status(400).json({
           error:
-            "Video size က 100MB ထက်မကျော်ရပါ"
+            "Video size က 300MB ထက်မကျော်ရပါ"
         });
 
       }
