@@ -275,7 +275,7 @@ API Key တွေကို ဒီ browser ရဲ့ local storage ထဲမှ�
 />
 
 <div class="small">
-Maximum 100MB / 5 minutes
+Maximum 300MB / 5 minutes
 </div>
 
 
@@ -756,13 +756,17 @@ async function transcribe() {
   }
 
 
+  /* =========================
+     300MB LIMIT
+  ========================= */
+
   if (
     file.size >
-    100 * 1024 * 1024
+    300 * 1024 * 1024
   ) {
 
     setStatus(
-      "❌ Video က 100MB ထက်ကြီးနေပါတယ်"
+      "❌ Video က 300MB ထက်ကြီးနေပါတယ်"
     );
 
     return;
@@ -1251,6 +1255,24 @@ async function renderMp4() {
 
     setStatus(
       "❌ Video ရွေးပေးပါ"
+    );
+
+    return;
+
+  }
+
+
+  /* =========================
+     300MB LIMIT
+  ========================= */
+
+  if (
+    file.size >
+    300 * 1024 * 1024
+  ) {
+
+    setStatus(
+      "❌ Video က 300MB ထက်ကြီးနေပါတယ်"
     );
 
     return;
