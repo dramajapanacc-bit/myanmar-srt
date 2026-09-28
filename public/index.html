@@ -2,470 +2,607 @@
 <html lang="my">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<title>Myanmar SRT + One Clips</title>
+<title>Myanmar SRT + One Clips Tool</title>
 
 <style>
+:root{
+  --bg:#080b12;
+  --card:#10141d;
+  --card2:#151a25;
+  --line:#273142;
+  --text:#f4f7fb;
+  --muted:#aab3c2;
+  --blue:#2388ff;
+  --blue2:#1467d9;
+  --green:#19c47d;
+  --red:#ff4d5e;
+  --yellow:#ffd84d;
+}
+
 *{
   box-sizing:border-box;
 }
 
+html,
 body{
   margin:0;
-  background:#0b0d10;
-  color:#fff;
-  font-family:Arial,"Noto Sans Myanmar",sans-serif;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans Myanmar",
+    "Myanmar Text",
+    Arial,
+    sans-serif;
+}
+
+body{
+  min-height:100vh;
 }
 
 .container{
-  width:100%;
-  max-width:720px;
-  margin:auto;
-  padding:18px;
+  width:min(980px, calc(100% - 20px));
+  margin:0 auto;
+  padding:20px 0 60px;
+}
+
+.header{
+  padding:22px;
+  border:1px solid #2a62c7;
+  border-radius:24px;
+  background:
+    radial-gradient(circle at top right, #17376e 0%, transparent 45%),
+    linear-gradient(145deg,#111827,#090c13);
+  margin-bottom:18px;
+}
+
+.header-title{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.logo{
+  width:66px;
+  height:66px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  background:#2468e8;
 }
 
 h1{
-  text-align:center;
-  margin:8px 0 20px;
   font-size:27px;
+  margin:0;
+}
+
+.header-sub{
+  color:var(--muted);
+  font-size:16px;
+  margin-top:5px;
 }
 
 .card{
-  background:#15181d;
-  border:1px solid #292e36;
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:15px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
 }
 
-.title{
-  font-size:18px;
-  font-weight:bold;
-  margin-bottom:13px;
+.card-title{
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:16px;
+}
+
+.section-title{
+  font-size:19px;
+  font-weight:800;
+  margin:0 0 12px;
 }
 
 label{
   display:block;
-  margin-top:12px;
-  margin-bottom:6px;
-  color:#bfc5ce;
-  font-size:14px;
-}
-
-input,
-select,
-button{
-  width:100%;
-  min-height:46px;
-  border-radius:11px;
-  border:1px solid #343a44;
-  background:#0e1115;
-  color:#fff;
-  padding:10px 12px;
+  color:#d8deea;
   font-size:15px;
+  margin-bottom:7px;
 }
 
 input[type="file"]{
-  padding:11px;
+  width:100%;
+  background:#0b0f17;
+  color:#fff;
+  border:1px solid #313b4d;
+  border-radius:14px;
+  padding:13px;
+  font-size:15px;
 }
 
-input[type="color"]{
-  padding:4px;
-  height:46px;
-}
-
-button{
-  margin-top:10px;
-  cursor:pointer;
-  font-weight:bold;
-  background:#242a33;
-}
-
-button:hover{
-  background:#303743;
-}
-
-.primary{
-  background:#2563eb;
-  border-color:#2563eb;
-}
-
-.success{
-  background:#15803d;
-  border-color:#15803d;
-}
-
-.danger{
-  background:#991b1b;
-  border-color:#991b1b;
-}
-
-.status{
-  padding:12px;
-  border-radius:10px;
-  background:#0d1117;
-  color:#cbd5e1;
-  margin-top:12px;
-  line-height:1.5;
-  white-space:pre-wrap;
-}
-
-.small{
-  color:#9ca3af;
-  font-size:13px;
-  line-height:1.5;
+textarea,
+select,
+input[type="text"],
+input[type="number"]{
+  width:100%;
+  background:#0b0f17;
+  color:#fff;
+  border:1px solid #303a4d;
+  border-radius:13px;
+  padding:12px 14px;
+  font-size:15px;
+  outline:none;
 }
 
 textarea{
-  width:100%;
   min-height:180px;
   resize:vertical;
-  border-radius:11px;
-  border:1px solid #343a44;
-  background:#0b0e12;
+  line-height:1.65;
+}
+
+textarea:focus,
+select:focus,
+input:focus{
+  border-color:var(--blue);
+}
+
+button{
+  border:0;
+  border-radius:13px;
+  padding:13px 17px;
   color:#fff;
-  padding:12px;
-  font-size:14px;
-  line-height:1.6;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.btn-secondary{
+  background:#202938;
+  border:1px solid #354156;
+}
+
+.btn-green{
+  background:linear-gradient(135deg,#16bd77,#0c8c58);
+}
+
+.btn-red{
+  background:#35141a;
+  border:1px solid #6c2730;
 }
 
 .row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.check{
   display:flex;
-  align-items:center;
   gap:10px;
-  margin-top:14px;
-  padding:12px;
-  border-radius:11px;
-  background:#0e1115;
+  flex-wrap:wrap;
 }
 
-.check input{
-  width:20px;
-  min-height:20px;
+.row > *{
+  flex:1;
+  min-width:130px;
+}
+
+.status{
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:13px;
+  background:#0b0f17;
+  border:1px solid #293243;
+  color:#c7cfdd;
+  line-height:1.55;
+}
+
+.status.success{
+  border-color:#1b815a;
+  color:#83e9bb;
+}
+
+.status.error{
+  border-color:#8a2d38;
+  color:#ff9aa4;
+}
+
+.status.loading{
+  border-color:#315fa2;
+  color:#9fc5ff;
 }
 
 .hidden{
-  display:none!important;
+  display:none !important;
 }
 
-.download{
-  display:block;
-  text-align:center;
-  text-decoration:none;
-  padding:14px;
-  margin-top:12px;
-  border-radius:11px;
-  background:#16a34a;
-  color:#fff;
-  font-weight:bold;
+/* ============================================================
+   SRT
+============================================================ */
+
+.srt-download{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px;
+  border-radius:16px;
+  background:#0c1119;
+  border:1px solid #293345;
 }
 
-.preview{
-  position:relative;
-  width:100%;
-  aspect-ratio:16/9;
-  background:#000;
-  border-radius:12px;
-  overflow:hidden;
-  margin-top:12px;
-}
-
-.preview video{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
-
-.preview-subtitle{
-  position:absolute;
-  left:5%;
-  right:5%;
-  bottom:7%;
-  text-align:center;
-  color:#fff;
-  font-size:25px;
-  font-weight:bold;
-  pointer-events:none;
+.srt-download strong{
+  font-size:17px;
 }
 
 .badge{
-  display:inline-block;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   padding:6px 10px;
-  border-radius:20px;
-  background:#242a33;
-  color:#cbd5e1;
+  border-radius:99px;
+  background:#182235;
+  color:#bcd2f8;
   font-size:12px;
-  margin-bottom:8px;
 }
 
-.oneclip{
-  border:1px solid #315edb;
-  background:
-    linear-gradient(
-      145deg,
-      #111827,
-      #15181d
-    );
-}
+/* ============================================================
+   ONE CLIPS
+============================================================ */
 
-.oneclip-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:12px;
-}
-
-.oneclip-icon{
-  width:48px;
-  height:48px;
-  border-radius:13px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#2563eb;
-  font-size:24px;
-}
-
-.oneclip-title{
-  font-size:21px;
-  font-weight:bold;
-}
-
-.oneclip-subtitle{
-  color:#9ca3af;
-  font-size:13px;
-  margin-top:3px;
-}
-
-.pipeline{
+.steps{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:6px;
-  margin:15px 0;
+  gap:8px;
+  margin-bottom:18px;
 }
 
-.pipeline-item{
+.step{
+  background:#0a0e15;
+  border:1px solid #202a3a;
+  border-radius:14px;
   text-align:center;
-  padding:9px 3px;
-  border-radius:9px;
-  background:#0d1117;
-  color:#9ca3af;
-  font-size:11px;
+  padding:12px 5px;
 }
 
-.pipeline-number{
-  display:block;
-  color:#60a5fa;
-  font-weight:bold;
-  margin-bottom:4px;
+.step-number{
+  color:#62a7ff;
+  font-size:16px;
+  font-weight:900;
+}
+
+.step-name{
+  color:#aeb7c6;
+  font-size:12px;
+  margin-top:4px;
 }
 
 .file-info{
+  background:#0a0e15;
+  border:1px solid #202a3a;
+  border-radius:15px;
+  padding:14px;
   margin-top:10px;
+  color:#c7cfdd;
+}
+
+.settings-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+.setting{
+  background:#0c1119;
+  border:1px solid #252f40;
+  border-radius:16px;
+  padding:14px;
+}
+
+.setting.full{
+  grid-column:1/-1;
+}
+
+.setting-title{
+  font-weight:800;
+  font-size:15px;
+  margin-bottom:9px;
+}
+
+.control-line{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.control-line input[type="range"]{
+  flex:1;
+}
+
+.value-box{
+  min-width:74px;
+  text-align:center;
+  padding:10px 8px;
+  background:#202938;
+  border-radius:11px;
+  font-weight:800;
+}
+
+input[type="range"]{
+  accent-color:#2388ff;
+  width:100%;
+}
+
+.color-line{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+input[type="color"]{
+  width:60px;
+  height:42px;
+  border:0;
+  background:transparent;
+  padding:0;
+}
+
+/* ============================================================
+   PREVIEW
+============================================================ */
+
+.preview-card{
+  background:#070a0f;
+  border:1px solid #273244;
+  border-radius:18px;
   padding:12px;
-  border-radius:10px;
-  background:#0d1117;
-  color:#cbd5e1;
-  white-space:pre-wrap;
-  font-size:13px;
 }
 
-.progress-wrap{
-  margin-top:14px;
-  background:#0d1117;
-  border-radius:10px;
-  overflow:hidden;
-  height:10px;
-  display:none;
+.preview-toolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
 }
 
-.progress-bar{
-  width:0%;
-  height:100%;
-  background:#2563eb;
-  transition:width .3s ease;
+.mode-button{
+  flex:1;
+  min-width:130px;
+  background:#171f2c;
+  border:1px solid #344054;
 }
 
-.progress-text{
-  margin-top:8px;
-  font-size:13px;
-  color:#9ca3af;
-  display:none;
+.mode-button.active{
+  background:#164f9f;
+  border-color:#4b9bff;
 }
 
 .preview-wrap{
-  margin-top:15px;
-}
-
-.preview-label{
-  font-size:14px;
-  font-weight:bold;
-  margin-bottom:7px;
-}
-
-#oneClipPreviewBox{
   position:relative;
   width:100%;
-  aspect-ratio:16/9;
-  background:#000;
-  border-radius:12px;
   overflow:hidden;
+  border-radius:14px;
+  background:#000;
+  user-select:none;
+  touch-action:none;
 }
 
-#oneClipPreviewVideo{
-  position:absolute;
-  inset:0;
+#recapVideoPreview{
+  display:block;
   width:100%;
-  height:100%;
+  height:auto;
+  max-height:70vh;
   object-fit:contain;
   background:#000;
 }
 
-#oneClipSubtitle{
+.preview-overlay{
   position:absolute;
-  left:5%;
-  width:90%;
-  bottom:7%;
-  text-align:center;
-  color:#fff;
-  font-family:"Noto Sans Myanmar",sans-serif;
-  font-size:25px;
-  font-weight:bold;
-  line-height:1.45;
-  text-shadow:
-    -2px -2px 0 #000,
-     2px -2px 0 #000,
-    -2px  2px 0 #000,
-     2px  2px 0 #000;
+  inset:0;
   pointer-events:none;
-  z-index:4;
 }
 
-#oneClipBlurBox{
+.drag-box{
   position:absolute;
-  left:5%;
-  top:78%;
-  width:90%;
-  height:22%;
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  border:2px dashed rgba(255,255,255,.55);
-  display:none;
-  z-index:3;
+  border:2px dashed #fff;
+  background:rgba(255,255,255,.06);
+  pointer-events:auto;
+  touch-action:none;
+  cursor:move;
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
 }
 
-.control-box{
-  margin-top:12px;
-  padding:13px;
-  border-radius:12px;
-  background:#0e1115;
-  border:1px solid #292e36;
+.drag-box span{
+  background:rgba(0,0,0,.7);
+  color:#fff;
+  font-size:11px;
+  padding:4px 7px;
+  border-radius:0 0 7px 0;
+  pointer-events:none;
 }
 
-.control-title{
-  font-weight:bold;
-  margin-bottom:8px;
+#blurBox{
+  border-color:#54a4ff;
+  background:rgba(38,137,255,.14);
 }
 
-.range-row{
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:10px;
+#subtitleBox{
+  border-color:#ffd84d;
+  background:rgba(255,216,77,.10);
+  width:80%;
+  min-height:54px;
+  justify-content:center;
   align-items:center;
 }
 
-.range-value{
-  min-width:60px;
+#subtitlePreviewText{
+  color:#fff;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 4px #000;
   text-align:center;
   padding:8px;
-  border-radius:8px;
-  background:#242a33;
+  line-height:1.25;
+  pointer-events:none;
+  width:100%;
 }
 
-input[type="range"]{
-  min-height:35px;
-  padding:0;
-}
-
-.result-box{
-  margin-top:14px;
-  padding:14px;
-  border-radius:12px;
-  background:#0d1117;
-  border:1px solid #292e36;
-}
-
-.result-title{
-  font-weight:bold;
-  margin-bottom:7px;
-}
-
-.script-preview{
-  max-height:220px;
-  overflow:auto;
-  white-space:pre-wrap;
-  color:#cbd5e1;
-  line-height:1.7;
-  font-size:14px;
-}
-
-.voice-info{
-  padding:10px;
-  border-radius:9px;
-  background:#0d1117;
-  color:#cbd5e1;
-  font-size:13px;
-  margin-top:8px;
-}
-
-.aspect-info{
-  margin-top:8px;
-  padding:10px;
-  border-radius:9px;
-  background:#0d1117;
-  color:#9ca3af;
-  font-size:13px;
-}
-
-.warning{
-  padding:11px;
+.preview-note{
   margin-top:10px;
-  border-radius:9px;
-  background:#261d0d;
-  border:1px solid #594515;
-  color:#e5c97a;
+  color:#9da7b8;
   font-size:13px;
   line-height:1.5;
 }
 
-@media(max-width:500px){
+.check-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#0c1119;
+  border:1px solid #273142;
+  border-radius:13px;
+  padding:12px;
+}
 
+.check-row input{
+  width:20px;
+  height:20px;
+}
+
+/* ============================================================
+   STYLE CONTROL - NEW LOOK
+============================================================ */
+
+.style-panel{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.style-item{
+  background:linear-gradient(145deg,#111722,#0b0f16);
+  border:1px solid #273244;
+  border-radius:15px;
+  padding:13px;
+}
+
+.style-item.full{
+  grid-column:1/-1;
+}
+
+.style-label{
+  font-size:13px;
+  color:#9faabc;
+  margin-bottom:8px;
+}
+
+.style-value{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.style-value select{
+  flex:1;
+}
+
+.number-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.number-control button{
+  width:40px;
+  min-width:40px;
+  padding:9px 0;
+  background:#202938;
+  border:1px solid #354054;
+}
+
+.number-control input{
+  text-align:center;
+  width:80px;
+}
+
+/* ============================================================
+   RESULT
+============================================================ */
+
+.result-box{
+  background:#0a0f16;
+  border:1px solid #293548;
+  border-radius:17px;
+  padding:17px;
+}
+
+.result-success{
+  border-color:#1c8b60;
+}
+
+.download-final{
+  width:100%;
+  margin-top:12px;
+  background:linear-gradient(135deg,#18c37e,#0c925a);
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media(max-width:700px){
   .container{
-    padding:12px;
+    width:min(100% - 12px, 980px);
+    padding-top:10px;
   }
 
-  .row{
+  .header{
+    padding:17px;
+    border-radius:19px;
+  }
+
+  h1{
+    font-size:24px;
+  }
+
+  .settings-grid,
+  .style-panel{
     grid-template-columns:1fr;
   }
 
-  .pipeline{
-    grid-template-columns:repeat(5,1fr);
+  .setting.full,
+  .style-item.full{
+    grid-column:auto;
   }
 
-  .pipeline-item{
-    font-size:9px;
+  .steps{
+    gap:5px;
   }
 
-  #oneClipSubtitle{
-    font-size:25px;
+  .step{
+    padding:10px 2px;
+  }
+
+  .step-name{
+    font-size:10px;
+  }
+
+  .step-number{
+    font-size:14px;
+  }
+
+  .card{
+    padding:13px;
+    border-radius:17px;
   }
 }
 </style>
@@ -475,2214 +612,2057 @@ input[type="range"]{
 
 <div class="container">
 
-<h1>🇲🇲 Myanmar SRT</h1>
+  <!-- ========================================================
+       HEADER
+  ========================================================= -->
+
+  <div class="header">
+    <div class="header-title">
+      <div class="logo">✂️</div>
+
+      <div>
+        <h1>One Clips Tool</h1>
+        <div class="header-sub">
+          Movie → AI Recap → Voice → Subtitle → Final Clip
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================
+       OLD SRT SECTION
+       KEEP ONLY UNTIL DOWNLOAD MYANMAR SRT
+  ========================================================= -->
+
+  <div class="card">
+
+    <div class="card-title">
+      🇲🇲 Myanmar Subtitle
+    </div>
+
+    <div class="section-title">
+      🎬 Video
+    </div>
+
+    <input
+      id="srtVideo"
+      type="file"
+      accept="video/*"
+    >
+
+    <div
+      id="srtFileInfo"
+      class="file-info hidden"
+    ></div>
+
+    <div style="height:12px"></div>
+
+    <div class="row">
+
+      <button
+        id="transcribeBtn"
+        type="button"
+      >
+        🎙️ Get Subtitle
+      </button>
+
+      <button
+        id="translateBtn"
+        type="button"
+        class="btn-secondary"
+        disabled
+      >
+        🇲🇲 Translate Myanmar
+      </button>
+
+    </div>
+
+    <div
+      id="srtStatus"
+      class="status"
+    >
+      Video ရွေးပြီး Subtitle စတင်နိုင်ပါတယ်။
+    </div>
 
-<!-- =========================
-     API SETTINGS
-========================= -->
+    <div style="height:14px"></div>
+
+    <label>
+      English / Original Transcript
+    </label>
+
+    <textarea
+      id="originalTranscript"
+      placeholder="Transcript ပေါ်လာပါမယ်..."
+    ></textarea>
+
+    <div style="height:12px"></div>
+
+    <label>
+      🇲🇲 Myanmar Subtitle
+    </label>
+
+    <textarea
+      id="myanmarSubtitle"
+      placeholder="Myanmar subtitle ပေါ်လာပါမယ်..."
+    ></textarea>
 
-<div class="card">
+    <div style="height:14px"></div>
 
-<div class="title">🔑 API Settings</div>
+    <div class="srt-download">
 
-<label>Groq API Key</label>
+      <div>
+        <strong>🇲🇲 Myanmar Subtitle</strong>
 
-<input
-  id="groqKey"
-  type="password"
-  placeholder="Enter Groq API Key"
-/>
+        <div
+          class="badge"
+          style="margin-top:7px"
+        >
+          SRT
+        </div>
+      </div>
 
-<label>Gemini API Key</label>
+      <button
+        id="downloadSrtBtn"
+        type="button"
+        class="btn-green"
+        disabled
+      >
+        ⬇️ Download Myanmar SRT
+      </button>
 
-<input
-  id="geminiKey"
-  type="password"
-  placeholder="Enter Gemini API Key"
-/>
+    </div>
 
-<button onclick="saveKeys()">
-💾 Save API Keys
-</button>
+  </div>
 
-<button
-  class="danger"
-  onclick="clearKeys()"
->
-🗑️ Clear Saved Keys
-</button>
 
-<div class="small">
-API Key တွေကို ဒီ Browser ရဲ့ Local Storage ထဲမှာပဲ သိမ်းထားပါတယ်။
-</div>
+  <!-- ========================================================
+       ONE CLIPS TOOL
+  ========================================================= -->
 
-</div>
+  <div class="card">
 
+    <div class="card-title">
+      ✂️ One Clips Tool
+    </div>
 
-<!-- =========================
-     OLD SRT
-========================= -->
+    <div class="steps">
 
-<div class="card">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-name">VIDEO</div>
+      </div>
 
-<div class="title">🎬 Video</div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-name">AI</div>
+      </div>
 
-<input
-  id="videoFile"
-  type="file"
-  accept="video/*"
-/>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-name">VOICE</div>
+      </div>
 
-<div class="small">
-Maximum 300MB / 5 minutes
-</div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-name">SYNC</div>
+      </div>
 
-<button
-  class="primary"
-  onclick="transcribe()"
->
-🎙️ Groq Transcript
-</button>
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-name">MP4</div>
+      </div>
 
-<button
-  class="primary"
-  onclick="translateMyanmar()"
->
-🇲🇲 Gemini Myanmar Translation
-</button>
+    </div>
 
-</div>
 
+    <!-- ======================================================
+         P1 VIDEO
+    ====================================================== -->
 
-<div class="card">
+    <div class="section-title">
+      🎥 Movie Video
+    </div>
 
-<div class="title">📊 Status</div>
+    <input
+      id="recapVideo"
+      type="file"
+      accept="video/*"
+    >
 
-<div
-  id="status"
-  class="status"
->
-Ready
-</div>
+    <div
+      id="recapFileInfo"
+      class="file-info hidden"
+    ></div>
 
-</div>
+    <div style="height:15px"></div>
 
 
-<div class="card">
+    <!-- ======================================================
+         SETTINGS
+    ====================================================== -->
 
-<div class="title">
-📝 Original Transcript
-</div>
+    <div class="section-title">
+      ⚙️ One Clips Settings
+    </div>
 
-<textarea
-  id="originalText"
-  readonly
-></textarea>
+    <div class="settings-grid">
 
-</div>
+      <!-- VOICE -->
+      <div class="setting full">
 
+        <div class="setting-title">
+          🔊 Gemini TTS Voice
+        </div>
 
-<div class="card">
+        <select id="recapVoice">
+          <option value="Kore">Kore</option>
+        </select>
 
-<div class="title">
-🇲🇲 Myanmar Subtitle
-</div>
+        <div class="preview-note">
+          Gemini TTS မှာ backend က support လုပ်တဲ့ voice တွေကို
+          ဒီနေရာမှာရွေးနိုင်ပါတယ်။
+        </div>
 
-<textarea
-  id="myanmarText"
-  readonly
-></textarea>
+      </div>
 
-<button onclick="downloadSrt()">
-⬇️ Download Myanmar SRT
-</button>
 
-</div>
+      <!-- SPEED -->
+      <div class="setting">
 
+        <div class="setting-title">
+          🏃 Voice Speed
+        </div>
 
-<div class="card">
+        <div class="control-line">
 
-<div class="title">
-🎨 Subtitle Style
-</div>
+          <input
+            id="voiceSpeed"
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.05"
+            value="1"
+          >
 
-<label>Font</label>
+          <div
+            id="voiceSpeedValue"
+            class="value-box"
+          >
+            1.00x
+          </div>
 
-<select id="fontName">
+        </div>
 
-<option value="Noto Sans Myanmar">
-Noto Sans Myanmar
-</option>
+      </div>
 
-<option value="Myanmar Text">
-Myanmar Text
-</option>
 
-<option value="Arial">
-Arial
-</option>
+      <!-- VOLUME -->
+      <div class="setting">
 
-<option value="sans-serif">
-Sans Serif
-</option>
+        <div class="setting-title">
+          🔊 Voice Volume
+        </div>
 
-</select>
+        <div class="control-line">
 
-<div class="row">
+          <input
+            id="voiceVolume"
+            type="range"
+            min="0"
+            max="2"
+            step="0.05"
+            value="1"
+          >
 
-<div>
+          <div
+            id="voiceVolumeValue"
+            class="value-box"
+          >
+            100%
+          </div>
 
-<label>Font Size</label>
+        </div>
 
-<input
-  id="fontSize"
-  type="number"
-  value="28"
-  min="16"
-  max="72"
-/>
+      </div>
 
-</div>
 
-<div>
+      <!-- PITCH -->
+      <div class="setting">
 
-<label>Outline</label>
+        <div class="setting-title">
+          🎚️ Voice Pitch
+        </div>
 
-<input
-  id="outline"
-  type="number"
-  value="2"
-  min="0"
-  max="10"
-/>
+        <div class="control-line">
 
-</div>
+          <input
+            id="voicePitch"
+            type="range"
+            min="-12"
+            max="12"
+            step="1"
+            value="0"
+          >
 
-</div>
+          <div
+            id="voicePitchValue"
+            class="value-box"
+          >
+            0
+          </div>
 
-<label>Text Color</label>
+        </div>
 
-<input
-  id="textColor"
-  type="color"
-  value="#ffffff"
-/>
+      </div>
 
-<label>Subtitle Position</label>
 
-<select id="position">
+      <!-- OUTPUT SIZE -->
+      <div class="setting">
 
-<option value="bottom">
-Bottom
-</option>
+        <div class="setting-title">
+          📐 Output Size
+        </div>
 
-<option value="middle">
-Middle
-</option>
+        <select id="outputSize">
 
-<option value="top">
-Top
-</option>
+          <option value="original">
+            Original Size
+          </option>
 
-</select>
+          <option value="9:16">
+            9:16
+          </option>
 
-<div class="check">
+          <option value="1:1">
+            1:1
+          </option>
 
-<input
-  id="blurOriginal"
-  type="checkbox"
-/>
+          <option value="16:9">
+            16:9
+          </option>
 
-<div>
+        </select>
 
-<strong>
-🔲 Blur Original Subtitle
-</strong>
+      </div>
 
-<br>
+    </div>
 
-<span class="small">
-မူရင်း video subtitle area ကို blur အုပ်မယ်။
-</span>
 
-</div>
+    <!-- ======================================================
+         LIVE PREVIEW
+    ====================================================== -->
 
-</div>
+    <div style="height:20px"></div>
 
-</div>
+    <div class="section-title">
+      👁️ Live Preview
+    </div>
 
+    <div class="preview-card">
 
-<div class="card">
+      <div class="preview-toolbar">
 
-<div class="title">
-👁️ Subtitle Preview
-</div>
+        <button
+          id="blurModeBtn"
+          type="button"
+          class="mode-button active"
+        >
+          🔲 Blur Area ရွှေ့
+        </button>
 
-<div class="preview">
+        <button
+          id="subtitleModeBtn"
+          type="button"
+          class="mode-button"
+        >
+          📝 Subtitle ရွှေ့
+        </button>
 
-<video
-  id="previewVideo"
-  controls
-></video>
+      </div>
 
-<div
-  id="previewSubtitle"
-  class="preview-subtitle"
->
-မြန်မာစာတန်း
-</div>
 
-</div>
+      <div
+        id="previewWrap"
+        class="preview-wrap"
+      >
 
-</div>
+        <video
+          id="recapVideoPreview"
+          controls
+          playsinline
+        ></video>
 
+        <div class="preview-overlay">
 
-<div class="card">
+          <!-- BLUR BOX -->
+          <div
+            id="blurBox"
+            class="drag-box"
+            style="
+              left:10%;
+              top:75%;
+              width:80%;
+              height:18%;
+            "
+          >
+            <span>
+              🔲 Original Subtitle Blur
+            </span>
+          </div>
 
-<div class="title">
-🎬 Final MP4
-</div>
 
-<div class="small">
-ရွေးထားတဲ့ subtitle style နဲ့ video ကို MP4 အဖြစ် render လုပ်ပါမယ်။
-</div>
+          <!-- SUBTITLE BOX -->
+          <div
+            id="subtitleBox"
+            class="drag-box"
+            style="
+              left:10%;
+              top:76%;
+            "
+          >
+            <div id="subtitlePreviewText">
+              မြန်မာ Movie Recap Subtitle
+            </div>
+          </div>
 
-<button
-  class="success"
-  onclick="renderMp4()"
->
-🎬 Render MP4
-</button>
+        </div>
 
-<div
-  id="downloadArea"
-  class="hidden"
-></div>
+      </div>
 
-</div>
 
+      <div class="preview-note">
+        🔲 Blur Area ရွေးထားရင် အပြာရောင် box ကို
+        လိုတဲ့နေရာကို ဆွဲရွှေ့ပါ။<br>
 
-<!-- =====================================================
-     ONE CLIPS TOOL
-===================================================== -->
+        📝 Subtitle ရွေးထားရင် အဝါရောင် box ကို
+        လိုတဲ့နေရာကို ဆွဲရွှေ့ပါ။
+      </div>
 
-<div class="card oneclip">
+    </div>
 
-<div class="oneclip-header">
 
-<div class="oneclip-icon">
-✂️
-</div>
+    <!-- ======================================================
+         BLUR
+    ====================================================== -->
 
-<div>
+    <div style="height:15px"></div>
 
-<div class="oneclip-title">
-One Clips Tool
-</div>
+    <div class="check-row">
 
-<div class="oneclip-subtitle">
-Movie → AI Recap → Voice → Subtitle → Final Clip
-</div>
+      <input
+        id="blurOriginal"
+        type="checkbox"
+        checked
+      >
 
-</div>
+      <div>
+        <strong>🔲 မူရင်း Subtitle Blur</strong>
 
-</div>
+        <div
+          style="
+            color:#98a3b5;
+            font-size:13px;
+            margin-top:3px;
+          "
+        >
+          Live Preview ထဲက အပြာရောင် Blur Area ကို
+          လိုတဲ့နေရာရွှေ့နိုင်ပါတယ်။
+        </div>
+      </div>
 
+    </div>
 
-<div class="pipeline">
 
-<div class="pipeline-item">
-<span class="pipeline-number">1</span>
-VIDEO
-</div>
+    <!-- ======================================================
+         NEW STYLE PANEL
+    ====================================================== -->
 
-<div class="pipeline-item">
-<span class="pipeline-number">2</span>
-AI
-</div>
+    <div style="height:18px"></div>
 
-<div class="pipeline-item">
-<span class="pipeline-number">3</span>
-VOICE
-</div>
+    <div class="section-title">
+      🎨 Subtitle Style
+    </div>
 
-<div class="pipeline-item">
-<span class="pipeline-number">4</span>
-SYNC
-</div>
+    <div class="style-panel">
 
-<div class="pipeline-item">
-<span class="pipeline-number">5</span>
-MP4
-</div>
 
-</div>
+      <!-- FONT -->
+      <div class="style-item full">
 
+        <div class="style-label">
+          Font
+        </div>
 
-<!-- VIDEO -->
+        <div class="style-value">
 
-<label>
-🎥 Movie Video
-</label>
+          <select id="fontName">
 
-<input
-  id="oneClipVideo"
-  type="file"
-  accept="video/*"
-/>
+            <option value="Noto Sans Myanmar">
+              Noto Sans Myanmar
+            </option>
 
-<div
-  id="oneClipFileInfo"
-  class="file-info"
->
-Video မရွေးရသေးပါ။
-</div>
+            <option value="Myanmar Text">
+              Myanmar Text
+            </option>
 
+            <option value="Arial">
+              Arial
+            </option>
 
-<!-- AUTO SETTINGS -->
+            <option value="Sans Serif">
+              Sans Serif
+            </option>
 
-<div class="control-box">
+          </select>
 
-<div class="control-title">
-⚙️ One Clips Settings
-</div>
+        </div>
 
+      </div>
 
-<label>
-Gemini TTS Voice
-</label>
 
-<select id="oneClipVoice">
+      <!-- FONT SIZE -->
+      <div class="style-item">
 
-<option value="Kore">
-Kore
-</option>
+        <div class="style-label">
+          Font Size
+        </div>
 
-<option value="Aoede">
-Aoede
-</option>
+        <div class="number-control">
 
-<option value="Leda">
-Leda
-</option>
+          <button
+            type="button"
+            id="fontSizeMinus"
+          >
+            −
+          </button>
 
-<option value="Zephyr">
-Zephyr
-</option>
+          <input
+            id="fontSize"
+            type="number"
+            min="10"
+            max="100"
+            value="25"
+          >
 
-</select>
+          <button
+            type="button"
+            id="fontSizePlus"
+          >
+            +
+          </button>
 
-<div class="small">
-Gemini TTS ရဲ့ voice name ကို backend က support လုပ်တဲ့ voice အတိုင်း အသုံးပြုပါမယ်။
-</div>
+        </div>
 
+      </div>
 
-<label>
-Voice Speed
-</label>
 
-<div class="range-row">
+      <!-- OUTLINE -->
+      <div class="style-item">
 
-<input
-  id="oneClipSpeed"
-  type="range"
-  min="0.5"
-  max="2"
-  step="0.05"
-  value="1"
-/>
+        <div class="style-label">
+          Outline
+        </div>
 
-<div
-  id="oneClipSpeedValue"
-  class="range-value"
->
-1.00x
-</div>
+        <div class="number-control">
 
-</div>
+          <button
+            type="button"
+            id="outlineMinus"
+          >
+            −
+          </button>
 
+          <input
+            id="outline"
+            type="number"
+            min="0"
+            max="20"
+            value="2"
+          >
 
-<label>
-Voice Volume
-</label>
+          <button
+            type="button"
+            id="outlinePlus"
+          >
+            +
+          </button>
 
-<div class="range-row">
+        </div>
 
-<input
-  id="oneClipVolume"
-  type="range"
-  min="0"
-  max="2"
-  step="0.05"
-  value="1"
-/>
+      </div>
 
-<div
-  id="oneClipVolumeValue"
-  class="range-value"
->
-100%
-</div>
 
-</div>
+      <!-- COLOR -->
+      <div class="style-item">
 
+        <div class="style-label">
+          Text Color
+        </div>
 
-<label>
-Voice Pitch
-</label>
+        <div class="color-line">
 
-<div class="range-row">
+          <input
+            id="textColor"
+            type="color"
+            value="#FFFFFF"
+          >
 
-<input
-  id="oneClipPitch"
-  type="range"
-  min="-12"
-  max="12"
-  step="1"
-  value="0"
-/>
+          <span
+            id="textColorValue"
+            class="badge"
+          >
+            #FFFFFF
+          </span>
 
-<div
-  id="oneClipPitchValue"
-  class="range-value"
->
-0
-</div>
+        </div>
 
-</div>
+      </div>
 
-</div>
 
+      <!-- POSITION -->
+      <div class="style-item">
 
-<!-- BLUR -->
+        <div class="style-label">
+          Position
+        </div>
 
-<div class="check">
+        <select id="position">
 
-<input
-  id="oneClipBlur"
-  type="checkbox"
-  checked
-/>
+          <option value="bottom">
+            Bottom
+          </option>
 
-<div>
+          <option value="middle">
+            Middle
+          </option>
 
-<strong>
-🔲 မူရင်း Subtitle Blur
-</strong>
+          <option value="top">
+            Top
+          </option>
 
-<br>
+        </select>
 
-<span class="small">
-Movie ထဲမှာ ပါပြီးသား subtitle area ကို blur အုပ်ပါမယ်။
-</span>
+      </div>
 
-</div>
+    </div>
 
-</div>
 
+    <!-- ======================================================
+         STATUS
+    ====================================================== -->
 
-<!-- STYLE -->
+    <div
+      id="oneClipStatus"
+      class="status"
+      style="margin-top:16px"
+    >
+      Video ရွေးပြီး One Clips စတင်နိုင်ပါတယ်။
+    </div>
 
-<div class="control-box">
 
-<div class="control-title">
-🎨 Myanmar Subtitle Style
-</div>
+    <!-- ======================================================
+         ONE CLICK BUTTON
+    ====================================================== -->
 
+    <div style="height:14px"></div>
 
-<label>
-Font
-</label>
+    <button
+      id="oneClipBtn"
+      type="button"
+      class="btn-green"
+      style="
+        width:100%;
+        font-size:18px;
+        padding:16px;
+      "
+      disabled
+    >
+      🚀 One Clips စတင်မယ်
+    </button>
 
-<select id="oneClipFont">
 
-<option value="Noto Sans Myanmar">
-Noto Sans Myanmar
-</option>
+    <!-- ======================================================
+         RESULT
+    ====================================================== -->
 
-<option value="Myanmar Text">
-Myanmar Text
-</option>
+    <div style="height:16px"></div>
 
-<option value="Arial">
-Arial
-</option>
+    <div class="section-title">
+      🎬 One Clips Result
+    </div>
 
-<option value="sans-serif">
-Sans Serif
-</option>
+    <div
+      id="oneClipResult"
+      class="result-box"
+    >
+      <div style="color:#9ea9ba">
+        Final MP4 မထွက်သေးပါ။
+      </div>
+    </div>
 
-</select>
-
-
-<div class="row">
-
-<div>
-
-<label>
-Font Size
-</label>
-
-<input
-  id="oneClipFontSize"
-  type="number"
-  value="25"
-  min="12"
-  max="100"
-/>
-
-</div>
-
-
-<div>
-
-<label>
-Outline
-</label>
-
-<input
-  id="oneClipOutline"
-  type="number"
-  value="2"
-  min="0"
-  max="15"
-/>
-
-</div>
-
-</div>
-
-
-<label>
-Text Color
-</label>
-
-<input
-  id="oneClipTextColor"
-  type="color"
-  value="#ffffff"
-/>
-
-
-<label>
-Subtitle Position
-</label>
-
-<select id="oneClipPosition">
-
-<option value="bottom">
-Bottom
-</option>
-
-<option value="middle">
-Middle
-</option>
-
-<option value="top">
-Top
-</option>
-
-</select>
-
-
-<label>
-Output Size
-</label>
-
-<select id="oneClipOutputSize">
-
-<option value="original">
-Original Size
-</option>
-
-<option value="9:16">
-9:16 — Vertical
-</option>
-
-<option value="1:1">
-1:1 — Square
-</option>
-
-<option value="16:9">
-16:9 — Landscape
-</option>
-
-</select>
-
-
-<div
-  id="oneClipAspectInfo"
-  class="aspect-info"
->
-Original Video အရွယ်အစားအတိုင်း ထုတ်မယ်။
-</div>
-
-</div>
-
-
-<!-- PREVIEW -->
-
-<div class="preview-wrap">
-
-<div class="preview-label">
-👁️ Live Preview
-</div>
-
-<div id="oneClipPreviewBox">
-
-<video
-  id="oneClipPreviewVideo"
-  controls
-  playsinline
-></video>
-
-<div id="oneClipBlurBox"></div>
-
-<div id="oneClipSubtitle">
-မြန်မာ Movie Recap Subtitle
-</div>
-
-</div>
-
-</div>
-
-
-<!-- PROGRESS -->
-
-<div
-  id="oneClipProgressWrap"
-  class="progress-wrap"
->
-
-<div
-  id="oneClipProgress"
-  class="progress-bar"
-></div>
-
-</div>
-
-<div
-  id="oneClipProgressText"
-  class="progress-text"
->
-Ready
-</div>
-
-
-<!-- MAIN BUTTON -->
-
-<button
-  id="oneClipStartButton"
-  class="success"
-  style="
-    min-height:58px;
-    font-size:17px;
-    margin-top:15px;
-  "
-  onclick="startOneClip()"
->
-🚀 One Clips စတင်မယ်
-</button>
-
-
-<div class="small" style="margin-top:10px;">
-Video တစ်ခုထည့်ပြီး ဒီခလုတ်တစ်ချက်နှိပ်ရုံနဲ့
-AI က Movie Scene တွေကိုဖတ်ပြီး Recap Script,
-Myanmar Voice, Voice-Synced Subtitle နဲ့ Final MP4
-ကို အလိုအလျောက် ပြုလုပ်ပေးပါမယ်။
-</div>
-
-
-<!-- RESULT -->
-
-<div
-  id="oneClipResult"
-  class="result-box hidden"
->
-
-<div class="result-title">
-🎬 One Clips Result
-</div>
-
-
-<div
-  id="oneClipResultStatus"
-  class="status"
->
-Processing...
-</div>
-
-
-<div
-  id="oneClipScript"
-  class="script-preview"
-></div>
-
-
-<div
-  id="oneClipDownload"
-></div>
-
-</div>
-
-
-<div
-  id="oneClipWarning"
-  class="warning hidden"
->
-⚠️ One Clips processing လုပ်နေချိန်မှာ
-Browser ကို မပိတ်ပါနှင့်။
-Video အရွယ်အစားနဲ့ server processing အပေါ်မူတည်ပြီး
-အချိန်ကြာနိုင်ပါတယ်။
-</div>
-
-</div>
+  </div>
 
 </div>
 
 
 <script>
+/* ============================================================
+   BASIC HELPERS
+============================================================ */
 
-/* =====================================================
-   GLOBAL
-===================================================== */
+const $ = id => document.getElementById(id);
 
-let originalTranscript=[];
-let myanmarTranscript=[];
-let selectedVideo=null;
+function setStatus(el, text, type=""){
+  el.textContent = text;
+  el.className = "status";
 
-let oneClipVideoFile=null;
-
-
-/* =====================================================
-   API KEYS
-===================================================== */
-
-function loadKeys(){
-
-  document.getElementById("groqKey").value=
-    localStorage.getItem("myanmar_srt_groq_key") || "";
-
-  document.getElementById("geminiKey").value=
-    localStorage.getItem("myanmar_srt_gemini_key") || "";
-
-}
-
-
-function saveKeys(){
-
-  const groq=
-    document.getElementById("groqKey").value.trim();
-
-  const gemini=
-    document.getElementById("geminiKey").value.trim();
-
-  localStorage.setItem(
-    "myanmar_srt_groq_key",
-    groq
-  );
-
-  localStorage.setItem(
-    "myanmar_srt_gemini_key",
-    gemini
-  );
-
-  setStatus(
-    "✅ API Keys သိမ်းပြီးပါပြီ"
-  );
-
-}
-
-
-function clearKeys(){
-
-  localStorage.removeItem(
-    "myanmar_srt_groq_key"
-  );
-
-  localStorage.removeItem(
-    "myanmar_srt_gemini_key"
-  );
-
-  document.getElementById("groqKey").value="";
-  document.getElementById("geminiKey").value="";
-
-  setStatus(
-    "🗑️ API Keys ဖျက်ပြီးပါပြီ"
-  );
-
-}
-
-
-function getGroqKey(){
-
-  return localStorage.getItem(
-    "myanmar_srt_groq_key"
-  ) || "";
-
-}
-
-
-function getGeminiKey(){
-
-  return localStorage.getItem(
-    "myanmar_srt_gemini_key"
-  ) || "";
-
-}
-
-
-function setStatus(message){
-
-  document.getElementById(
-    "status"
-  ).textContent=message;
-
-}
-
-
-/* =====================================================
-   OLD SRT VIDEO
-===================================================== */
-
-document
-.getElementById("videoFile")
-.addEventListener(
-  "change",
-  function(){
-
-    selectedVideo=
-      this.files[0] || null;
-
-    if(selectedVideo){
-
-      document.getElementById(
-        "previewVideo"
-      ).src=
-        URL.createObjectURL(
-          selectedVideo
-        );
-
-    }
-
+  if(type){
+    el.classList.add(type);
   }
-);
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
 
 
-/* =====================================================
-   OLD TRANSCRIBE
-===================================================== */
+/* ============================================================
+   SRT
+============================================================ */
 
-async function transcribe(){
+let srtFile = null;
+let srtSegments = [];
 
-  const file=
-    document.getElementById(
-      "videoFile"
-    ).files[0];
+$("srtVideo").addEventListener("change", e => {
 
-  if(!file){
+  srtFile = e.target.files[0] || null;
 
-    setStatus(
-      "❌ Video ရွေးပေးပါ"
-    );
-
+  if(!srtFile){
+    $("srtFileInfo").classList.add("hidden");
     return;
   }
 
-  const key=getGroqKey();
+  $("srtFileInfo").classList.remove("hidden");
 
-  if(!key){
-
-    setStatus(
-      "❌ Groq API Key ထည့်ပေးပါ"
-    );
-
-    return;
-  }
-
-  if(
-    file.size >
-    300*1024*1024
-  ){
-
-    setStatus(
-      "❌ Video က 300MB ထက်ကြီးနေပါတယ်"
-    );
-
-    return;
-  }
+  $("srtFileInfo").innerHTML =
+    `🎬 ${escapeHtml(srtFile.name)}
+     <br>
+     Size: ${(srtFile.size / 1024 / 1024).toFixed(2)} MB`;
 
   setStatus(
-    "⏳ Groq Transcript လုပ်နေပါတယ်..."
+    $("srtStatus"),
+    "Video ရွေးပြီးပါပြီ။ Get Subtitle ကိုနှိပ်ပါ။"
+  );
+});
+
+
+$("transcribeBtn").addEventListener("click", async () => {
+
+  if(!srtFile){
+    setStatus(
+      $("srtStatus"),
+      "အရင် Video ရွေးပါ။",
+      "error"
+    );
+    return;
+  }
+
+  const form = new FormData();
+
+  form.append("video", srtFile);
+
+  setStatus(
+    $("srtStatus"),
+    "🎙️ Subtitle ကိုဖတ်နေပါတယ်...",
+    "loading"
   );
 
-  const formData=
-    new FormData();
-
-  formData.append(
-    "video",
-    file
-  );
+  $("transcribeBtn").disabled = true;
 
   try{
 
-    const response=
-      await fetch(
-        "/api/transcribe",
-        {
-          method:"POST",
-          headers:{
-            "x-groq-api-key":key
-          },
-          body:formData
-        }
-      );
-
-    const data=
-      await response.json();
-
-    if(!response.ok){
-
-      throw new Error(
-        data.error ||
-        "Groq Error"
-      );
-
-    }
-
-    originalTranscript=
-      data.transcript || [];
-
-    document.getElementById(
-      "originalText"
-    ).value=
-      makeDisplayText(
-        originalTranscript
-      );
-
-    setStatus(
-      "✅ Groq Transcript ရပါပြီ။"
-    );
-
-  }catch(error){
-
-    setStatus(
-      "❌ Groq Error: "+
-      error.message
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   OLD TRANSLATE
-===================================================== */
-
-async function translateMyanmar(){
-
-  if(!originalTranscript.length){
-
-    setStatus(
-      "❌ အရင် Groq Transcript လုပ်ပါ"
-    );
-
-    return;
-  }
-
-  const key=getGeminiKey();
-
-  if(!key){
-
-    setStatus(
-      "❌ Gemini API Key ထည့်ပေးပါ"
-    );
-
-    return;
-  }
-
-  setStatus(
-    "⏳ Gemini Myanmar Translation လုပ်နေပါတယ်..."
-  );
-
-  try{
-
-    const response=
-      await fetch(
-        "/api/translate",
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":
-              "application/json",
-            "x-gemini-api-key":
-              key
-          },
-          body:JSON.stringify({
-            transcript:
-              originalTranscript
-          })
-        }
-      );
-
-    const data=
-      await response.json();
-
-    if(!response.ok){
-
-      throw new Error(
-        data.error ||
-        "Gemini Error"
-      );
-
-    }
-
-    myanmarTranscript=
-      data.transcript || [];
-
-    document.getElementById(
-      "myanmarText"
-    ).value=
-      makeDisplayText(
-        myanmarTranscript
-      );
-
-    updateOldPreview();
-
-    setStatus(
-      "✅ Myanmar Translation ရပါပြီ"
-    );
-
-  }catch(error){
-
-    setStatus(
-      "❌ Gemini Error: "+
-      error.message
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   DISPLAY TEXT
-===================================================== */
-
-function makeDisplayText(
-  transcript
-){
-
-  return transcript
-    .map(
-      (item,index)=>{
-
-        return(
-          `${index+1}\n`+
-          `${formatSrtTime(item.start)} --> ${formatSrtTime(item.end)}\n`+
-          `${item.text}\n`
-        );
-
+    const response = await fetch(
+      "/api/transcribe",
+      {
+        method:"POST",
+        body:form
       }
-    )
-    .join("\n");
-
-}
-
-
-function formatSrtTime(seconds){
-
-  const totalMs=
-    Math.round(
-      Number(seconds)*1000
     );
 
-  const hours=
-    Math.floor(
-      totalMs/3600000
-    );
+    const data = await response.json();
 
-  const minutes=
-    Math.floor(
-      (totalMs%3600000)/60000
-    );
+    if(!response.ok || !data.ok){
+      throw new Error(
+        data.error || "Transcription failed"
+      );
+    }
 
-  const secs=
-    Math.floor(
-      (totalMs%60000)/1000
-    );
+    srtSegments = Array.isArray(data.segments)
+      ? data.segments
+      : [];
 
-  const ms=
-    totalMs%1000;
+    $("originalTranscript").value =
+      data.text || "";
 
-  return(
-    String(hours).padStart(2,"0")+
-    ":"+
-    String(minutes).padStart(2,"0")+
-    ":"+
-    String(secs).padStart(2,"0")+
-    ","+
-    String(ms).padStart(3,"0")
-  );
-
-}
-
-
-/* =====================================================
-   OLD PREVIEW
-===================================================== */
-
-function updateOldPreview(){
-
-  const preview=
-    document.getElementById(
-      "previewSubtitle"
-    );
-
-  const size=
-    Number(
-      document.getElementById(
-        "fontSize"
-      ).value
-    ) || 28;
-
-  const outline=
-    Number(
-      document.getElementById(
-        "outline"
-      ).value
-    ) || 2;
-
-  const color=
-    document.getElementById(
-      "textColor"
-    ).value;
-
-  const font=
-    document.getElementById(
-      "fontName"
-    ).value;
-
-  const position=
-    document.getElementById(
-      "position"
-    ).value;
-
-  preview.style.fontSize=
-    size+"px";
-
-  preview.style.color=
-    color;
-
-  preview.style.fontFamily=
-    font;
-
-  preview.style.textShadow=`
-    -${outline}px -${outline}px 0 #000,
-     ${outline}px -${outline}px 0 #000,
-    -${outline}px ${outline}px 0 #000,
-     ${outline}px ${outline}px 0 #000
-  `;
-
-  if(position==="top"){
-
-    preview.style.top="7%";
-    preview.style.bottom="auto";
-    preview.style.transform="none";
-
-  }
-  else if(position==="middle"){
-
-    preview.style.top="50%";
-    preview.style.bottom="auto";
-    preview.style.transform=
-      "translateY(-50%)";
-
-  }
-  else{
-
-    preview.style.top="auto";
-    preview.style.bottom="7%";
-    preview.style.transform="none";
-
-  }
-
-  if(myanmarTranscript.length){
-
-    preview.textContent=
-      myanmarTranscript[0].text;
-
-  }
-
-}
-
-
-/* =====================================================
-   DOWNLOAD SRT
-===================================================== */
-
-function downloadSrt(){
-
-  if(!myanmarTranscript.length){
+    $("translateBtn").disabled = false;
 
     setStatus(
-      "❌ Myanmar subtitle မရှိသေးပါ"
+      $("srtStatus"),
+      "✅ Subtitle ရရှိပါပြီ။ အခု Myanmar Translate ကိုနှိပ်ပါ။",
+      "success"
     );
 
+  }catch(error){
+
+    setStatus(
+      $("srtStatus"),
+      "❌ " + error.message,
+      "error"
+    );
+
+  }finally{
+
+    $("transcribeBtn").disabled = false;
+
+  }
+
+});
+
+
+$("translateBtn").addEventListener("click", async () => {
+
+  const text =
+    $("originalTranscript").value.trim();
+
+  if(!text){
     return;
   }
 
-  const srt=
-    myanmarTranscript
-      .map(
-        (item,index)=>{
+  $("translateBtn").disabled = true;
 
-          return(
-            `${index+1}\n`+
-            `${formatSrtTime(item.start)} --> ${formatSrtTime(item.end)}\n`+
-            `${item.text}\n`
-          );
+  setStatus(
+    $("srtStatus"),
+    "🇲🇲 Myanmar Subtitle ပြန်ဆိုနေပါတယ်...",
+    "loading"
+  );
 
-        }
-      )
+  try{
+
+    const response = await fetch(
+      "/api/translate",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          text
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if(!response.ok || !data.ok){
+      throw new Error(
+        data.error || "Translation failed"
+      );
+    }
+
+    $("myanmarSubtitle").value =
+      data.text || "";
+
+    $("downloadSrtBtn").disabled = false;
+
+    setStatus(
+      $("srtStatus"),
+      "✅ Myanmar Subtitle ပြီးပါပြီ။ Download လုပ်နိုင်ပါပြီ။",
+      "success"
+    );
+
+  }catch(error){
+
+    setStatus(
+      $("srtStatus"),
+      "❌ " + error.message,
+      "error"
+    );
+
+  }finally{
+
+    $("translateBtn").disabled = false;
+
+  }
+
+});
+
+
+function secondsToSrtTime(seconds){
+
+  seconds = Math.max(
+    0,
+    Number(seconds) || 0
+  );
+
+  const h =
+    Math.floor(seconds / 3600);
+
+  const m =
+    Math.floor(
+      (seconds % 3600) / 60
+    );
+
+  const s =
+    Math.floor(seconds % 60);
+
+  const ms =
+    Math.floor(
+      (seconds - Math.floor(seconds)) * 1000
+    );
+
+  return [
+    String(h).padStart(2,"0"),
+    String(m).padStart(2,"0"),
+    String(s).padStart(2,"0")
+  ].join(":") +
+  "," +
+  String(ms).padStart(3,"0");
+}
+
+
+function buildSrt(){
+
+  const myanmar =
+    $("myanmarSubtitle").value.trim();
+
+  if(!myanmar){
+    return "";
+  }
+
+  const lines =
+    myanmar
+      .split(/\r?\n/)
+      .map(x => x.trim())
+      .filter(Boolean);
+
+  if(!srtSegments.length){
+
+    return lines
+      .map((line,index) => {
+
+        const start = index * 3;
+        const end = start + 3;
+
+        return (
+          `${index + 1}\n` +
+          `${secondsToSrtTime(start)} --> ${secondsToSrtTime(end)}\n` +
+          `${line}\n`
+        );
+
+      })
       .join("\n");
+  }
 
-  const blob=
+  return lines
+    .map((line,index) => {
+
+      const segment =
+        srtSegments[
+          Math.min(
+            index,
+            srtSegments.length - 1
+          )
+        ];
+
+      const start =
+        Number(segment?.start || 0);
+
+      const end =
+        Number(segment?.end || start + 3);
+
+      return (
+        `${index + 1}\n` +
+        `${secondsToSrtTime(start)} --> ${secondsToSrtTime(end)}\n` +
+        `${line}\n`
+      );
+
+    })
+    .join("\n");
+}
+
+
+$("downloadSrtBtn").addEventListener("click", () => {
+
+  const srt =
+    buildSrt();
+
+  if(!srt){
+    return;
+  }
+
+  const blob =
     new Blob(
       [srt],
       {
-        type:
-          "text/plain;charset=utf-8"
+        type:"application/x-subrip;charset=utf-8"
       }
     );
 
-  const url=
-    URL.createObjectURL(
-      blob
-    );
+  const url =
+    URL.createObjectURL(blob);
 
-  const a=
-    document.createElement(
-      "a"
-    );
+  const a =
+    document.createElement("a");
 
-  a.href=url;
+  a.href = url;
+  a.download =
+    "Myanmar_Subtitle.srt";
 
-  a.download=
-    "myanmar-subtitle.srt";
+  document.body.appendChild(a);
 
   a.click();
 
-  URL.revokeObjectURL(
-    url
+  a.remove();
+
+  setTimeout(
+    () => URL.revokeObjectURL(url),
+    1000
   );
 
-}
+});
 
 
-/* =====================================================
-   OLD MP4
-===================================================== */
+/* ============================================================
+   ONE CLIPS
+============================================================ */
 
-async function renderMp4(){
+let recapFile = null;
 
-  const file=
-    document.getElementById(
-      "videoFile"
-    ).files[0];
-
-  if(!file){
-
-    setStatus(
-      "❌ Video ရွေးပေးပါ"
-    );
-
-    return;
-  }
-
-  if(
-    file.size >
-    300*1024*1024
-  ){
-
-    setStatus(
-      "❌ Video က 300MB ထက်ကြီးနေပါတယ်"
-    );
-
-    return;
-  }
-
-  if(!myanmarTranscript.length){
-
-    setStatus(
-      "❌ အရင် Myanmar Translation လုပ်ပါ"
-    );
-
-    return;
-  }
-
-  setStatus(
-    "⏳ MP4 Render လုပ်နေပါတယ်..."
-  );
-
-  const formData=
-    new FormData();
-
-  formData.append(
-    "video",
-    file
-  );
-
-  formData.append(
-    "transcript",
-    JSON.stringify(
-      myanmarTranscript
-    )
-  );
-
-  formData.append(
-    "fontName",
-    document.getElementById(
-      "fontName"
-    ).value
-  );
-
-  formData.append(
-    "fontSize",
-    document.getElementById(
-      "fontSize"
-    ).value
-  );
-
-  formData.append(
-    "textColor",
-    document.getElementById(
-      "textColor"
-    ).value.replace("#","")
-  );
-
-  formData.append(
-    "outline",
-    document.getElementById(
-      "outline"
-    ).value
-  );
-
-  formData.append(
-    "position",
-    document.getElementById(
-      "position"
-    ).value
-  );
-
-  formData.append(
-    "blurOriginal",
-    document.getElementById(
-      "blurOriginal"
-    ).checked
-      ?"true"
-      :"false"
-  );
-
-  try{
-
-    const response=
-      await fetch(
-        "/api/render",
-        {
-          method:"POST",
-          body:formData
-        }
-      );
-
-    const data=
-      await response.json();
-
-    if(!response.ok){
-
-      throw new Error(
-        data.error ||
-        "MP4 Render Error"
-      );
-
-    }
-
-    const area=
-      document.getElementById(
-        "downloadArea"
-      );
-
-    area.classList.remove(
-      "hidden"
-    );
-
-    area.innerHTML=`
-      <a
-        class="download"
-        href="${data.downloadUrl}"
-        download
-      >
-        ⬇️ Download Final MP4
-      </a>
-    `;
-
-    setStatus(
-      "✅ MP4 Render အောင်မြင်ပါပြီ"
-    );
-
-  }catch(error){
-
-    setStatus(
-      "❌ Render Error: "+
-      error.message
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   ONE CLIPS - FILE
-===================================================== */
-
-document
-.getElementById(
-  "oneClipVideo"
-)
-.addEventListener(
+$("recapVideo").addEventListener(
   "change",
-  function(){
+  e => {
 
-    oneClipVideoFile=
-      this.files[0] || null;
+    recapFile =
+      e.target.files[0] || null;
 
-    const info=
-      document.getElementById(
-        "oneClipFileInfo"
-      );
+    if(!recapFile){
 
-    const preview=
-      document.getElementById(
-        "oneClipPreviewVideo"
-      );
+      $("recapFileInfo")
+        .classList.add("hidden");
 
-    if(!oneClipVideoFile){
-
-      info.textContent=
-        "Video မရွေးရသေးပါ။";
-
-      preview.removeAttribute(
-        "src"
-      );
-
-      preview.load();
+      $("oneClipBtn").disabled = true;
 
       return;
     }
 
-    const sizeMB=
-      (
-        oneClipVideoFile.size /
-        1024 /
-        1024
-      ).toFixed(1);
+    $("recapFileInfo")
+      .classList.remove("hidden");
 
-    info.textContent=
-      "🎥 "+
-      oneClipVideoFile.name+
-      "\nSize: "+
-      sizeMB+
-      " MB";
+    $("recapFileInfo").innerHTML =
+      `🎬 ${escapeHtml(recapFile.name)}
+       <br>
+       Size: ${(recapFile.size / 1024 / 1024).toFixed(2)} MB`;
 
-    preview.src=
-      URL.createObjectURL(
-        oneClipVideoFile
-      );
+    const url =
+      URL.createObjectURL(recapFile);
 
-    preview.load();
+    $("recapVideoPreview").src =
+      url;
 
-  }
-);
+    $("recapVideoPreview").load();
 
+    $("oneClipBtn").disabled = false;
 
-/* =====================================================
-   ONE CLIPS - RANGE
-===================================================== */
-
-document
-.getElementById(
-  "oneClipSpeed"
-)
-.addEventListener(
-  "input",
-  function(){
-
-    document.getElementById(
-      "oneClipSpeedValue"
-    ).textContent=
-      Number(
-        this.value
-      ).toFixed(2)+"x";
+    setStatus(
+      $("oneClipStatus"),
+      "✅ Video ရွေးပြီးပါပြီ။ Live Preview ကိုချိန်ပြီး One Clips စတင်နိုင်ပါတယ်။",
+      "success"
+    );
 
   }
 );
 
 
-document
-.getElementById(
-  "oneClipVolume"
-)
-.addEventListener(
-  "input",
-  function(){
+/* ============================================================
+   VOICE CONTROLS
+============================================================ */
 
-    document.getElementById(
-      "oneClipVolumeValue"
-    ).textContent=
-      Math.round(
-        Number(this.value)*100
-      )+"%";
+$("voiceSpeed").addEventListener(
+  "input",
+  () => {
+
+    const value =
+      Number($("voiceSpeed").value);
+
+    $("voiceSpeedValue").textContent =
+      value.toFixed(2) + "x";
 
   }
 );
 
 
-document
-.getElementById(
-  "oneClipPitch"
-)
-.addEventListener(
+$("voiceVolume").addEventListener(
   "input",
-  function(){
+  () => {
 
-    const value=
-      Number(this.value);
+    const value =
+      Number($("voiceVolume").value);
 
-    document.getElementById(
-      "oneClipPitchValue"
-    ).textContent=
-      value>0
-        ? "+"+value
+    $("voiceVolumeValue").textContent =
+      Math.round(value * 100) + "%";
+
+  }
+);
+
+
+$("voicePitch").addEventListener(
+  "input",
+  () => {
+
+    const value =
+      Number($("voicePitch").value);
+
+    $("voicePitchValue").textContent =
+      value > 0
+        ? "+" + value
         : String(value);
 
   }
 );
 
 
-/* =====================================================
-   ONE CLIPS - STYLE PREVIEW
-===================================================== */
-
-function updateOneClipPreview(){
-
-  const subtitle=
-    document.getElementById(
-      "oneClipSubtitle"
-    );
-
-  const font=
-    document.getElementById(
-      "oneClipFont"
-    ).value;
-
-  const size=
-    Number(
-      document.getElementById(
-        "oneClipFontSize"
-      ).value
-    ) || 25;
-
-  const color=
-    document.getElementById(
-      "oneClipTextColor"
-    ).value;
-
-  const outline=
-    Number(
-      document.getElementById(
-        "oneClipOutline"
-      ).value
-    ) || 2;
-
-  const position=
-    document.getElementById(
-      "oneClipPosition"
-    ).value;
-
-  subtitle.style.fontFamily=
-    font;
-
-  subtitle.style.fontSize=
-    size+"px";
-
-  subtitle.style.color=
-    color;
-
-  subtitle.style.textShadow=`
-    -${outline}px -${outline}px 0 #000,
-     ${outline}px -${outline}px 0 #000,
-    -${outline}px ${outline}px 0 #000,
-     ${outline}px ${outline}px 0 #000
-  `;
-
-  subtitle.style.transform=
-    "none";
-
-  if(position==="top"){
-
-    subtitle.style.top="7%";
-    subtitle.style.bottom="auto";
-
-  }
-  else if(position==="middle"){
-
-    subtitle.style.top="50%";
-    subtitle.style.bottom="auto";
-
-    subtitle.style.transform=
-      "translateY(-50%)";
-
-  }
-  else{
-
-    subtitle.style.top="auto";
-    subtitle.style.bottom="7%";
-
-  }
-
-  const blur=
-    document.getElementById(
-      "oneClipBlurBox"
-    );
-
-  blur.style.display=
-    document.getElementById(
-      "oneClipBlur"
-    ).checked
-      ?"block"
-      :"none";
-
-}
-
-
-/* =====================================================
-   ONE CLIPS - OUTPUT SIZE
-===================================================== */
-
-document
-.getElementById(
-  "oneClipOutputSize"
-)
-.addEventListener(
-  "change",
-  function(){
-
-    const preview=
-      document.getElementById(
-        "oneClipPreviewBox"
-      );
-
-    const info=
-      document.getElementById(
-        "oneClipAspectInfo"
-      );
-
-    if(this.value==="original"){
-
-      preview.style.aspectRatio=
-        "16/9";
-
-      info.textContent=
-        "Original Video အရွယ်အစားအတိုင်း ထုတ်မယ်။";
-
-    }
-
-    else if(this.value==="9:16"){
-
-      preview.style.aspectRatio=
-        "9/16";
-
-      info.textContent=
-        "9:16 — TikTok / Reels / Shorts";
-
-    }
-
-    else if(this.value==="1:1"){
-
-      preview.style.aspectRatio=
-        "1/1";
-
-      info.textContent=
-        "1:1 — Square Video";
-
-    }
-
-    else if(this.value==="16:9"){
-
-      preview.style.aspectRatio=
-        "16/9";
-
-      info.textContent=
-        "16:9 — YouTube / Landscape";
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   ONE CLIPS - LIVE CONTROLS
-===================================================== */
-
-[
-  "oneClipFont",
-  "oneClipFontSize",
-  "oneClipOutline",
-  "oneClipTextColor",
-  "oneClipPosition",
-  "oneClipBlur"
-].forEach(
-  function(id){
-
-    document
-      .getElementById(id)
-      .addEventListener(
-        "input",
-        updateOneClipPreview
-      );
-
-    document
-      .getElementById(id)
-      .addEventListener(
-        "change",
-        updateOneClipPreview
-      );
-
-  }
-);
-
-
-/* =====================================================
-   ONE CLIPS - STATUS
-===================================================== */
-
-function updateOneClipProgress(
-  percent,
-  message
-){
-
-  const wrap=
-    document.getElementById(
-      "oneClipProgressWrap"
-    );
-
-  const bar=
-    document.getElementById(
-      "oneClipProgress"
-    );
-
-  const text=
-    document.getElementById(
-      "oneClipProgressText"
-    );
-
-  wrap.style.display=
-    "block";
-
-  text.style.display=
-    "block";
-
-  bar.style.width=
-    Math.max(
-      0,
-      Math.min(
-        100,
-        percent
-      )
-    )+"%";
-
-  text.textContent=
-    message;
-
-}
-
-
-/* =====================================================
-   ONE CLIPS - MAIN
-===================================================== */
-
-async function startOneClip(){
-
-  const file=
-    document.getElementById(
-      "oneClipVideo"
-    ).files[0];
-
-  if(!file){
-
-    setStatus(
-      "❌ One Clips အတွက် Video ရွေးပေးပါ"
-    );
-
-    return;
-  }
-
-  if(
-    file.size >
-    300*1024*1024
-  ){
-
-    setStatus(
-      "❌ Video က 300MB ထက်ကြီးနေပါတယ်"
-    );
-
-    return;
-  }
-
-  const gemini=
-    getGeminiKey();
-
-  const groq=
-    getGroqKey();
-
-  if(!gemini){
-
-    setStatus(
-      "❌ Gemini API Key ထည့်ပေးပါ"
-    );
-
-    return;
-  }
-
-  if(!groq){
-
-    setStatus(
-      "❌ Groq API Key ထည့်ပေးပါ"
-    );
-
-    return;
-  }
-
-
-  const button=
-    document.getElementById(
-      "oneClipStartButton"
-    );
-
-  button.disabled=true;
-
-  button.textContent=
-    "⏳ One Clips လုပ်နေပါတယ်...";
-
-
-  document
-    .getElementById(
-      "oneClipWarning"
-    )
-    .classList.remove(
-      "hidden"
-    );
-
-
-  document
-    .getElementById(
-      "oneClipResult"
-    )
-    .classList.remove(
-      "hidden"
-    );
-
-
-  document.getElementById(
-    "oneClipResultStatus"
-  ).textContent=
-    "AI processing စတင်နေပါတယ်...";
-
-
-  updateOneClipProgress(
-    5,
-    "Video upload / preparation..."
-  );
-
-
-  const formData=
-    new FormData();
-
-
-  formData.append(
-    "video",
-    file
-  );
-
-
-  formData.append(
-    "voice",
-    document.getElementById(
-      "oneClipVoice"
-    ).value
-  );
-
-
-  formData.append(
-    "voiceSpeed",
-    document.getElementById(
-      "oneClipSpeed"
-    ).value
-  );
-
-
-  formData.append(
-    "voiceVolume",
-    document.getElementById(
-      "oneClipVolume"
-    ).value
-  );
-
-
-  formData.append(
-    "voicePitch",
-    document.getElementById(
-      "oneClipPitch"
-    ).value
-  );
-
-
-  formData.append(
-    "blurOriginal",
-    document.getElementById(
-      "oneClipBlur"
-    ).checked
-      ?"true"
-      :"false"
-  );
-
-
-  formData.append(
-    "fontName",
-    document.getElementById(
-      "oneClipFont"
-    ).value
-  );
-
-
-  formData.append(
-    "fontSize",
-    document.getElementById(
-      "oneClipFontSize"
-    ).value
-  );
-
-
-  formData.append(
-    "textColor",
-    document.getElementById(
-      "oneClipTextColor"
-    ).value.replace(
-      "#",
-      ""
-    )
-  );
-
-
-  formData.append(
-    "outline",
-    document.getElementById(
-      "oneClipOutline"
-    ).value
-  );
-
-
-  formData.append(
-    "position",
-    document.getElementById(
-      "oneClipPosition"
-    ).value
-  );
-
-
-  formData.append(
-    "outputSize",
-    document.getElementById(
-      "oneClipOutputSize"
-    ).value
-  );
-
+/* ============================================================
+   GET GEMINI VOICES
+============================================================ */
+
+async function loadVoices(){
 
   try{
 
-    setStatus(
-      "⏳ One Clips — AI က Video Scene တွေကို ဖတ်နေပါတယ်..."
-    );
-
-
-    updateOneClipProgress(
-      15,
-      "🎬 Video Scene Analysis..."
-    );
-
-
-    const response=
+    const response =
       await fetch(
-        "/api/movie-oneclip",
-        {
-          method:"POST",
-
-          headers:{
-            "x-gemini-api-key":
-              gemini,
-
-            "x-groq-api-key":
-              groq
-          },
-
-          body:formData
-        }
+        "/api/recap/voices"
       );
-
-
-    updateOneClipProgress(
-      80,
-      "🎙️ Voice / Subtitle Sync / Rendering..."
-    );
-
-
-    const data=
-      await response.json();
-
 
     if(!response.ok){
-
-      throw new Error(
-        data.error ||
-        "One Clips Error"
-      );
-
+      return;
     }
 
-
-    updateOneClipProgress(
-      100,
-      "✅ Final MP4 ပြီးပါပြီ"
-    );
-
-
-    const resultStatus=
-      document.getElementById(
-        "oneClipResultStatus"
-      );
-
-
-    resultStatus.textContent=
-      "🎉 One Clips Final Video အောင်မြင်စွာ ထုတ်ပြီးပါပြီ။";
-
-
-    const scriptBox=
-      document.getElementById(
-        "oneClipScript"
-      );
-
-
-    if(data.script){
-
-      scriptBox.textContent=
-        "📝 AI Recap Script\n\n"+
-        data.script;
-
-    }
-    else{
-
-      scriptBox.textContent=
-        "";
-
-    }
-
-
-    const download=
-      document.getElementById(
-        "oneClipDownload"
-      );
-
+    const data =
+      await response.json();
 
     if(
-      data.downloadUrl
+      !data.ok ||
+      !Array.isArray(data.voices)
     ){
-
-      download.innerHTML=`
-        <a
-          class="download"
-          href="${data.downloadUrl}"
-          download
-        >
-          ⬇️ Download Final One Clips MP4
-        </a>
-      `;
-
-    }
-    else{
-
-      download.innerHTML=
-        "";
-
+      return;
     }
 
+    const select =
+      $("recapVoice");
 
-    setStatus(
-      "🎉 One Clips Final Video ရပါပြီ"
+    select.innerHTML = "";
+
+    data.voices.forEach(
+      voice => {
+
+        const option =
+          document.createElement("option");
+
+        option.value = voice;
+        option.textContent = voice;
+
+        select.appendChild(option);
+
+      }
     );
 
+    select.value =
+      data.voices.includes("Kore")
+        ? "Kore"
+        : data.voices[0];
 
   }catch(error){
 
-    updateOneClipProgress(
-      100,
-      "❌ Error"
+    console.warn(
+      "Voice list failed:",
+      error
     );
-
-
-    document.getElementById(
-      "oneClipResultStatus"
-    ).textContent=
-      "❌ "+error.message;
-
-
-    setStatus(
-      "❌ One Clips Error: "+
-      error.message
-    );
-
-
-  }finally{
-
-    button.disabled=false;
-
-    button.textContent=
-      "🚀 One Clips စတင်မယ်";
-
-    document
-      .getElementById(
-        "oneClipWarning"
-      )
-      .classList.add(
-        "hidden"
-      );
 
   }
 
 }
 
+loadVoices();
 
-/* =====================================================
-   INITIALIZE
-===================================================== */
 
-loadKeys();
+/* ============================================================
+   STYLE CONTROLS
+============================================================ */
 
-updateOldPreview();
+function clamp(value,min,max){
 
-updateOneClipPreview();
+  return Math.max(
+    min,
+    Math.min(
+      max,
+      Number(value) || min
+    )
+  );
+
+}
+
+
+function updateSubtitlePreview(){
+
+  const box =
+    $("subtitlePreviewText");
+
+  const size =
+    clamp(
+      $("fontSize").value,
+      10,
+      100
+    );
+
+  const outline =
+    clamp(
+      $("outline").value,
+      0,
+      20
+    );
+
+  const color =
+    $("textColor").value;
+
+  const font =
+    $("fontName").value;
+
+  box.style.fontFamily =
+    `"${font}", sans-serif`;
+
+  box.style.fontSize =
+    Math.max(
+      10,
+      size * 0.7
+    ) + "px";
+
+  box.style.color =
+    color;
+
+  box.style.textShadow =
+    `
+      ${outline}px ${outline}px 0 #000,
+      ${-outline}px ${outline}px 0 #000,
+      ${outline}px ${-outline}px 0 #000,
+      ${-outline}px ${-outline}px 0 #000,
+      0 0 ${outline * 2}px #000
+    `;
+
+  $("textColorValue").textContent =
+    color.toUpperCase();
+
+}
+
+
+function setNumber(
+  input,
+  value
+){
+
+  input.value =
+    value;
+
+  updateSubtitlePreview();
+
+}
+
+
+$("fontSizeMinus").addEventListener(
+  "click",
+  () => {
+
+    setNumber(
+      $("fontSize"),
+      clamp(
+        Number($("fontSize").value) - 1,
+        10,
+        100
+      )
+    );
+
+  }
+);
+
+
+$("fontSizePlus").addEventListener(
+  "click",
+  () => {
+
+    setNumber(
+      $("fontSize"),
+      clamp(
+        Number($("fontSize").value) + 1,
+        10,
+        100
+      )
+    );
+
+  }
+);
+
+
+$("outlineMinus").addEventListener(
+  "click",
+  () => {
+
+    setNumber(
+      $("outline"),
+      clamp(
+        Number($("outline").value) - 1,
+        0,
+        20
+      )
+    );
+
+  }
+);
+
+
+$("outlinePlus").addEventListener(
+  "click",
+  () => {
+
+    setNumber(
+      $("outline"),
+      clamp(
+        Number($("outline").value) + 1,
+        0,
+        20
+      )
+    );
+
+  }
+);
+
+
+[
+  "fontName",
+  "fontSize",
+  "outline",
+  "textColor",
+  "position"
+].forEach(id => {
+
+  $(id).addEventListener(
+    "input",
+    updateSubtitlePreview
+  );
+
+  $(id).addEventListener(
+    "change",
+    updateSubtitlePreview
+  );
+
+});
+
+
+/* ============================================================
+   POSITION SELECT
+============================================================ */
+
+$("position").addEventListener(
+  "change",
+  () => {
+
+    const box =
+      $("subtitleBox");
+
+    if($("position").value === "top"){
+
+      box.style.top = "7%";
+
+    }else if(
+      $("position").value === "middle"
+    ){
+
+      box.style.top = "42%";
+
+    }else{
+
+      box.style.top = "76%";
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   DRAG MODE
+============================================================ */
+
+let dragMode = "blur";
+
+$("blurModeBtn").addEventListener(
+  "click",
+  () => {
+
+    dragMode = "blur";
+
+    $("blurModeBtn")
+      .classList.add("active");
+
+    $("subtitleModeBtn")
+      .classList.remove("active");
+
+  }
+);
+
+
+$("subtitleModeBtn").addEventListener(
+  "click",
+  () => {
+
+    dragMode = "subtitle";
+
+    $("subtitleModeBtn")
+      .classList.add("active");
+
+    $("blurModeBtn")
+      .classList.remove("active");
+
+  }
+);
+
+
+/* ============================================================
+   DRAG BOX
+============================================================ */
+
+function enableDrag(
+  element,
+  callback
+){
+
+  let dragging = false;
+
+  let startX = 0;
+  let startY = 0;
+
+  let startLeft = 0;
+  let startTop = 0;
+
+  function pointerPosition(event){
+
+    if(event.touches && event.touches[0]){
+      return {
+        x:event.touches[0].clientX,
+        y:event.touches[0].clientY
+      };
+    }
+
+    return {
+      x:event.clientX,
+      y:event.clientY
+    };
+
+  }
+
+
+  function down(event){
+
+    if(
+      dragMode === "blur" &&
+      element.id !== "blurBox"
+    ){
+      return;
+    }
+
+    if(
+      dragMode === "subtitle" &&
+      element.id !== "subtitleBox"
+    ){
+      return;
+    }
+
+    event.preventDefault();
+
+    dragging = true;
+
+    const p =
+      pointerPosition(event);
+
+    startX = p.x;
+    startY = p.y;
+
+    startLeft =
+      parseFloat(element.style.left) || 0;
+
+    startTop =
+      parseFloat(element.style.top) || 0;
+
+    element.setPointerCapture?.(
+      event.pointerId
+    );
+
+  }
+
+
+  function move(event){
+
+    if(!dragging){
+      return;
+    }
+
+    event.preventDefault();
+
+    const p =
+      pointerPosition(event);
+
+    const rect =
+      $("previewWrap").getBoundingClientRect();
+
+    if(!rect.width || !rect.height){
+      return;
+    }
+
+    const dx =
+      ((p.x - startX) / rect.width) * 100;
+
+    const dy =
+      ((p.y - startY) / rect.height) * 100;
+
+    const widthPercent =
+      (element.offsetWidth / rect.width) * 100;
+
+    const heightPercent =
+      (element.offsetHeight / rect.height) * 100;
+
+    const newLeft =
+      clamp(
+        startLeft + dx,
+        0,
+        100 - widthPercent
+      );
+
+    const newTop =
+      clamp(
+        startTop + dy,
+        0,
+        100 - heightPercent
+      );
+
+    element.style.left =
+      newLeft + "%";
+
+    element.style.top =
+      newTop + "%";
+
+    callback(
+      newLeft,
+      newTop,
+      widthPercent,
+      heightPercent
+    );
+
+  }
+
+
+  function up(){
+
+    dragging = false;
+
+  }
+
+
+  element.addEventListener(
+    "pointerdown",
+    down
+  );
+
+  window.addEventListener(
+    "pointermove",
+    move,
+    {passive:false}
+  );
+
+  window.addEventListener(
+    "pointerup",
+    up
+  );
+
+}
+
+
+let blurData = {
+  x:10,
+  y:75,
+  width:80,
+  height:18
+};
+
+let subtitleData = {
+  x:10,
+  y:76,
+  width:80,
+  height:12
+};
+
+
+enableDrag(
+  $("blurBox"),
+  (x,y,w,h) => {
+
+    blurData = {
+      x,
+      y,
+      width:w,
+      height:h
+    };
+
+  }
+);
+
+
+enableDrag(
+  $("subtitleBox"),
+  (x,y,w,h) => {
+
+    subtitleData = {
+      x,
+      y,
+      width:w,
+      height:h
+    };
+
+  }
+);
+
+
+/* ============================================================
+   PREVIEW VIDEO
+============================================================ */
+
+$("recapVideoPreview").addEventListener(
+  "loadedmetadata",
+  () => {
+
+    $("oneClipStatus").textContent =
+      "✅ Video ready. Live Preview မှာ Blur / Subtitle နေရာကို ချိန်နိုင်ပါပြီ။";
+
+  }
+);
+
+
+/* ============================================================
+   BUILD ONE-CLICK FORM
+============================================================ */
+
+function percentToOutputPixel(
+  percent,
+  axis
+){
+
+  const output =
+    $("outputSize").value;
+
+  const video =
+    $("recapVideoPreview");
+
+  const originalWidth =
+    video.videoWidth || 1920;
+
+  const originalHeight =
+    video.videoHeight || 1080;
+
+  let width =
+    originalWidth;
+
+  let height =
+    originalHeight;
+
+  if(output === "9:16"){
+
+    width = 1080;
+    height = 1920;
+
+  }else if(output === "1:1"){
+
+    width = 1080;
+    height = 1080;
+
+  }else if(output === "16:9"){
+
+    width = 1920;
+    height = 1080;
+
+  }
+
+  return (
+    Number(percent) / 100
+  ) *
+  (
+    axis === "x"
+      ? width
+      : height
+  );
+
+}
+
+
+function appendSettings(
+  form
+){
+
+  form.append(
+    "voice",
+    $("recapVoice").value
+  );
+
+  form.append(
+    "voiceSpeed",
+    $("voiceSpeed").value
+  );
+
+  form.append(
+    "voiceVolume",
+    $("voiceVolume").value
+  );
+
+  form.append(
+    "voicePitch",
+    $("voicePitch").value
+  );
+
+  form.append(
+    "blurOriginal",
+    $("blurOriginal").checked
+      ? "true"
+      : "false"
+  );
+
+  form.append(
+    "blurX",
+    blurData.x
+  );
+
+  form.append(
+    "blurY",
+    blurData.y
+  );
+
+  form.append(
+    "blurWidth",
+    blurData.width
+  );
+
+  form.append(
+    "blurHeight",
+    blurData.height
+  );
+
+  /*
+   * Subtitle drag position
+   * Server expects output pixels.
+   */
+
+  const subtitleX =
+    percentToOutputPixel(
+      subtitleData.x,
+      "x"
+    );
+
+  const subtitleY =
+    percentToOutputPixel(
+      subtitleData.y,
+      "y"
+    );
+
+  form.append(
+    "subtitleX",
+    subtitleX
+  );
+
+  form.append(
+    "subtitleY",
+    subtitleY
+  );
+
+  form.append(
+    "fontName",
+    $("fontName").value
+  );
+
+  form.append(
+    "fontSize",
+    $("fontSize").value
+  );
+
+  form.append(
+    "outline",
+    $("outline").value
+  );
+
+  form.append(
+    "textColor",
+    $("textColor").value
+  );
+
+  form.append(
+    "position",
+    $("position").value
+  );
+
+  form.append(
+    "outputSize",
+    $("outputSize").value
+  );
+
+}
+
+
+/* ============================================================
+   ONE CLICK
+============================================================ */
+
+$("oneClipBtn").addEventListener(
+  "click",
+  async () => {
+
+    if(!recapFile){
+
+      setStatus(
+        $("oneClipStatus"),
+        "❌ Video အရင်ရွေးပါ။",
+        "error"
+      );
+
+      return;
+    }
+
+    const button =
+      $("oneClipBtn");
+
+    button.disabled = true;
+
+    button.textContent =
+      "⏳ AI Movie Recap လုပ်နေပါတယ်...";
+
+    setStatus(
+      $("oneClipStatus"),
+      "🎬 Video scene တွေကို AI က ဖတ်နေပါတယ်...",
+      "loading"
+    );
+
+    $("oneClipResult").innerHTML =
+      `
+        <div style="color:#9ea9ba">
+          ⏳ Processing...
+        </div>
+      `;
+
+
+    const form =
+      new FormData();
+
+    form.append(
+      "video",
+      recapFile
+    );
+
+    appendSettings(form);
+
+
+    try{
+
+      /*
+       * IMPORTANT:
+       * This is the endpoint from server.js.
+       */
+
+      const response =
+        await fetch(
+          "/api/recap/one-click",
+          {
+            method:"POST",
+            body:form
+          }
+        );
+
+
+      /*
+       * Server returns MP4 directly.
+       */
+
+      if(!response.ok){
+
+        let message =
+          "One Clips failed.";
+
+        try{
+
+          const data =
+            await response.json();
+
+          if(data?.error){
+            message =
+              data.error;
+          }
+
+        }catch{}
+
+        throw new Error(
+          message
+        );
+
+      }
+
+
+      setStatus(
+        $("oneClipStatus"),
+        "🎙️ Voice + Subtitle Sync + Blur + Final MP4 render လုပ်နေပါတယ်...",
+        "loading"
+      );
+
+
+      const blob =
+        await response.blob();
+
+
+      if(
+        !blob ||
+        blob.size < 1000
+      ){
+
+        throw new Error(
+          "Final MP4 file မရပါ။"
+        );
+
+      }
+
+
+      const url =
+        URL.createObjectURL(blob);
+
+
+      $("oneClipResult").innerHTML =
+        `
+          <div class="result-box result-success">
+
+            <div
+              style="
+                font-size:18px;
+                font-weight:800;
+                color:#7ee8b6;
+              "
+            >
+              ✅ One Clips ပြီးပါပြီ
+            </div>
+
+            <div
+              style="
+                color:#aeb8c8;
+                margin-top:7px;
+              "
+            >
+              AI Recap + Gemini Voice +
+              Voice-Synced Myanmar Subtitle +
+              Blur + Style
+            </div>
+
+            <video
+              controls
+              playsinline
+              style="
+                width:100%;
+                margin-top:14px;
+                border-radius:13px;
+                background:#000;
+              "
+              src="${url}"
+            ></video>
+
+            <a
+              class="download-final"
+              href="${url}"
+              download="Myanmar_One_Clips.mp4"
+              style="
+                display:block;
+                text-align:center;
+                color:#fff;
+                text-decoration:none;
+                padding:15px;
+                border-radius:13px;
+                font-weight:800;
+              "
+            >
+              ⬇️ Download Final MP4
+            </a>
+
+          </div>
+        `;
+
+
+      setStatus(
+        $("oneClipStatus"),
+        "✅ Final MP4 အောင်မြင်စွာ ပြီးပါပြီ။",
+        "success"
+      );
+
+
+    }catch(error){
+
+      console.error(
+        "One Clips Error:",
+        error
+      );
+
+
+      setStatus(
+        $("oneClipStatus"),
+        "❌ " + error.message,
+        "error"
+      );
+
+
+      $("oneClipResult").innerHTML =
+        `
+          <div
+            style="
+              color:#ff9aa4;
+              line-height:1.6;
+            "
+          >
+            ❌ ${escapeHtml(error.message)}
+          </div>
+        `;
+
+
+    }finally{
+
+      button.disabled = false;
+
+      button.textContent =
+        "🚀 One Clips စတင်မယ်";
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   INITIAL PREVIEW
+============================================================ */
+
+updateSubtitlePreview();
 
 </script>
 
