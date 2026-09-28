@@ -145,12 +145,9 @@ app.post(
         "https://api.groq.com/openai/v1/audio/transcriptions",
         {
           method: "POST",
-
           headers: {
-            Authorization:
-              `Bearer ${groqKey}`
+            Authorization: `Bearer ${groqKey}`
           },
-
           body: form
         }
       );
@@ -926,7 +923,8 @@ async function generateGeminiTTS(
               content: [
                 {
                   type: "text",
-                  text
+                  text:
+                    `${style}\n\n${text}`
                 }
               ]
             }
@@ -1244,7 +1242,7 @@ function runFfmpeg(args) {
           } else {
             reject(
               new Error(
-                stderr.slice(-4000) ||
+                stderr.slice(-5000) ||
                 `FFmpeg exited with code ${code}`
               )
             );
@@ -1286,6 +1284,18 @@ function getOutputFilter(
     default:
       return null;
   }
+}
+
+/* =========================================================
+   SUBTITLE FILTER HELPER
+========================================================= */
+
+function escapeFilterPath(filePath) {
+
+  return filePath
+    .replace(/\\/g, "/")
+    .replace(/:/g, "\\:")
+    .replace(/'/g, "\\'");
 }
 
 /* =========================================================
@@ -1478,7 +1488,7 @@ app.post(
       );
 
       /* =========================
-         MAKE SIMPLE SCRIPT SRT
+         SCRIPT SRT
       ========================= */
 
       const scriptLines =
@@ -1543,23 +1553,13 @@ app.post(
         );
 
       /* =========================
-         SUBTITLE
+         SUBTITLE STYLE
       ========================= */
 
       const subtitlePath =
-        srtPath
-          .replace(
-            /\\/g,
-            "/"
-          )
-          .replace(
-            /:/g,
-            "\\:"
-          )
-          .replace(
-            /'/g,
-            "\\'"
-          );
+        escapeFilterPath(
+          srtPath
+        );
 
       const subtitleFilter =
         `subtitles='${subtitlePath}':` +
@@ -1573,39 +1573,26 @@ app.post(
         `MarginV=35`;
 
       /* =========================
-         BLUR
-      ========================= */
+         VIDEO FILTER
+         IMPORTANT:
+         Final video output is [vout]
+========================= */
 
-      let filters = [];
+      let videoFilter = "";
 
       if (blurOriginal) {
 
-        filters.push(
-          "[0:v]split=2[base][blur]"
-        );
-
-        filters.push(
-          "[blur]" +
-          "crop=w=iw:h=ih*0.22:y=ih*0.78," +
-          "boxblur=10:1[blurred]"
-        );
-
-        filters.push(
-          "[base][blurred]" +
-          "overlay=0:H-h[blurredvideo]"
-        );
-
-        filters.push(
-          "[blurredvideo]" +
-          subtitleFilter
-        );
+        videoFilter =
+          `[0:v]split=2[base][blur];` +
+          `[blur]crop=w=iw:h=ih*0.22:y=ih*0.78,` +
+          `boxblur=10:1[blurred];` +
+          `[base][blurred]overlay=0:H-h[blurvideo];` +
+          `[blurvideo]${subtitleFilter}[vsub]`;
 
       } else {
 
-        filters.push(
-          "[0:v]" +
-          subtitleFilter
-        );
+        videoFilter =
+          `[0:v]${subtitleFilter}[vsub]`;
       }
 
       /* =========================
@@ -1619,16 +1606,14 @@ app.post(
 
       if (sizeFilter) {
 
-        const lastIndex =
-          filters.length - 1;
+        videoFilter +=
+          `;[vsub]${sizeFilter}[vout]`;
 
-        filters[lastIndex] +=
-          "," +
-          sizeFilter;
+      } else {
+
+        videoFilter +=
+          `;[vsub]null[vout]`;
       }
-
-      const videoFilter =
-        filters.join(";");
 
       /* =========================
          FFMPEG
@@ -1647,7 +1632,7 @@ app.post(
         videoFilter,
 
         "-map",
-        "0:v:0",
+        "[vout]",
 
         "-map",
         "1:a:0",
@@ -1682,6 +1667,11 @@ app.post(
         "Starting Movie Recap FFmpeg..."
       );
 
+      console.log(
+        "FFmpeg args:",
+        args.join(" ")
+      );
+
       await runFfmpeg(
         args
       );
@@ -1697,7 +1687,7 @@ app.post(
       }
 
       /* =========================
-         CLEAN
+         CLEAN TEMP FILES
       ========================= */
 
       for (
@@ -1719,7 +1709,7 @@ app.post(
       }
 
       /* =========================
-         AUTO DELETE
+         AUTO DELETE OUTPUT
       ========================= */
 
       setTimeout(
@@ -2027,19 +2017,9 @@ app.post(
       }
 
       const subtitlePath =
-        srtPath
-          .replace(
-            /\\/g,
-            "/"
-          )
-          .replace(
-            /:/g,
-            "\\:"
-          )
-          .replace(
-            /'/g,
-            "\\'"
-          );
+        escapeFilterPath(
+          srtPath
+        );
 
       const subtitleFilter =
         `subtitles='${subtitlePath}':` +
@@ -2066,13 +2046,13 @@ app.post(
           `[0:v]split=2[base][blur];` +
           `[blur]crop=w=iw:h=ih*0.22:y=ih*0.78,` +
           `boxblur=10:1[blurred];` +
-          `[base][blurred]overlay=0:H-h[tmp];` +
-          `[tmp]${subtitleFilter}`;
+          `[base][blurred]overlay=0:H-h[blurvideo];` +
+          `[blurvideo]${subtitleFilter}[vout]`;
 
       } else {
 
         videoFilter =
-          subtitleFilter;
+          `[0:v]${subtitleFilter}[vout]`;
       }
 
       const args = [
@@ -2082,11 +2062,11 @@ app.post(
         "-i",
         inputPath,
 
-        "-vf",
+        "-filter_complex",
         videoFilter,
 
         "-map",
-        "0:v:0",
+        "[vout]",
 
         "-map",
         "0:a?",
