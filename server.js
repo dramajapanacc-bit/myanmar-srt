@@ -46,12 +46,10 @@ function getGeminiKey(req) {
 ========================= */
 
 app.get("/api/health", (req, res) => {
-
   res.json({
     ok: true,
     message: "Myanmar SRT backend is running"
   });
-
 });
 
 
@@ -246,6 +244,177 @@ app.post(
 
 
 /* =========================
+   GEMINI REQUEST HELPER
+========================= */
+
+async function callGemini(
+  model,
+  geminiKey,
+  prompt
+) {
+
+  console.log(
+    `Trying Gemini model: ${model}`
+  );
+
+  const response =
+    await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "x-goog-api-key":
+            geminiKey
+        },
+
+        body: JSON.stringify({
+
+          contents: [
+            {
+              role: "user",
+
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ],
+
+          generationConfig: {
+
+            responseMimeType:
+              "application/json",
+
+            responseSchema: {
+
+              type: "OBJECT",
+
+              properties: {
+
+                segments: {
+
+                  type: "ARRAY",
+
+                  items: {
+
+                    type: "OBJECT",
+
+                    properties: {
+
+                      id: {
+                        type: "INTEGER"
+                      },
+
+                      text: {
+                        type: "STRING"
+                      }
+
+                    },
+
+                    required: [
+                      "id",
+                      "text"
+                    ]
+                  }
+                }
+              },
+
+              required: [
+                "segments"
+              ]
+            }
+          }
+        })
+      }
+    );
+
+  const raw =
+    await response.text();
+
+  let data;
+
+  try {
+    data = JSON.parse(raw);
+  } catch {
+
+    return {
+      ok: false,
+
+      status:
+        response.status,
+
+      error:
+        "Gemini က JSON response မပြန်ပါ",
+
+      raw
+    };
+  }
+
+  if (!response.ok) {
+
+    return {
+      ok: false,
+
+      status:
+        response.status,
+
+      error:
+        data?.error?.message ||
+        "Gemini request failed"
+    };
+  }
+
+  const responseText =
+    data
+      ?.candidates?.[0]
+      ?.content?.parts?.[0]
+      ?.text;
+
+  if (!responseText) {
+
+    return {
+      ok: false,
+
+      status: 502,
+
+      error:
+        "Gemini response မရပါ"
+    };
+  }
+
+  let translated;
+
+  try {
+
+    translated =
+      JSON.parse(responseText);
+
+  } catch {
+
+    return {
+      ok: false,
+
+      status: 502,
+
+      error:
+        "Gemini translation JSON မမှန်ပါ"
+    };
+  }
+
+  return {
+    ok: true,
+
+    data: translated
+  };
+}
+
+
+/* =========================
    GEMINI MYANMAR TRANSLATION
 ========================= */
 
@@ -281,6 +450,10 @@ app.post(
       }
 
 
+      /* =========================
+         BUILD SOURCE
+      ========================= */
+
       const source =
         transcript
           .map((item, index) => {
@@ -295,6 +468,10 @@ app.post(
           .join("\n");
 
 
+      /* =========================
+         TRANSLATION PROMPT
+      ========================= */
+
       const prompt = `
 You are a professional Myanmar movie subtitle translator.
 
@@ -303,12 +480,29 @@ Translate the following subtitle transcript into natural, fluent Myanmar languag
 Rules:
 - Translate every subtitle line.
 - Keep the exact same order.
-- Do not remove lines.
+- Do not remove any line.
+- Do not merge lines.
+- Do not add new lines.
 - Do not add explanations.
 - Do not add English translation.
 - Keep names and proper nouns natural.
-- Make the Myanmar language suitable for movie/drama subtitles.
+- Use natural spoken Myanmar suitable for movies and dramas.
+- Preserve the meaning and emotion of the original dialogue.
+- Keep each subtitle reasonably short and readable.
 - Return JSON only.
+
+The "id" must match the original subtitle number exactly.
+
+Required JSON format:
+
+{
+  "segments": [
+    {
+      "id": 1,
+      "text": "မြန်မာဘာသာပြန်"
+    }
+  ]
+}
 
 SOURCE:
 
@@ -316,195 +510,145 @@ ${source}
 `;
 
 
-      const geminiResponse =
-        await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent",
-          {
-            method: "POST",
+      /* =========================
+         GEMINI MODEL FALLBACK
+      ========================= */
 
-            headers: {
-              "Content-Type":
-                "application/json",
+      const models = [
+        "gemini-3.5-flash",
+        "gemini-3.1-flash-lite"
+      ];
 
-              "x-goog-api-key":
-                geminiKey
-            },
+      let finalResult = null;
+      let lastError = null;
 
-            body: JSON.stringify({
 
-              contents: [
-                {
-                  role: "user",
+      for (const model of models) {
 
-                  parts: [
-                    {
-                      text: prompt
-                    }
-                  ]
-                }
-              ],
+        try {
 
-              generationConfig: {
+          const result =
+            await callGemini(
+              model,
+              geminiKey,
+              prompt
+            );
 
-                responseMimeType:
-                  "application/json",
+          if (result.ok) {
 
-                responseSchema: {
+            finalResult =
+              result.data;
 
-                  type: "OBJECT",
+            console.log(
+              `Gemini success: ${model}`
+            );
 
-                  properties: {
-
-                    segments: {
-
-                      type: "ARRAY",
-
-                      items: {
-
-                        type: "OBJECT",
-
-                        properties: {
-
-                          id: {
-                            type: "INTEGER"
-                          },
-
-                          text: {
-                            type: "STRING"
-                          }
-
-                        },
-
-                        required: [
-                          "id",
-                          "text"
-                        ]
-                      }
-                    }
-                  },
-
-                  required: [
-                    "segments"
-                  ]
-                }
-              }
-            })
+            break;
           }
-        );
 
+          lastError =
+            result.error;
 
-      const raw =
-        await geminiResponse.text();
+          console.error(
+            `Gemini ${model} failed:`,
+            result.error
+          );
 
+        } catch (error) {
 
-      let geminiData;
+          lastError =
+            error.message;
 
-      try {
-
-        geminiData =
-          JSON.parse(raw);
-
-      } catch {
-
-        return res.status(502).json({
-          error:
-            "Gemini က JSON response မပြန်ပါ"
-        });
+          console.error(
+            `Gemini ${model} exception:`,
+            error.message
+          );
+        }
       }
 
 
-      if (!geminiResponse.ok) {
+      /* =========================
+         ALL MODELS FAILED
+      ========================= */
 
-        console.error(
-          "Gemini API error:",
-          geminiData?.error?.message ||
-          "Unknown error"
-        );
+      if (!finalResult) {
 
-        return res.status(
-          geminiResponse.status
-        ).json({
+        return res.status(502).json({
           error:
-            geminiData?.error?.message ||
+            lastError ||
             "Gemini translation မအောင်မြင်ပါ"
         });
       }
 
 
-      const responseText =
-        geminiData
-          ?.candidates?.[0]
-          ?.content?.parts?.[0]
-          ?.text;
-
-
-      if (!responseText) {
-
-        return res.status(502).json({
-          error:
-            "Gemini response မရပါ"
-        });
-      }
-
-
-      let translated;
-
-      try {
-
-        translated =
-          JSON.parse(responseText);
-
-      } catch {
-
-        return res.status(502).json({
-          error:
-            "Gemini translation JSON မမှန်ပါ"
-        });
-      }
-
+      /* =========================
+         GET TRANSLATED SEGMENTS
+      ========================= */
 
       const translatedSegments =
         Array.isArray(
-          translated?.segments
+          finalResult?.segments
         )
-          ? translated.segments
+          ? finalResult.segments
           : [];
 
 
+      if (
+        translatedSegments.length === 0
+      ) {
+
+        return res.status(502).json({
+          error:
+            "Gemini က translation lines မပြန်ပါ"
+        });
+      }
+
+
+      /* =========================
+         MATCH TIMESTAMPS
+      ========================= */
+
       const result =
-        translatedSegments
-          .map((item, index) => {
+        transcript
+          .map((original, index) => {
 
-            const original =
-              transcript[
-                Number(item.id) - 1
-              ] ||
-              transcript[index];
+            const translated =
+              translatedSegments.find(
+                item =>
+                  Number(item.id) ===
+                  index + 1
+              );
 
-            if (!original) {
+            if (!translated) {
+              return null;
+            }
+
+            const text =
+              String(
+                translated.text || ""
+              ).trim();
+
+            if (!text) {
               return null;
             }
 
             return {
 
               start:
-                Number(original.start),
+                Number(
+                  original.start
+                ),
 
               end:
-                Number(original.end),
+                Number(
+                  original.end
+                ),
 
-              text:
-                String(
-                  item.text || ""
-                ).trim()
+              text
             };
 
           })
-          .filter(
-            item =>
-              item &&
-              item.text
-          );
+          .filter(Boolean);
 
 
       if (!result.length) {
@@ -515,6 +659,10 @@ ${source}
         });
       }
 
+
+      /* =========================
+         RETURN RESULT
+      ========================= */
 
       return res.json({
 
