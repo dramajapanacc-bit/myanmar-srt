@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Myanmar SRT</title>
+  <title>Myanmar SRT Studio</title>
 
   <style>
     * {
@@ -13,58 +13,72 @@
 
     body {
       margin: 0;
+      background: #0b0e13;
+      color: #fff;
       font-family: Arial, sans-serif;
-      background: #0f1115;
-      color: #ffffff;
     }
 
     .container {
-      max-width: 850px;
+      width: 100%;
+      max-width: 900px;
       margin: auto;
-      padding: 20px;
+      padding: 18px;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 8px;
+      margin: 8px 0;
+      font-size: 28px;
     }
 
     .subtitle {
       text-align: center;
-      color: #aaa;
-      margin-bottom: 25px;
+      color: #8f96a3;
+      margin-bottom: 20px;
     }
 
     .card {
-      background: #181b22;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 20px;
-      border: 1px solid #292d36;
+      background: #151922;
+      border: 1px solid #272d38;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-size: 19px;
+      font-weight: bold;
+      margin-bottom: 14px;
     }
 
     label {
       display: block;
-      margin-bottom: 10px;
+      color: #c9ced8;
       font-weight: bold;
+      margin: 12px 0 7px;
     }
 
+    input[type="password"],
     input[type="file"] {
       width: 100%;
-      padding: 12px;
-      background: #101217;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid #343b48;
+      background: #0d1016;
       color: white;
-      border: 1px solid #333;
-      border-radius: 8px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #6572ff;
     }
 
     button {
       width: 100%;
-      padding: 14px;
-      margin-top: 15px;
       border: 0;
-      border-radius: 9px;
-      background: #5865f2;
+      border-radius: 11px;
+      padding: 14px;
+      margin-top: 12px;
       color: white;
       font-size: 16px;
       font-weight: bold;
@@ -72,65 +86,74 @@
     }
 
     button:disabled {
-      opacity: 0.5;
+      opacity: .45;
       cursor: not-allowed;
     }
 
-    .translate-btn {
+    .save {
+      background: #5865f2;
+    }
+
+    .groq {
+      background: #4d67e8;
+    }
+
+    .gemini {
       background: #16a085;
     }
 
-    .download-btn {
+    .download {
       background: #e67e22;
     }
 
+    .clear {
+      background: #343a46;
+    }
+
     .status {
-      margin-top: 15px;
-      padding: 12px;
-      background: #101217;
-      border-radius: 8px;
-      color: #aaa;
+      margin-top: 14px;
+      padding: 13px;
+      border-radius: 10px;
+      background: #0d1016;
+      color: #aeb5c2;
       white-space: pre-wrap;
+      line-height: 1.5;
     }
 
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-
-    .subtitle-box {
-      background: #101217;
+    .key-status {
+      margin-top: 12px;
+      padding: 10px;
       border-radius: 8px;
-      padding: 12px;
-      max-height: 400px;
-      overflow-y: auto;
+      background: #0d1016;
+      color: #8fd6b6;
+      font-size: 14px;
     }
 
-    .line {
-      padding: 10px 5px;
-      border-bottom: 1px solid #292d36;
-    }
-
-    .time {
-      color: #8e9cff;
+    .info {
+      color: #858d9b;
       font-size: 13px;
-      margin-bottom: 5px;
-    }
-
-    .text {
-      font-size: 15px;
-      line-height: 1.6;
+      line-height: 1.5;
+      margin-top: 8px;
     }
 
     .hidden {
       display: none;
     }
 
-    .info {
-      color: #999;
+    .line {
+      padding: 12px 5px;
+      border-bottom: 1px solid #292f39;
+    }
+
+    .time {
+      color: #8996ff;
       font-size: 13px;
-      margin-top: 8px;
+      margin-bottom: 6px;
+    }
+
+    .text {
+      font-size: 16px;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -139,95 +162,161 @@
 
 <div class="container">
 
-  <h1>🎬 Myanmar SRT</h1>
+  <h1>🎬 Myanmar SRT Studio</h1>
 
   <div class="subtitle">
-    Groq Transcript → Gemini Myanmar Translation
+    Groq → Gemini → Myanmar Subtitle
   </div>
+
+
+  <!-- API SETTINGS -->
 
   <div class="card">
 
-    <label>Video File</label>
+    <div class="title">
+      🔑 API Settings
+    </div>
+
+    <label>
+      Groq API Key
+    </label>
 
     <input
-      type="file"
+      id="groqKey"
+      type="password"
+      placeholder="gsk_..."
+      autocomplete="off"
+    >
+
+    <label>
+      Gemini API Key
+    </label>
+
+    <input
+      id="geminiKey"
+      type="password"
+      placeholder="AIza..."
+      autocomplete="off"
+    >
+
+    <button
+      id="saveKeys"
+      class="save"
+    >
+      💾 Save API Keys
+    </button>
+
+    <button
+      id="clearKeys"
+      class="clear"
+    >
+      🗑️ Clear Saved Keys
+    </button>
+
+    <div
+      id="keyStatus"
+      class="key-status"
+    >
+      API Key မထည့်ရသေးပါ
+    </div>
+
+    <div class="info">
+      API Key တွေကို ဒီဖုန်းရဲ့ Browser Local Storage မှာပဲ
+      သိမ်းထားပါတယ်။ Chat ထဲကို API Key မပို့ပါနဲ့။
+    </div>
+
+  </div>
+
+
+  <!-- VIDEO -->
+
+  <div class="card">
+
+    <div class="title">
+      🎥 Video
+    </div>
+
+    <input
       id="videoInput"
+      type="file"
       accept="video/*"
     >
 
     <div class="info">
-      Maximum: 100MB / 5 minutes
+      Maximum 100MB / 5 minutes
     </div>
 
-    <button id="transcribeBtn">
+    <button
+      id="transcribeBtn"
+      class="groq"
+      disabled
+    >
       🎙️ Groq Transcript
     </button>
 
     <button
       id="translateBtn"
-      class="translate-btn"
+      class="gemini"
       disabled
     >
-      🇲🇲 Gemini မြန်မာဘာသာပြန်
+      🇲🇲 Gemini Myanmar Translation
     </button>
 
     <div
       id="status"
       class="status"
     >
-      Ready
+      API Key နှစ်ခုထည့်ပြီး Save လုပ်ပါ။
     </div>
 
   </div>
 
 
-  <!-- ORIGINAL TRANSCRIPT -->
+  <!-- ORIGINAL -->
 
   <div
     id="originalSection"
     class="card hidden"
   >
 
-    <div class="section-title">
+    <div class="title">
       📝 Original Transcript
     </div>
 
     <div
       id="originalBox"
-      class="subtitle-box"
     ></div>
 
     <button
-      id="downloadOriginalBtn"
-      class="download-btn"
+      id="downloadOriginal"
+      class="download"
     >
-      ⬇️ Original SRT Download
+      ⬇️ Download Original SRT
     </button>
 
   </div>
 
 
-  <!-- MYANMAR TRANSLATION -->
+  <!-- MYANMAR -->
 
   <div
     id="myanmarSection"
     class="card hidden"
   >
 
-    <div class="section-title">
-      🇲🇲 Myanmar Translation
+    <div class="title">
+      🇲🇲 Myanmar Subtitle
     </div>
 
     <div
       id="myanmarBox"
-      class="subtitle-box"
     ></div>
 
     <button
-      id="downloadMyanmarBtn"
-      class="download-btn"
+      id="downloadMyanmar"
+      class="download"
     >
-      ⬇️ Myanmar SRT Download
+      ⬇️ Download Myanmar SRT
     </button>
 
   </div>
@@ -236,6 +325,21 @@
 
 
 <script>
+
+  const groqKeyInput =
+    document.getElementById("groqKey");
+
+  const geminiKeyInput =
+    document.getElementById("geminiKey");
+
+  const saveKeys =
+    document.getElementById("saveKeys");
+
+  const clearKeys =
+    document.getElementById("clearKeys");
+
+  const keyStatus =
+    document.getElementById("keyStatus");
 
   const videoInput =
     document.getElementById("videoInput");
@@ -261,98 +365,171 @@
   const myanmarBox =
     document.getElementById("myanmarBox");
 
-  const downloadOriginalBtn =
-    document.getElementById("downloadOriginalBtn");
+  const downloadOriginal =
+    document.getElementById("downloadOriginal");
 
-  const downloadMyanmarBtn =
-    document.getElementById("downloadMyanmarBtn");
+  const downloadMyanmar =
+    document.getElementById("downloadMyanmar");
 
 
   let originalTranscript = [];
+
   let myanmarTranscript = [];
 
 
-  function setStatus(message) {
-    status.textContent = message;
+  function getGroqKey() {
+    return localStorage.getItem(
+      "myanmar_srt_groq_key"
+    ) || "";
   }
+
+
+  function getGeminiKey() {
+    return localStorage.getItem(
+      "myanmar_srt_gemini_key"
+    ) || "";
+  }
+
+
+  function updateKeyStatus() {
+
+    const groq = getGroqKey();
+
+    const gemini = getGeminiKey();
+
+    if (groq && gemini) {
+
+      keyStatus.textContent =
+        "✅ Groq API Key + Gemini API Key အသင့်ရှိပါပြီ";
+
+      transcribeBtn.disabled =
+        !videoInput.files.length;
+
+    } else {
+
+      keyStatus.textContent =
+        "⚠️ Groq နှင့် Gemini API Key နှစ်ခုလုံး ထည့်ပေးပါ";
+
+      transcribeBtn.disabled = true;
+
+    }
+  }
+
+
+  saveKeys.addEventListener(
+    "click",
+    () => {
+
+      const groq =
+        groqKeyInput.value.trim();
+
+      const gemini =
+        geminiKeyInput.value.trim();
+
+
+      if (!groq || !gemini) {
+
+        status.textContent =
+          "⚠️ API Key နှစ်ခုလုံး ထည့်ပေးပါ";
+
+        return;
+      }
+
+
+      localStorage.setItem(
+        "myanmar_srt_groq_key",
+        groq
+      );
+
+      localStorage.setItem(
+        "myanmar_srt_gemini_key",
+        gemini
+      );
+
+
+      status.textContent =
+        "✅ API Key နှစ်ခု သိမ်းပြီးပါပြီ။";
+
+      updateKeyStatus();
+
+    }
+  );
+
+
+  clearKeys.addEventListener(
+    "click",
+    () => {
+
+      localStorage.removeItem(
+        "myanmar_srt_groq_key"
+      );
+
+      localStorage.removeItem(
+        "myanmar_srt_gemini_key"
+      );
+
+      groqKeyInput.value = "";
+
+      geminiKeyInput.value = "";
+
+      status.textContent =
+        "🗑️ Saved API Keys ဖျက်ပြီးပါပြီ။";
+
+      updateKeyStatus();
+
+    }
+  );
+
+
+  videoInput.addEventListener(
+    "change",
+    () => {
+
+      updateKeyStatus();
+
+      translateBtn.disabled = true;
+
+      originalSection.classList.add(
+        "hidden"
+      );
+
+      myanmarSection.classList.add(
+        "hidden"
+      );
+
+    }
+  );
 
 
   function formatTime(seconds) {
 
     seconds = Number(seconds || 0);
 
-    const hours =
+    const h =
       Math.floor(seconds / 3600);
 
-    const minutes =
-      Math.floor((seconds % 3600) / 60);
+    const m =
+      Math.floor(
+        (seconds % 3600) / 60
+      );
 
-    const secs =
+    const s =
       Math.floor(seconds % 60);
 
     const ms =
-      Math.floor((seconds % 1) * 1000);
+      Math.floor(
+        (seconds % 1) * 1000
+      );
 
     return (
-      String(hours).padStart(2, "0") +
+      String(h).padStart(2, "0") +
       ":" +
-      String(minutes).padStart(2, "0") +
+      String(m).padStart(2, "0") +
       ":" +
-      String(secs).padStart(2, "0") +
+      String(s).padStart(2, "0") +
       "," +
       String(ms).padStart(3, "0")
     );
-  }
-
-
-  function createSRT(segments) {
-
-    return segments.map((item, index) => {
-
-      return (
-        (index + 1) +
-        "\n" +
-        formatTime(item.start) +
-        " --> " +
-        formatTime(item.end) +
-        "\n" +
-        item.text +
-        "\n\n"
-      );
-
-    }).join("");
-
-  }
-
-
-  function showTranscript(box, segments) {
-
-    box.innerHTML = "";
-
-    segments.forEach((item, index) => {
-
-      const div =
-        document.createElement("div");
-
-      div.className = "line";
-
-      div.innerHTML = `
-        <div class="time">
-          ${index + 1}.
-          ${formatTime(item.start)}
-          →
-          ${formatTime(item.end)}
-        </div>
-
-        <div class="text">
-          ${escapeHtml(item.text)}
-        </div>
-      `;
-
-      box.appendChild(div);
-
-    });
-
   }
 
 
@@ -368,13 +545,78 @@
   }
 
 
-  function downloadText(filename, text) {
+  function showTranscript(
+    box,
+    segments
+  ) {
+
+    box.innerHTML = "";
+
+    segments.forEach(
+      (item, index) => {
+
+        const div =
+          document.createElement("div");
+
+        div.className = "line";
+
+        div.innerHTML = `
+          <div class="time">
+            ${index + 1}.
+            ${formatTime(item.start)}
+            →
+            ${formatTime(item.end)}
+          </div>
+
+          <div class="text">
+            ${escapeHtml(item.text)}
+          </div>
+        `;
+
+        box.appendChild(div);
+
+      }
+    );
+  }
+
+
+  function createSRT(
+    segments
+  ) {
+
+    return segments
+      .map(
+        (item, index) => {
+
+          return (
+            (index + 1) +
+            "\n" +
+            formatTime(item.start) +
+            " --> " +
+            formatTime(item.end) +
+            "\n" +
+            item.text +
+            "\n\n"
+          );
+
+        }
+      )
+      .join("");
+
+  }
+
+
+  function downloadFile(
+    filename,
+    content
+  ) {
 
     const blob =
       new Blob(
-        [text],
+        [content],
         {
-          type: "text/plain;charset=utf-8"
+          type:
+            "text/plain;charset=utf-8"
         }
       );
 
@@ -399,7 +641,7 @@
   }
 
 
-  // GROQ TRANSCRIPTION
+  // GROQ
 
   transcribeBtn.addEventListener(
     "click",
@@ -410,19 +652,20 @@
 
       if (!file) {
 
-        setStatus(
-          "⚠️ Video file ရွေးပေးပါ"
-        );
+        status.textContent =
+          "⚠️ Video ရွေးပေးပါ";
 
         return;
       }
 
 
-      if (file.size > 100 * 1024 * 1024) {
+      if (
+        file.size >
+        100 * 1024 * 1024
+      ) {
 
-        setStatus(
-          "⚠️ Video size က 100MB ထက်ကျော်နေပါတယ်"
-        );
+        status.textContent =
+          "⚠️ Video က 100MB ထက်ကျော်နေပါတယ်";
 
         return;
       }
@@ -430,10 +673,8 @@
 
       transcribeBtn.disabled = true;
 
-      translateBtn.disabled = true;
-
       setStatus(
-        "⏳ Groq က Video ကို စာသားအဖြစ် ပြောင်းနေပါတယ်..."
+        "⏳ Groq က အသံကို Transcript ပြောင်းနေပါတယ်..."
       );
 
 
@@ -453,6 +694,12 @@
             "/api/transcribe",
             {
               method: "POST",
+
+              headers: {
+                "x-groq-api-key":
+                  getGroqKey()
+              },
+
               body: formData
             }
           );
@@ -476,15 +723,6 @@
           data.transcript || [];
 
 
-        if (!originalTranscript.length) {
-
-          throw new Error(
-            "Transcript မရပါ"
-          );
-
-        }
-
-
         showTranscript(
           originalBox,
           originalTranscript
@@ -500,14 +738,12 @@
 
 
         setStatus(
-          "✅ Groq Transcript ရပါပြီ။\n\n" +
-          "အခု Gemini မြန်မာဘာသာပြန် ခလုတ်ကို နှိပ်ပါ။"
+          "✅ Groq Transcript ရပါပြီ။\n" +
+          "အခု Gemini Myanmar Translation ကိုနှိပ်ပါ။"
         );
 
 
       } catch (error) {
-
-        console.error(error);
 
         setStatus(
           "❌ Error: " +
@@ -524,7 +760,7 @@
   );
 
 
-  // GEMINI TRANSLATION
+  // GEMINI
 
   translateBtn.addEventListener(
     "click",
@@ -533,19 +769,18 @@
       if (!originalTranscript.length) {
 
         setStatus(
-          "⚠️ အရင်ဆုံး Groq Transcript လုပ်ပါ"
+          "⚠️ အရင် Groq Transcript လုပ်ပါ"
         );
 
         return;
-
       }
 
 
       translateBtn.disabled = true;
 
+
       setStatus(
-        "⏳ Gemini က မြန်မာဘာသာပြန်နေပါတယ်...\n" +
-        "ခဏစောင့်ပေးပါ။"
+        "⏳ Gemini က မြန်မာဘာသာပြန်နေပါတယ်..."
       );
 
 
@@ -558,14 +793,20 @@
               method: "POST",
 
               headers: {
+
                 "Content-Type":
-                  "application/json"
+                  "application/json",
+
+                "x-gemini-api-key":
+                  getGeminiKey()
+
               },
 
-              body: JSON.stringify({
-                transcript:
-                  originalTranscript
-              })
+              body:
+                JSON.stringify({
+                  transcript:
+                    originalTranscript
+                })
 
             }
           );
@@ -586,15 +827,13 @@
 
 
         myanmarTranscript =
-          data.transcript ||
-          data.segments ||
-          [];
+          data.transcript || [];
 
 
         if (!myanmarTranscript.length) {
 
           throw new Error(
-            "မြန်မာဘာသာပြန်စာ မရပါ"
+            "Myanmar translation မရပါ"
           );
 
         }
@@ -612,14 +851,11 @@
 
 
         setStatus(
-          "✅ Gemini မြန်မာဘာသာပြန် ပြီးပါပြီ။\n\n" +
-          "Myanmar SRT ကို Download လုပ်နိုင်ပါပြီ။"
+          "✅ Gemini Myanmar Translation ပြီးပါပြီ။"
         );
 
 
       } catch (error) {
-
-        console.error(error);
 
         setStatus(
           "❌ Gemini Error: " +
@@ -636,52 +872,58 @@
   );
 
 
-  // ORIGINAL SRT DOWNLOAD
-
-  downloadOriginalBtn.addEventListener(
+  downloadOriginal.addEventListener(
     "click",
     () => {
 
-      if (!originalTranscript.length) {
-        return;
-      }
-
-      const srt =
+      downloadFile(
+        "Original_Transcript.srt",
         createSRT(
           originalTranscript
-        );
-
-      downloadText(
-        "Original_Transcript.srt",
-        srt
+        )
       );
 
     }
   );
 
 
-  // MYANMAR SRT DOWNLOAD
-
-  downloadMyanmarBtn.addEventListener(
+  downloadMyanmar.addEventListener(
     "click",
     () => {
 
-      if (!myanmarTranscript.length) {
-        return;
-      }
-
-      const srt =
+      downloadFile(
+        "Myanmar_Subtitle.srt",
         createSRT(
           myanmarTranscript
-        );
-
-      downloadText(
-        "Myanmar_Subtitle.srt",
-        srt
+        )
       );
 
     }
   );
+
+
+  function setStatus(text) {
+    status.textContent = text;
+  }
+
+
+  // Load saved keys
+
+  const savedGroq =
+    getGroqKey();
+
+  const savedGemini =
+    getGeminiKey();
+
+  if (savedGroq) {
+    groqKeyInput.value = savedGroq;
+  }
+
+  if (savedGemini) {
+    geminiKeyInput.value = savedGemini;
+  }
+
+  updateKeyStatus();
 
 </script>
 
