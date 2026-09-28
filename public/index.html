@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Myanmar SRT + Movie Recap</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#0b0d10;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+
+.container{
+  width:100%;
+  max-width:720px;
+  margin:auto;
+  padding:18px;
+}
+
+h1{
+  text-align:center;
+  margin:8px 0 20px;
+  font-size:27px;
+}
+
+.card{
+  background:#15181d;
+  border:1px solid #292e36;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:15px;
+}
+
+.title{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:13px;
+}
+
+.step{
+  border:1px solid #303641;
+  border-radius:13px;
+  padding:14px;
+  margin-top:12px;
+  background:#111419;
+}
+
+.step-title{
+  font-size:16px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.step-number{
+  display:inline-block;
+  min-width:34px;
+  padding:7px 8px;
+  border-radius:8px;
+  background:#2563eb;
+  text-align:center;
+  font-weight:bold;
+  margin-right:7px;
+}
+
+label{
+  display:block;
+  margin-top:12px;
+  margin-bottom:6px;
+  color:#bfc5ce;
+  font-size:14px;
+}
+
+input,select,button{
+  width:100%;
+  min-height:46px;
+  border-radius:11px;
+  border:1px solid #343a44;
+  background:#0e1115;
+  color:#fff;
+  padding:10px 12px;
+  font-size:15px;
+}
+
+input[type="file"]{padding:11px}
+
+input[type="color"]{
+  padding:4px;
+  height:46px;
+}
+
+button{
+  margin-top:10px;
+  cursor:pointer;
+  font-weight:bold;
+  background:#242a33;
+}
+
+button:hover{background:#303743}
+
+.primary{
+  background:#2563eb;
+  border-color:#2563eb;
+}
+
+.success{
+  background:#15803d;
+  border-color:#15803d;
+}
+
+.danger{
+  background:#991b1b;
+  border-color:#991b1b;
+}
+
+.status{
+  padding:12px;
+  border-radius:10px;
+  background:#0d1117;
+  color:#cbd5e1;
+  margin-top:12px;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+
+.small{
+  color:#9ca3af;
+  font-size:13px;
+  line-height:1.5;
+}
+
+textarea{
+  width:100%;
+  min-height:180px;
+  resize:vertical;
+  border-radius:11px;
+  border:1px solid #343a44;
+  background:#0b0e12;
+  color:#fff;
+  padding:12px;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.check{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:14px;
+  padding:12px;
+  border-radius:11px;
+  background:#0e1115;
+}
+
+.check input{
+  width:20px;
+  min-height:20px;
+}
+
+.preview{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/9;
+  background:#000;
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:12px;
+}
+
+.preview video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+.preview-subtitle{
+  position:absolute;
+  left:5%;
+  right:5%;
+  bottom:7%;
+  text-align:center;
+  color:#fff;
+  font-size:25px;
+  font-weight:bold;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
+  pointer-events:none;
+}
+
+.hidden{display:none!important}
+
+.download{
+  display:block;
+  text-align:center;
+  text-decoration:none;
+  padding:14px;
+  margin-top:12px;
+  border-radius:11px;
+  background:#16a34a;
+  color:#fff;
+  font-weight:bold;
+}
+
+.voice-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.voice-btn{margin-top:0}
+
+.voice-btn.active{
+  background:#2563eb;
+  border-color:#2563eb;
+}
+
+.voice-settings{
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
+  background:#0e1115;
+  border:1px solid #292e36;
+}
+
+.range-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  align-items:center;
+}
+
+.range-value{
+  min-width:58px;
+  text-align:center;
+  padding:8px;
+  border-radius:8px;
+  background:#242a33;
+}
+
+input[type="range"]{
+  min-height:35px;
+  padding:0;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  background:#242a33;
+  color:#cbd5e1;
+  font-size:12px;
+  margin-bottom:8px;
+}
+
+.aspect-info{
+  margin-top:8px;
+  padding:10px;
+  border-radius:9px;
+  background:#0d1117;
+  color:#9ca3af;
+  font-size:13px;
+}
+
+@media(max-width:500px){
+  .container{padding:12px}
+  .row,.voice-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🇲🇲 Myanmar SRT</h1>
+
+<div class="card">
+
+<div class="title">🔑 API Settings</div>
+
+<label>Groq API Key</label>
+
+<input
+  id="groqKey"
+  type="password"
+  placeholder="Enter Groq API Key"
+/>
+
+<label>Gemini API Key</label>
+
+<input
+  id="geminiKey"
+  type="password"
+  placeholder="Enter Gemini API Key"
+/>
+
+<button onclick="saveKeys()">
+💾 Save API Keys
+</button>
+
+<button class="danger" onclick="clearKeys()">
+🗑️ Clear Saved Keys
+</button>
+
+<div class="small">
+API Key တွေကို ဒီ browser ရဲ့ Local Storage ထဲမှာပဲ သိမ်းထားပါတယ်။
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="title">🎬 Video</div>
+
+<input
+  id="videoFile"
+  type="file"
+  accept="video/*"
+/>
+
+<div class="small">
+Maximum 300MB / 5 minutes
+</div>
+
+<button
+  class="primary"
+  onclick="transcribe()"
+>
+🎙️ Groq Transcript
+</button>
+
+<button
+  class="primary"
+  onclick="translateMyanmar()"
+>
+🇲🇲 Gemini Myanmar Translation
+</button>
+
+</div>
+
+<div class="card">
+
+<div class="title">📊 Status</div>
+
+<div id="status" class="status">
+Ready
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="title">
+📝 Original Transcript
+</div>
+
+<textarea
+  id="originalText"
+  readonly
+></textarea>
+
+</div>
+
+<div class="card">
+
+<div class="title">
+🇲🇲 Myanmar Subtitle
+</div>
+
+<textarea
+  id="myanmarText"
+  readonly
+></textarea>
+
+<button onclick="downloadSrt()">
+⬇️ Download Myanmar SRT
+</button>
+
+</div>
+
+<div class="card">
+
+<div class="title">
+🎨 Subtitle Style
+</div>
+
+<label>Font</label>
+
+<select id="fontName">
+<option value="Noto Sans Myanmar">Noto Sans Myanmar</option>
+<option value="Myanmar Text">Myanmar Text</option>
+<option value="Arial">Arial</option>
+<option value="sans-serif">Sans Serif</option>
+</select>
+
+<div class="row">
+
+<div>
+<label>Font Size</label>
+
+<input
+  id="fontSize"
+  type="number"
+  value="28"
+  min="16"
+  max="72"
+/>
+</div>
+
+<div>
+<label>Outline</label>
+
+<input
+  id="outline"
+  type="number"
+  value="2"
+  min="0"
+  max="10"
+/>
+</div>
+
+</div>
+
+<label>Text Color</label>
+
+<input
+  id="textColor"
+  type="color"
+  value="#ffffff"
+/>
+
+<label>Subtitle Position</label>
+
+<select id="position">
+<option value="bottom">Bottom</option>
+<option value="middle">Middle</option>
+<option value="top">Top</option>
+</select>
+
+<div class="check">
+
+<input
+  id="blurOriginal"
+  type="checkbox"
+/>
+
+<div>
+<strong>🔲 Blur Original Subtitle</strong>
+<br>
+<span class="small">
+မူရင်း video ရဲ့ အောက်ခြေ subtitle area ကို blur အုပ်မယ်
+</span>
+</div>
+
+</div>
+
+<button onclick="updatePreview()">
+👁️ Preview
+</button>
+
+</div>
+
+<div id="previewCard" class="card hidden">
+
+<div class="title">
+👁️ Subtitle Preview
+</div>
+
+<div class="preview">
+
+<video
+  id="previewVideo"
+  controls
+></video>
+
+<div
+  id="previewSubtitle"
+  class="preview-subtitle"
+>
+မြန်မာစာတန်း
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="title">
+🎬 Final MP4
+</div>
+
+<div class="small">
+ရွေးထားတဲ့ subtitle style နဲ့ video ကို MP4 အဖြစ် render လုပ်ပါမယ်။
+</div>
+
+<button
+  class="success"
+  onclick="renderMp4()"
+>
+🎬 Render MP4
+</button>
+
+<div id="downloadArea" class="hidden"></div>
+
+</div>
+
+<div class="card">
+
+<div class="title">
+🎬 Movie Recap
+</div>
+
+<div class="small">
+Video → Script → Myanmar Voice → Subtitle → Final Video
+</div>
+
+<div class="step">
+
+<div class="step-title">
+<span class="step-number">P1</span>
+Video ထည့်မယ်
+</div>
+
+<label>Movie Video</label>
+
+<input
+  id="recapVideo"
+  type="file"
+  accept="video/*"
+/>
+
+<div
+  id="recapVideoInfo"
+  class="status"
+>
+Video မရွေးရသေးပါ
+</div>
+
+<button
+  class="primary"
+  onclick="startRecapVideo()"
+>
+🎥 P1 Video စတင်ဖတ်မယ်
+</button>
+
+</div>
+
+<div class="step">
+
+<div class="step-title">
+<span class="step-number">P2</span>
+Video → Script
+</div>
+
+<div class="small">
+Video ထဲက scene နဲ့ ဖြစ်ရပ်တွေကို AI နားလည်ပြီး
+သဘာဝကျတဲ့ မြန်မာ Movie Recap Script ရေးပေးမယ်။
+</div>
+
+<button
+  class="primary"
+  onclick="generateRecapScript()"
+>
+🧠 P2 Generate Recap Script
+</button>
+
+<label>Movie Recap Script</label>
+
+<textarea
+  id="recapScript"
+  placeholder="P2 Script ဒီနေရာမှာ ပေါ်လာပါမယ်။ ကိုယ်တိုင်လည်း ပြင်နိုင်ပါတယ်..."
+></textarea>
+
+<button onclick="saveRecapScript()">
+💾 Script သိမ်းမယ်
+</button>
+
+</div>
+
+<div class="step">
+
+<div class="step-title">
+<span class="step-number">P3</span>
+Script → မြန်မာအသံ
+</div>
+
+<div class="small">
+မြန်မာ Voice ကို ရွေးပြီး Script ကို အသံပြောင်းမယ်။
+</div>
+
+<label>Voice</label>
+
+<div class="voice-grid">
+
+<button
+  id="voiceThiha"
+  class="voice-btn active"
+  onclick="selectRecapVoice('thiha')"
+>
+🎙️ သီဟ
+</button>
+
+<button
+  id="voiceNilar"
+  class="voice-btn"
+  onclick="selectRecapVoice('nila')"
+>
+🎙️ နီလာ
+</button>
+
+</div>
+
+<div
+  id="selectedVoiceText"
+  class="status"
+>
+ရွေးထားသော Voice: သီဟ
+</div>
+
+<div class="voice-settings">
+
+<div class="badge">
+🎚️ Voice Settings
+</div>
+
+<label>Voice Speed</label>
+
+<div class="range-row">
+
+<input
+  id="recapVoiceSpeed"
+  type="range"
+  min="0.5"
+  max="2"
+  step="0.05"
+  value="1"
+/>
+
+<div
+  id="recapVoiceSpeedValue"
+  class="range-value"
+>
+1.00x
+</div>
+
+</div>
+
+<label>Voice Volume</label>
+
+<div class="range-row">
+
+<input
+  id="recapVoiceVolume"
+  type="range"
+  min="0"
+  max="2"
+  step="0.05"
+  value="1"
+/>
+
+<div
+  id="recapVoiceVolumeValue"
+  class="range-value"
+>
+100%
+</div>
+
+</div>
+
+<label>Voice Pitch</label>
+
+<div class="range-row">
+
+<input
+  id="recapVoicePitch"
+  type="range"
+  min="-12"
+  max="12"
+  step="1"
+  value="0"
+/>
+
+<div
+  id="recapVoicePitchValue"
+  class="range-value"
+>
+0
+</div>
+
+</div>
+
+</div>
+
+<button
+  class="primary"
+  onclick="generateRecapVoice()"
+>
+🔊 P3 မြန်မာအသံထုတ်မယ်
+</button>
+
+<a
+  id="voiceDownload"
+  class="download hidden"
+  href="#"
+  download
+>
+⬇️ Download Voice
+</a>
+
+<audio
+  id="recapAudio"
+  controls
+  class="hidden"
+  style="width:100%;margin-top:12px;"
+></audio>
+
+</div>
+
+<!-- P4 -->
+<div class="step">
+
+<div class="step-title">
+<span class="step-number">P4</span>
+Video + Voice + Subtitle
+</div>
+
+<div class="small">
+မူရင်းစာတန်းကို blur အုပ်ပြီး Myanmar subtitle ကို
+video ပေါ်မှာ တိုက်ရိုက်ကြည့်နိုင်ပါတယ်။
+Subtitle နေရာနဲ့ Blur Area ကို လက်နဲ့ဆွဲရွှေ့နိုင်ပါတယ်။
+</div>
+
+<div class="check">
+
+<input
+  id="recapBlur"
+  type="checkbox"
+/>
+
+<div>
+<strong>🔲 မူရင်း Subtitle Blur</strong>
+<br>
+<span class="small">
+Blur Area ကို Video Preview ထဲမှာ ဆွဲရွှေ့နိုင်ပါတယ်။
+</span>
+</div>
+
+</div>
+
+<label>Font</label>
+
+<select id="recapFont">
+<option value="Noto Sans Myanmar">Noto Sans Myanmar</option>
+<option value="Myanmar Text">Myanmar Text</option>
+<option value="Arial">Arial</option>
+<option value="sans-serif">Sans Serif</option>
+</select>
+
+<div class="row">
+
+<div>
+
+<label>Font Size</label>
+
+<input
+  id="recapFontSize"
+  type="number"
+  value="28"
+  min="12"
+  max="100"
+/>
+
+</div>
+
+<div>
+
+<label>Outline</label>
+
+<input
+  id="recapOutline"
+  type="number"
+  value="2"
+  min="0"
+  max="15"
+/>
+
+</div>
+
+</div>
+
+<label>Text Color</label>
+
+<input
+  id="recapTextColor"
+  type="color"
+  value="#ffffff"
+/>
+
+<label>Position</label>
+
+<select id="recapPosition">
+<option value="bottom">Bottom</option>
+<option value="middle">Middle</option>
+<option value="top">Top</option>
+</select>
+
+<label>Output Size</label>
+
+<select id="recapOutputSize">
+
+<option value="original">
+Original Size
+</option>
+
+<option value="9:16">
+9:16 — Vertical
+</option>
+
+<option value="1:1">
+1:1 — Square
+</option>
+
+<option value="16:9">
+16:9 — Landscape
+</option>
+
+</select>
+
+<div
+  id="recapOutputInfo"
+  class="aspect-info"
+>
+Original Video အရွယ်အစားအတိုင်း ထုတ်မယ်
+</div>
+
+<div
+  id="recapPreviewBox"
+  class="preview"
+  style="touch-action:none;"
+>
+
+<video
+  id="recapPreviewVideo"
+  muted
+  playsinline
+></video>
+
+<div
+  id="recapBlurBox"
+  style="
+    position:absolute;
+    left:5%;
+    bottom:0;
+    width:90%;
+    height:22%;
+    background:rgba(255,255,255,0.10);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border:2px dashed rgba(255,255,255,0.55);
+    display:none;
+    touch-action:none;
+  "
+></div>
+
+<div
+  id="recapSubtitleBox"
+  style="
+    position:absolute;
+    left:5%;
+    bottom:7%;
+    width:90%;
+    text-align:center;
+    color:#fff;
+    font-size:28px;
+    font-weight:bold;
+    text-shadow:
+      -2px -2px 0 #000,
+       2px -2px 0 #000,
+      -2px  2px 0 #000,
+       2px  2px 0 #000;
+    touch-action:none;
+    user-select:none;
+  "
+>
+မြန်မာ Movie Recap Subtitle
+</div>
+
+</div>
+
+<div class="small" style="margin-top:8px;">
+🖐️ Subtitle စာကို ဖိပြီး ဆွဲရွှေ့နိုင်ပါတယ်။
+<br>
+🖐️ Blur ON လုပ်ပြီးရင် အဖြူရောင် Blur Box ကို ဖိပြီး ဆွဲရွှေ့နိုင်ပါတယ်။
+</div>
+
+<button onclick="previewRecapStyle()">
+👁️ P4 Preview
+</button>
+
+</div>
+
+<div class="step">
+
+<div class="step-title">
+<span class="step-number">P5</span>
+Final Video
+</div>
+
+<div class="small">
+Video + Myanmar Voice + Myanmar Subtitle ကို
+ပေါင်းပြီး Final MP4 ထုတ်မယ်။
+</div>
+
+<button
+  class="success"
+  onclick="renderRecapFinal()"
+>
+🎬 P5 Final Video ထုတ်မယ်
+</button>
+
+<div
+  id="recapFinalStatus"
+  class="status"
+>
+Final Video မထုတ်ရသေးပါ
+</div>
+
+<div
+  id="recapFinalDownload"
+  class="hidden"
+></div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let originalTranscript=[];
+let myanmarTranscript=[];
+let selectedVideo=null;
+
+let recapVideoFile=null;
+let recapVoice="thiha";
+let recapVoiceUrl="";
+
+let recapSubtitlePosition={
+  x:5,
+  y:7
+};
+
+let recapBlurPosition={
+  x:5,
+  y:78,
+  width:90,
+  height:22
+};
+
+function loadKeys(){
+
+  document.getElementById("groqKey").value=
+    localStorage.getItem("myanmar_srt_groq_key")||"";
+
+  document.getElementById("geminiKey").value=
+    localStorage.getItem("myanmar_srt_gemini_key")||"";
+
+}
+
+function saveKeys(){
+
+  const groq=
+    document.getElementById("groqKey").value.trim();
+
+  const gemini=
+    document.getElementById("geminiKey").value.trim();
+
+  localStorage.setItem(
+    "myanmar_srt_groq_key",
+    groq
+  );
+
+  localStorage.setItem(
+    "myanmar_srt_gemini_key",
+    gemini
+  );
+
+  setStatus("✅ API Keys သိမ်းပြီးပါပြီ");
+
+}
+
+function clearKeys(){
+
+  localStorage.removeItem("myanmar_srt_groq_key");
+  localStorage.removeItem("myanmar_srt_gemini_key");
+
+  document.getElementById("groqKey").value="";
+  document.getElementById("geminiKey").value="";
+
+  setStatus("🗑️ API Keys ဖျက်ပြီးပါပြီ");
+
+}
+
+function getGroqKey(){
+  return localStorage.getItem("myanmar_srt_groq_key")||"";
+}
+
+function getGeminiKey(){
+  return localStorage.getItem("myanmar_srt_gemini_key")||"";
+}
+
+function setStatus(message){
+  document.getElementById("status").textContent=message;
+}
+
+document
+.getElementById("videoFile")
+.addEventListener("change",function(){
+
+  selectedVideo=this.files[0]||null;
+
+  if(selectedVideo){
+
+    document.getElementById("previewVideo").src=
+      URL.createObjectURL(selectedVideo);
+
+    document
+      .getElementById("previewCard")
+      .classList.remove("hidden");
+
+  }
+
+});
+
+async function transcribe(){
+
+  const file=
+    document.getElementById("videoFile").files[0];
+
+  if(!file){
+    setStatus("❌ Video ရွေးပေးပါ");
+    return;
+  }
+
+  const key=getGroqKey();
+
+  if(!key){
+    setStatus("❌ Groq API Key ထည့်ပေးပါ");
+    return;
+  }
+
+  if(file.size>300*1024*1024){
+    setStatus("❌ Video က 300MB ထက်ကြီးနေပါတယ်");
+    return;
+  }
+
+  setStatus("⏳ Groq Transcript လုပ်နေပါတယ်...");
+
+  const formData=new FormData();
+
+  formData.append("video",file);
+
+  try{
+
+    const response=
+      await fetch("/api/transcribe",{
+        method:"POST",
+        headers:{
+          "x-groq-api-key":key
+        },
+        body:formData
+      });
+
+    const data=await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error||"Groq Error");
+    }
+
+    originalTranscript=data.transcript||[];
+
+    document.getElementById("originalText").value=
+      makeDisplayText(originalTranscript);
+
+    setStatus(
+      "✅ Groq Transcript ရပါပြီ။ အခု Gemini Myanmar Translation ကိုနှိပ်ပါ။"
+    );
+
+  }catch(error){
+
+    setStatus("❌ Groq Error: "+error.message);
+
+  }
+
+}
+
+async function translateMyanmar(){
+
+  if(!originalTranscript.length){
+
+    setStatus("❌ အရင် Groq Transcript လုပ်ပါ");
+    return;
+
+  }
+
+  const key=getGeminiKey();
+
+  if(!key){
+
+    setStatus("❌ Gemini API Key ထည့်ပေးပါ");
+    return;
+
+  }
+
+  setStatus(
+    "⏳ Gemini Myanmar Translation လုပ်နေပါတယ်..."
+  );
+
+  try{
+
+    const response=
+      await fetch("/api/translate",{
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "x-gemini-api-key":key
+        },
+
+        body:JSON.stringify({
+          transcript:originalTranscript
+        })
+
+      });
+
+    const data=await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error||"Gemini Error");
+    }
+
+    myanmarTranscript=data.transcript||[];
+
+    document.getElementById("myanmarText").value=
+      makeDisplayText(myanmarTranscript);
+
+    updatePreview();
+
+    setStatus("✅ Myanmar Translation ရပါပြီ");
+
+  }catch(error){
+
+    setStatus("❌ Gemini Error: "+error.message);
+
+  }
+
+}
+
+function makeDisplayText(transcript){
+
+  return transcript.map((item,index)=>{
+
+    return(
+      `${index+1}\n`+
+      `${formatSrtTime(item.start)} --> ${formatSrtTime(item.end)}\n`+
+      `${item.text}\n`
+    );
+
+  }).join("\n");
+
+}
+
+function formatSrtTime(seconds){
+
+  const totalMs=Math.round(Number(seconds)*1000);
+
+  const hours=Math.floor(totalMs/3600000);
+
+  const minutes=Math.floor(
+    (totalMs%3600000)/60000
+  );
+
+  const secs=Math.floor(
+    (totalMs%60000)/1000
+  );
+
+  const ms=totalMs%1000;
+
+  return(
+    String(hours).padStart(2,"0")+":"+
+    String(minutes).padStart(2,"0")+":"+
+    String(secs).padStart(2,"0")+","+
+    String(ms).padStart(3,"0")
+  );
+
+}
+
+function updatePreview(){
+
+  const preview=
+    document.getElementById("previewSubtitle");
+
+  const size=
+    Number(document.getElementById("fontSize").value)||28;
+
+  const outline=
+    Number(document.getElementById("outline").value)||2;
+
+  const color=
+    document.getElementById("textColor").value;
+
+  const font=
+    document.getElementById("fontName").value;
+
+  const position=
+    document.getElementById("position").value;
+
+  preview.style.fontSize=size+"px";
+  preview.style.color=color;
+  preview.style.fontFamily=font;
+
+  preview.style.textShadow=`
+    -${outline}px -${outline}px 0 #000,
+     ${outline}px -${outline}px 0 #000,
+    -${outline}px ${outline}px 0 #000,
+     ${outline}px ${outline}px 0 #000
+  `;
+
+  if(position==="top"){
+
+    preview.style.top="7%";
+    preview.style.bottom="auto";
+    preview.style.transform="none";
+
+  }else if(position==="middle"){
+
+    preview.style.top="50%";
+    preview.style.bottom="auto";
+    preview.style.transform="translateY(-50%)";
+
+  }else{
+
+    preview.style.top="auto";
+    preview.style.bottom="7%";
+    preview.style.transform="none";
+
+  }
+
+  if(myanmarTranscript.length){
+
+    preview.textContent=
+      myanmarTranscript[0].text;
+
+  }
+
+}
+
+function downloadSrt(){
+
+  if(!myanmarTranscript.length){
+
+    setStatus("❌ Myanmar subtitle မရှိသေးပါ");
+    return;
+
+  }
+
+  const srt=
+    myanmarTranscript.map((item,index)=>{
+
+      return(
+        `${index+1}\n`+
+        `${formatSrtTime(item.start)} --> ${formatSrtTime(item.end)}\n`+
+        `${item.text}\n`
+      );
+
+    }).join("\n");
+
+  const blob=new Blob(
+    [srt],
+    {type:"text/plain;charset=utf-8"}
+  );
+
+  const url=URL.createObjectURL(blob);
+
+  const a=document.createElement("a");
+
+  a.href=url;
+  a.download="myanmar-subtitle.srt";
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+}
+
+async function renderMp4(){
+
+  const file=
+    document.getElementById("videoFile").files[0];
+
+  if(!file){
+
+    setStatus("❌ Video ရွေးပေးပါ");
+    return;
+
+  }
+
+  if(file.size>300*1024*1024){
+
+    setStatus("❌ Video က 300MB ထက်ကြီးနေပါတယ်");
+    return;
+
+  }
+
+  if(!myanmarTranscript.length){
+
+    setStatus("❌ အရင် Myanmar Translation လုပ်ပါ");
+    return;
+
+  }
+
+  setStatus(
+    "⏳ MP4 Render လုပ်နေပါတယ်... ခဏစောင့်ပါ"
+  );
+
+  const formData=new FormData();
+
+  formData.append("video",file);
+
+  formData.append(
+    "transcript",
+    JSON.stringify(myanmarTranscript)
+  );
+
+  formData.append(
+    "fontName",
+    document.getElementById("fontName").value
+  );
+
+  formData.append(
+    "fontSize",
+    document.getElementById("fontSize").value
+  );
+
+  formData.append(
+    "textColor",
+    document.getElementById("textColor").value.replace("#","")
+  );
+
+  formData.append(
+    "outline",
+    document.getElementById("outline").value
+  );
+
+  formData.append(
+    "position",
+    document.getElementById("position").value
+  );
+
+  formData.append(
+    "blurOriginal",
+    document.getElementById("blurOriginal").checked
+      ?"true":"false"
+  );
+
+  try{
+
+    const response=
+      await fetch("/api/render",{
+        method:"POST",
+        body:formData
+      });
+
+    const data=await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error||"MP4 Render Error");
+    }
+
+    const area=document.getElementById("downloadArea");
+
+    area.classList.remove("hidden");
+
+    area.innerHTML=`
+      <a
+        class="download"
+        href="${data.downloadUrl}"
+        download
+      >
+        ⬇️ Download Final MP4
+      </a>
+    `;
+
+    setStatus("✅ MP4 Render အောင်မြင်ပါပြီ");
+
+  }catch(error){
+
+    setStatus("❌ Render Error: "+error.message);
+
+  }
+
+}
+
+document
+.getElementById("recapVideo")
+.addEventListener("change",function(){
+
+  recapVideoFile=this.files[0]||null;
+
+  const info=
+    document.getElementById("recapVideoInfo");
+
+  if(!recapVideoFile){
+
+    info.textContent="Video မရွေးရသေးပါ";
+    return;
+
+  }
+
+  const sizeMB=
+    (recapVideoFile.size/1024/1024).toFixed(1);
+
+  info.textContent=
+    "🎥 "+recapVideoFile.name+
+    "\nSize: "+sizeMB+" MB";
+
+  const previewVideo=
+    document.getElementById("recapPreviewVideo");
+
+  previewVideo.src=
+    URL.createObjectURL(recapVideoFile);
+
+  previewVideo.load();
+
+});
+
+function startRecapVideo(){
+
+  const file=
+    document.getElementById("recapVideo").files[0];
+
+  if(!file){
+
+    setStatus("❌ Movie Recap အတွက် Video ရွေးပေးပါ");
+    return;
+
+  }
+
+  recapVideoFile=file;
+
+  document.getElementById("recapPreviewVideo").src=
+    URL.createObjectURL(file);
+
+  setStatus(
+    "✅ P1 Video ရပါပြီ။ အခု P2 Script Generate လုပ်နိုင်ပါပြီ။"
+  );
+
+}
+
+async function generateRecapScript(){
+
+  const file=
+    document.getElementById("recapVideo").files[0];
+
+  if(!file){
+
+    setStatus("❌ P1 မှာ Movie Video အရင်ထည့်ပါ");
+    return;
+
+  }
+
+  const gemini=getGeminiKey();
+
+  if(!gemini){
+
+    setStatus("❌ Gemini API Key ထည့်ပေးပါ");
+    return;
+
+  }
+
+  setStatus(
+    "⏳ P2 — Video ကို AI ဖတ်ပြီး Movie Recap Script ရေးနေပါတယ်..."
+  );
+
+  const formData=new FormData();
+
+  formData.append("video",file);
+
+  formData.append("language","myanmar");
+
+  try{
+
+    const response=
+      await fetch("/api/movie-recap",{
+
+        method:"POST",
+
+        headers:{
+          "x-gemini-api-key":gemini
+        },
+
+        body:formData
+
+      });
+
+    const data=await response.json();
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error||"Movie Recap Script Error"
+      );
+
+    }
+
+    document.getElementById("recapScript").value=
+      data.script||"";
+
+    setStatus(
+      "✅ P2 Script ရပါပြီ။ Script ကို စစ်ပြီး P3 Voice သွားနိုင်ပါပြီ။"
+    );
+
+  }catch(error){
+
+    setStatus(
+      "❌ P2 Error: "+error.message
+    );
+
+  }
+
+}
+
+function saveRecapScript(){
+
+  const script=
+    document.getElementById("recapScript").value.trim();
+
+  if(!script){
+
+    setStatus("❌ Script မရှိသေးပါ");
+    return;
+
+  }
+
+  localStorage.setItem(
+    "movie_recap_script",
+    script
+  );
+
+  setStatus(
+    "✅ Movie Recap Script သိမ်းပြီးပါပြီ"
+  );
+
+}
+
+function selectRecapVoice(voice){
+
+  recapVoice=voice;
+
+  document
+    .getElementById("voiceThiha")
+    .classList.remove("active");
+
+  document
+    .getElementById("voiceNilar")
+    .classList.remove("active");
+
+  if(voice==="thiha"){
+
+    document
+      .getElementById("voiceThiha")
+      .classList.add("active");
+
+    document.getElementById(
+      "selectedVoiceText"
+    ).textContent=
+      "ရွေးထားသော Voice: သီဟ";
+
+  }else{
+
+    document
+      .getElementById("voiceNilar")
+      .classList.add("active");
+
+    document.getElementById(
+      "selectedVoiceText"
+    ).textContent=
+      "ရွေးထားသော Voice: နီလာ";
+
+  }
+
+}
+
+document
+.getElementById("recapVoiceSpeed")
+.addEventListener("input",function(){
+
+  document.getElementById(
+    "recapVoiceSpeedValue"
+  ).textContent=
+    Number(this.value).toFixed(2)+"x";
+
+});
+
+document
+.getElementById("recapVoiceVolume")
+.addEventListener("input",function(){
+
+  document.getElementById(
+    "recapVoiceVolumeValue"
+  ).textContent=
+    Math.round(Number(this.value)*100)+"%";
+
+});
+
+document
+.getElementById("recapVoicePitch")
+.addEventListener("input",function(){
+
+  const value=Number(this.value);
+
+  document.getElementById(
+    "recapVoicePitchValue"
+  ).textContent=
+    value>0 ? "+"+value : String(value);
+
+});
+
+async function generateRecapVoice(){
+
+  const script=
+    document.getElementById("recapScript").value.trim();
+
+  if(!script){
+
+    setStatus("❌ P2 Script အရင်လုပ်ပါ");
+    return;
+
+  }
+
+  const gemini=getGeminiKey();
+
+  if(!gemini){
+
+    setStatus("❌ Gemini API Key ထည့်ပေးပါ");
+    return;
+
+  }
+
+  const speed=
+    Number(document.getElementById("recapVoiceSpeed").value);
+
+  const volume=
+    Number(document.getElementById("recapVoiceVolume").value);
+
+  const pitch=
+    Number(document.getElementById("recapVoicePitch").value);
+
+  setStatus(
+    "⏳ P3 — "+
+    (recapVoice==="thiha"?"သီဟ":"နီလာ")+
+    " Voice ထုတ်နေပါတယ်..."
+  );
+
+  try{
+
+    const response=
+      await fetch("/api/movie-voice",{
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "x-gemini-api-key":gemini
+        },
+
+        body:JSON.stringify({
+
+          script:script,
+          voice:recapVoice,
+          speed:speed,
+          volume:volume,
+          pitch:pitch
+
+        })
+
+      });
+
+    const data=await response.json();
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error||"Voice Error"
+      );
+
+    }
+
+    recapVoiceUrl=
+      data.audioUrl||data.downloadUrl||"";
+
+    if(recapVoiceUrl){
+
+      const audio=
+        document.getElementById("recapAudio");
+
+      audio.src=recapVoiceUrl;
+
+      audio.volume=Math.min(1,volume);
+
+      audio.playbackRate=speed;
+
+      audio.classList.remove("hidden");
+
+      const download=
+        document.getElementById("voiceDownload");
+
+      download.href=recapVoiceUrl;
+
+      download.classList.remove("hidden");
+
+    }
+
+    setStatus(
+      "✅ P3 Voice ရပါပြီ။ အခု P4 Subtitle / Style သွားနိုင်ပါပြီ။"
+    );
+
+  }catch(error){
+
+    setStatus(
+      "❌ P3 Voice Error: "+error.message
+    );
+
+  }
+
+}
+
+document
+.getElementById("recapOutputSize")
+.addEventListener("change",function(){
+
+  const info=
+    document.getElementById("recapOutputInfo");
+
+  if(this.value==="original"){
+
+    info.textContent=
+      "Original Video အရွယ်အစားအတိုင်း ထုတ်မယ်";
+
+  }else if(this.value==="9:16"){
+
+    info.textContent=
+      "9:16 — TikTok / Reels / Shorts Vertical";
+
+  }else if(this.value==="1:1"){
+
+    info.textContent=
+      "1:1 — Square Video";
+
+  }else if(this.value==="16:9"){
+
+    info.textContent=
+      "16:9 — YouTube / Landscape";
+
+  }
+
+});
+
+function previewRecapStyle(){
+
+  const box=
+    document.getElementById("recapSubtitleBox");
+
+  const font=
+    document.getElementById("recapFont").value;
+
+  const size=
+    Number(document.getElementById("recapFontSize").value)||28;
+
+  const color=
+    document.getElementById("recapTextColor").value;
+
+  const outline=
+    Number(document.getElementById("recapOutline").value)||2;
+
+  box.style.fontFamily=font;
+  box.style.fontSize=size+"px";
+  box.style.color=color;
+
+  box.style.textShadow=`
+    -${outline}px -${outline}px 0 #000,
+     ${outline}px -${outline}px 0 #000,
+    -${outline}px ${outline}px 0 #000,
+     ${outline}px ${outline}px 0 #000
+  `;
+
+  box.style.left=recapSubtitlePosition.x+"%";
+  box.style.top=recapSubtitlePosition.y+"%";
+  box.style.bottom="auto";
+
+  const blurBox=
+    document.getElementById("recapBlurBox");
+
+  blurBox.style.left=
+    recapBlurPosition.x+"%";
+
+  blurBox.style.top=
+    recapBlurPosition.y+"%";
+
+  blurBox.style.width=
+    recapBlurPosition.width+"%";
+
+  blurBox.style.height=
+    recapBlurPosition.height+"%";
+
+  blurBox.style.display=
+    document.getElementById("recapBlur").checked
+      ?"block"
+      :"none";
+
+  setStatus(
+    "🎨 P4 Preview ပြင်ပြီးပါပြီ။\n"+
+    "Subtitle ကို ဆွဲရွှေ့နိုင်ပါတယ်။\n"+
+    "Blur Area ကိုလည်း ဆွဲရွှေ့နိုင်ပါတယ်။"
+  );
+
+}
+
+function setupDrag(element,getState,setState){
+
+  let dragging=false;
+  let startX=0;
+  let startY=0;
+  let originalX=0;
+  let originalY=0;
+
+  function start(e){
+
+    dragging=true;
+
+    const point=
+      e.touches ? e.touches[0] : e;
+
+    startX=point.clientX;
+    startY=point.clientY;
+
+    const state=getState();
+
+    originalX=state.x;
+    originalY=state.y;
+
+    e.preventDefault();
+
+  }
+
+  function move(e){
+
+    if(!dragging)return;
+
+    const point=
+      e.touches ? e.touches[0] : e;
+
+    const preview=
+      document.getElementById("recapPreviewBox");
+
+    const rect=
+      preview.getBoundingClientRect();
+
+    const dx=
+      ((point.clientX-startX)/rect.width)*100;
+
+    const dy=
+      ((point.clientY-startY)/rect.height)*100;
+
+    const state=getState();
+
+    state.x=
+      Math.max(
+        0,
+        Math.min(95,originalX+dx)
+      );
+
+    state.y=
+      Math.max(
+        0,
+        Math.min(95,originalY+dy)
+      );
+
+    setState(state);
+
+    element.style.left=state.x+"%";
+    element.style.top=state.y+"%";
+    element.style.bottom="auto";
+
+    e.preventDefault();
+
+  }
+
+  function end(){
+    dragging=false;
+  }
+
+  element.addEventListener("mousedown",start);
+  document.addEventListener("mousemove",move);
+  document.addEventListener("mouseup",end);
+
+  element.addEventListener("touchstart",start,{passive:false});
+  document.addEventListener("touchmove",move,{passive:false});
+  document.addEventListener("touchend",end);
+
+}
+
+setupDrag(
+  document.getElementById("recapSubtitleBox"),
+  ()=>({...recapSubtitlePosition}),
+  state=>{
+    recapSubtitlePosition=state;
+  }
+);
+
+setupDrag(
+  document.getElementById("recapBlurBox"),
+  ()=>({...recapBlurPosition}),
+  state=>{
+    recapBlurPosition=state;
+  }
+);
+
+async function renderRecapFinal(){
+
+  const file=
+    document.getElementById("recapVideo").files[0];
+
+  const script=
+    document.getElementById("recapScript").value.trim();
+
+  if(!file){
+
+    setStatus("❌ P1 Movie Video ထည့်ပါ");
+    return;
+
+  }
+
+  if(!script){
+
+    setStatus("❌ P2 Movie Recap Script မရှိသေးပါ");
+    return;
+
+  }
+
+  if(!recapVoiceUrl){
+
+    setStatus("❌ P3 Voice အရင်ထုတ်ပါ");
+    return;
+
+  }
+
+  setStatus(
+    "⏳ P5 — Final MP4 ထုတ်နေပါတယ်..."
+  );
+
+  const formData=new FormData();
+
+  formData.append("video",file);
+  formData.append("script",script);
+  formData.append("voiceUrl",recapVoiceUrl);
+  formData.append("voice",recapVoice);
+
+  formData.append(
+    "voiceSpeed",
+    document.getElementById("recapVoiceSpeed").value
+  );
+
+  formData.append(
+    "voiceVolume",
+    document.getElementById("recapVoiceVolume").value
+  );
+
+  formData.append(
+    "voicePitch",
+    document.getElementById("recapVoicePitch").value
+  );
+
+  formData.append(
+    "blurOriginal",
+    document.getElementById("recapBlur").checked
+      ?"true":"false"
+  );
+
+  formData.append(
+    "blurX",
+    recapBlurPosition.x
+  );
+
+  formData.append(
+    "blurY",
+    recapBlurPosition.y
+  );
+
+  formData.append(
+    "blurWidth",
+    recapBlurPosition.width
+  );
+
+  formData.append(
+    "blurHeight",
+    recapBlurPosition.height
+  );
+
+  formData.append(
+    "subtitleX",
+    recapSubtitlePosition.x
+  );
+
+  formData.append(
+    "subtitleY",
+    recapSubtitlePosition.y
+  );
+
+  formData.append(
+    "fontName",
+    document.getElementById("recapFont").value
+  );
+
+  formData.append(
+    "fontSize",
+    document.getElementById("recapFontSize").value
+  );
+
+  formData.append(
+    "textColor",
+    document.getElementById("recapTextColor").value.replace("#","")
+  );
+
+  formData.append(
+    "outline",
+    document.getElementById("recapOutline").value
+  );
+
+  formData.append(
+    "position",
+    document.getElementById("recapPosition").value
+  );
+
+  formData.append(
+    "outputSize",
+    document.getElementById("recapOutputSize").value
+  );
+
+  try{
+
+    const response=
+      await fetch("/api/movie-render",{
+
+        method:"POST",
+        body:formData
+
+      });
+
+    const data=await response.json();
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error||"Final Video Render Error"
+      );
+
+    }
+
+    const area=
+      document.getElementById("recapFinalDownload");
+
+    area.classList.remove("hidden");
+
+    area.innerHTML=`
+      <a
+        class="download"
+        href="${data.downloadUrl}"
+        download
+      >
+        ⬇️ Download Final Movie Recap MP4
+      </a>
+    `;
+
+    document.getElementById(
+      "recapFinalStatus"
+    ).textContent=
+      "✅ Final Video အောင်မြင်စွာ ထုတ်ပြီးပါပြီ";
+
+    setStatus(
+      "🎉 Movie Recap Final Video ရပါပြီ"
+    );
+
+  }catch(error){
+
+    document.getElementById(
+      "recapFinalStatus"
+    ).textContent=
+      "❌ "+error.message;
+
+    setStatus(
+      "❌ P5 Error: "+error.message
+    );
+
+  }
+
+}
+
+loadKeys();
+
+</script>
+
+</body>
+</html>
