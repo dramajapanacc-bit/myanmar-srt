@@ -1,37 +1,32 @@
 // ============================================================
-// Myanmar SRT + One Clips Movie Recap Server
+// Burmese SRT + One Clips Movie Recap Server
 // ============================================================
 
-const express = require("express");
-const multer = require("multer");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
-const crypto = require("crypto");
-const { spawn } = require("child_process");
+const express = require('express');
+const multer = require('multer');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const crypto = require('crypto');
+const { spawn } = require('child_process');
 
 const app = express();
 
 const PORT = process.env.PORT || 10000;
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-
 const ROOT = __dirname;
-const PUBLIC_DIR = path.join(ROOT, "public");
-const WORK_DIR = path.join(os.tmpdir(), "myanmar-srt-work");
+const PUBLIC_DIR = path.join(ROOT, 'public');
+const WORK_DIR = path.join(os.tmpdir(), 'myanmar-srt-work');
 
 fs.mkdirSync(WORK_DIR, { recursive: true });
 
 app.use(cors());
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({
+  extended: true,
+  limit: '50mb'
+}));
 app.use(express.static(PUBLIC_DIR));
-
-// ------------------------------------------------------------
-// Multer
-// ------------------------------------------------------------
 
 const upload = multer({
   dest: WORK_DIR,
@@ -40,23 +35,21 @@ const upload = multer({
   }
 });
 
-// ------------------------------------------------------------
+// ============================================================
 // Helpers
-// ------------------------------------------------------------
+// ============================================================
 
-function uid(prefix = "job") {
-  return `${prefix}_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+function uid(prefix = 'job') {
+  return `${prefix}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 }
 
-function safeName(name) {
-  return String(name || "file")
-    .replace(/[^a-zA-Z0-9._-]/g, "_")
-    .slice(0, 100);
-}
+function clamp(value, min, max) {
+  const n = Number(value);
 
-function clamp(n, min, max) {
-  n = Number(n);
-  if (!Number.isFinite(n)) return min;
+  if (!Number.isFinite(n)) {
+    return min;
+  }
+
   return Math.max(min, Math.min(max, n));
 }
 
@@ -68,95 +61,121 @@ function jsonError(res, status, message, extra = {}) {
   });
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+// Website ကပို့တဲ့ API key ကိုသုံးမယ်.
+// မရှိရင် Render Environment Variable ကိုသုံးမယ်.
+function getGroqKey(req) {
+  return String(
+    req.headers['x-groq-api-key'] ||
+    req.body?.groqApiKey ||
+    process.env.GROQ_API_KEY ||
+    ''
+  ).trim();
 }
 
-// ------------------------------------------------------------
-// FFmpeg
-// ------------------------------------------------------------
+function getGeminiKey(req) {
+  return String(
+    req.headers['x-gemini-api-key'] ||
+    req.body?.geminiApiKey ||
+    process.env.GEMINI_API_KEY ||
+    ''
+  ).trim();
+}
 
-function runProcess(command, args, options = {}) {
+// ============================================================
+// Process / FFmpeg
+// ============================================================
+
+function runProcess(command, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
-      cwd: options.cwd || ROOT,
+      cwd: ROOT,
       env: process.env
     });
 
-    let stdout = "";
-    let stderr = "";
+    let stdout = '';
+    let stderr = '';
 
-    child.stdout.on("data", d => {
-      stdout += d.toString();
+    child.stdout.on('data', data => {
+      stdout += data.toString();
     });
 
-    child.stderr.on("data", d => {
-      stderr += d.toString();
+    child.stderr.on('data', data => {
+      stderr += data.toString();
     });
 
-    child.on("error", err => {
-      reject(err);
-    });
+    child.on('error', reject);
 
-    child.on("close", code => {
+    child.on('close', code => {
       if (code === 0) {
         resolve({
           stdout,
           stderr
         });
       } else {
-        const err = new Error(
-          `${command} exited with code ${code}\n${stderr.slice(-10000)}`
+        reject(
+          new Error(
+            `${command} exited with code ${code}\n${stderr.slice(-10000)}`
+          )
         );
-        err.code = code;
-        reject(err);
       }
     });
   });
 }
 
 async function ffmpeg(args) {
-  return runProcess("ffmpeg", ["-y", "-hide_banner", "-loglevel", "error", ...args]);
+  return runProcess(
+    'ffmpeg',
+    [
+      '-y',
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      ...args
+    ]
+  );
 }
 
 async function ffprobe(args) {
-  return runProcess("ffprobe", args);
+  return runProcess('ffprobe', args);
 }
 
-async function getVideoDuration(file) {
+async function videoDuration(file) {
   const result = await ffprobe([
-    "-v",
-    "error",
-    "-show_entries",
-    "format=duration",
-    "-of",
-    "default=noprint_wrappers=1:nokey=1",
+    '-v',
+    'error',
+    '-show_entries',
+    'format=duration',
+    '-of',
+    'default=noprint_wrappers=1:nokey=1',
     file
   ]);
 
   const duration = Number(result.stdout.trim());
 
   if (!Number.isFinite(duration)) {
-    throw new Error("Video duration မဖတ်နိုင်ပါ။");
+    throw new Error('Video duration မဖတ်နိုင်ပါ။');
   }
 
   return duration;
 }
 
-async function getVideoSize(file) {
+async function videoSize(file) {
   const result = await ffprobe([
-    "-v",
-    "error",
-    "-select_streams",
-    "v:0",
-    "-show_entries",
-    "stream=width,height",
-    "-of",
-    "csv=p=0:s=x",
+    '-v',
+    'error',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'stream=width,height',
+    '-of',
+    'csv=p=0:s=x',
     file
   ]);
 
-  const [width, height] = result.stdout.trim().split("x").map(Number);
+  const parts = result.stdout.trim().split('x');
+
+  const width = Number(parts[0]);
+  const height = Number(parts[1]);
 
   return {
     width: Number.isFinite(width) ? width : 1920,
@@ -164,587 +183,768 @@ async function getVideoSize(file) {
   };
 }
 
-// ------------------------------------------------------------
-// Gemini REST
-// ------------------------------------------------------------
+// ============================================================
+// Gemini
+// ============================================================
 
-async function geminiGenerate(model, body) {
-  if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY မတွေ့ပါ။ Render Environment Variables ကိုစစ်ပါ။");
+async function geminiGenerate(model, body, apiKey) {
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY မရှိပါ။');
   }
 
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent` +
-    `?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+    `https://generativelanguage.googleapis.com/v1beta/models/` +
+    `${encodeURIComponent(model)}:generateContent?key=` +
+    `${encodeURIComponent(apiKey)}`;
 
   const response = await fetch(url, {
-    method: "POST",
+    method: 'POST',
+
     headers: {
-      "Content-Type": "application/json"
+      'Content-Type': 'application/json'
     },
+
     body: JSON.stringify(body)
   });
 
-  const text = await response.text();
+  const raw = await response.text();
 
   let data;
 
   try {
-    data = JSON.parse(text);
+    data = JSON.parse(raw);
   } catch {
     throw new Error(
-      `Gemini response JSON မဟုတ်ပါ။ HTTP ${response.status}: ${text.slice(0, 1000)}`
+      `Gemini JSON မရပါ။ HTTP ${response.status}: ${raw.slice(0, 1000)}`
     );
   }
 
   if (!response.ok) {
     throw new Error(
-      `Gemini API error ${response.status}: ${
-        data?.error?.message || text.slice(0, 2000)
-      }`
+      `Gemini API ${response.status}: ` +
+      `${data?.error?.message || raw.slice(0, 1500)}`
     );
   }
 
   return data;
 }
 
-function extractGeminiText(data) {
-  const parts =
-    data?.candidates?.[0]?.content?.parts ||
-    [];
-
-  return parts
-    .filter(p => typeof p.text === "string")
-    .map(p => p.text)
-    .join("\n")
+function geminiText(data) {
+  return (
+    data?.candidates?.[0]?.content?.parts || []
+  )
+    .filter(part => typeof part.text === 'string')
+    .map(part => part.text)
+    .join('\n')
     .trim();
 }
 
-// ------------------------------------------------------------
-// Gemini image / scene analysis
-// ------------------------------------------------------------
+// ============================================================
+// Video Scene Analysis
+// ============================================================
 
-async function extractFrames(videoPath, jobDir, duration) {
-  const framesDir = path.join(jobDir, "frames");
-  fs.mkdirSync(framesDir, { recursive: true });
+async function extractFrames(video, dir, duration) {
+  const framesDir = path.join(dir, 'frames');
 
-  // Maximum 24 frames.
-  const count = Math.min(24, Math.max(8, Math.ceil(duration / 5)));
+  fs.mkdirSync(framesDir, {
+    recursive: true
+  });
 
-  const fps = count / Math.max(duration, 1);
+  const count = Math.min(
+    24,
+    Math.max(8, Math.ceil(duration / 5))
+  );
+
+  const fps =
+    count / Math.max(duration, 1);
 
   await ffmpeg([
-    "-i",
-    videoPath,
-    "-vf",
+    '-i',
+    video,
+
+    '-vf',
     `fps=${fps.toFixed(6)},scale=768:-2`,
-    "-q:v",
-    "4",
-    path.join(framesDir, "frame_%03d.jpg")
+
+    '-q:v',
+    '4',
+
+    path.join(
+      framesDir,
+      'frame_%03d.jpg'
+    )
   ]);
 
-  const files = fs
+  return fs
     .readdirSync(framesDir)
-    .filter(f => f.toLowerCase().endsWith(".jpg"))
-    .sort();
-
-  return files.map(file => path.join(framesDir, file));
+    .filter(file => file.endsWith('.jpg'))
+    .sort()
+    .map(file =>
+      path.join(framesDir, file)
+    );
 }
 
-async function analyzeVideoScenes(videoPath, jobDir) {
-  const duration = await getVideoDuration(videoPath);
+function cleanScript(script) {
+  return String(script || '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(
+      /^Myanmar\s*movie\s*recap\s*script\s*:?\s*/i,
+      ''
+    )
+    .trim();
+}
 
-  const frames = await extractFrames(videoPath, jobDir, duration);
+async function analyzeVideoScenes(
+  video,
+  jobDir,
+  apiKey
+) {
+  const duration =
+    await videoDuration(video);
 
-  if (!frames.length) {
-    throw new Error("Video scene frame မရပါ။");
-  }
+  const frames =
+    await extractFrames(
+      video,
+      jobDir,
+      duration
+    );
 
-  const imageParts = [];
-
-  for (const frame of frames) {
-    const buffer = fs.readFileSync(frame);
-
-    imageParts.push({
+  const imageParts =
+    frames.map(file => ({
       inlineData: {
-        mimeType: "image/jpeg",
-        data: buffer.toString("base64")
+        mimeType: 'image/jpeg',
+        data: fs
+          .readFileSync(file)
+          .toString('base64')
       }
-    });
-  }
+    }));
 
   const prompt = `
-You are a professional movie recap writer.
+You are a professional Myanmar movie recap writer.
 
-The attached images are sequential frames sampled from ONE movie/video.
+These are sequential frames from ONE video.
 
-Analyze the actual visible scenes.
+Analyze only what is actually visible.
 
-IMPORTANT:
-- Do NOT invent unrelated scenes.
-- Do NOT write a generic movie summary.
-- Follow the actual visual sequence.
-- Identify characters, locations, actions, emotions and important events visible in the frames.
-- Write a natural Myanmar movie recap narration.
-- The narration should sound like a Myanmar movie recap YouTuber.
-- Do not mention that you are analyzing frames.
-- Do not describe camera technical details.
-- Do not use English unless a name or unavoidable proper noun requires it.
-- Keep the narration suitable for voice-over.
-- Make the narration coherent from beginning to end.
-- Avoid excessive dialogue.
-- Focus on what happens in the movie.
+Do not invent unrelated events.
 
-Video duration:
-${duration.toFixed(2)} seconds
+Follow the visual order.
+
+Identify:
+- visible characters
+- locations
+- actions
+- important events
+- changes between scenes
+
+Write a natural Myanmar movie recap narration suitable for voice-over.
+
+It should sound like a Myanmar movie recap YouTuber.
+
+Do not mention:
+- frames
+- camera
+- AI
+- image analysis
+- technical details
+
+Avoid excessive dialogue.
 
 Return ONLY the Myanmar narration script.
+
+Video duration:
+${duration.toFixed(2)} seconds.
 `;
 
-  const models = [
-    "gemini-3.8-flash",
-    "gemini-3.1-flash",
-    "gemini-2.5-flash"
-  ];
+  let lastError;
 
-  let lastError = null;
+  const models = [
+    'gemini-3.8-flash',
+    'gemini-3.1-flash',
+    'gemini-2.5-flash'
+  ];
 
   for (const model of models) {
     try {
-      const data = await geminiGenerate(model, {
-        contents: [
+      const data =
+        await geminiGenerate(
+          model,
+
           {
-            role: "user",
-            parts: [
-              { text: prompt },
-              ...imageParts
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.55,
-          maxOutputTokens: 10000
-        }
-      });
+            contents: [
+              {
+                role: 'user',
 
-      const text = extractGeminiText(data);
+                parts: [
+                  {
+                    text: prompt
+                  },
 
-      if (text) {
+                  ...imageParts
+                ]
+              }
+            ],
+
+            generationConfig: {
+              temperature: 0.55,
+              maxOutputTokens: 10000
+            }
+          },
+
+          apiKey
+        );
+
+      const script =
+        cleanScript(
+          geminiText(data)
+        );
+
+      if (script) {
         return {
-          script: cleanRecapScript(text),
+          script,
           duration,
           frameCount: frames.length
         };
       }
-    } catch (err) {
-      lastError = err;
+
+    } catch (error) {
+      lastError = error;
     }
   }
 
-  throw lastError || new Error("Scene analysis failed.");
+  throw (
+    lastError ||
+    new Error('Scene analysis failed.')
+  );
 }
 
-function cleanRecapScript(text) {
-  return String(text || "")
-    .replace(/```[\s\S]*?```/g, "")
-    .replace(/^Myanmar\s*movie\s*recap\s*script\s*:?\s*/i, "")
-    .replace(/^ဇာတ်လမ်းအကျဉ်း\s*:?\s*/i, "")
-    .trim();
-}
-
-// ------------------------------------------------------------
+// ============================================================
 // Gemini TTS
-// ------------------------------------------------------------
-
-const DEFAULT_TTS_MODEL = "gemini-3.8-flash-tts";
+// ============================================================
 
 const GEMINI_VOICES = [
-  "Zephyr",
-  "Puck",
-  "Charon",
-  "Kore",
-  "Fenrir",
-  "Leda",
-  "Orus",
-  "Aoede",
-  "Callirrhoe",
-  "Autonoe",
-  "Enceladus",
-  "Iapetus",
-  "Umbriel",
-  "Algieba",
-  "Despina",
-  "Erinome",
-  "Algenib",
-  "Rasalgethi",
-  "Laomedeia",
-  "Achernar",
-  "Alnilam",
-  "Schedar",
-  "Gacrux",
-  "Pulcherrima",
-  "Achird",
-  "Zubenelgenubi",
-  "Vindemiatrix",
-  "Sadachbia",
-  "Sadaltager",
-  "Sulafat"
+  'Zephyr',
+  'Puck',
+  'Charon',
+  'Kore',
+  'Fenrir',
+  'Leda',
+  'Orus',
+  'Aoede',
+  'Callirrhoe',
+  'Autonoe',
+  'Enceladus',
+  'Iapetus',
+  'Umbriel',
+  'Algieba',
+  'Despina',
+  'Erinome',
+  'Algenib',
+  'Rasalgethi',
+  'Laomedeia',
+  'Achernar',
+  'Alnilam',
+  'Schedar',
+  'Gacrux',
+  'Pulcherrima',
+  'Achird',
+  'Zubenelgenubi',
+  'Vindemiatrix',
+  'Sadachbia',
+  'Sadaltager',
+  'Sulafat'
 ];
+
+const TTS_MODEL =
+  'gemini-3.8-flash-tts';
 
 async function geminiTTS({
   script,
-  voice = "Kore",
+  voice = 'Kore',
   jobDir,
   speed = 1,
   pitch = 0,
-  volume = 1
+  volume = 1,
+  apiKey
 }) {
-  if (!script.trim()) {
-    throw new Error("Recap script မရှိပါ။");
+  if (!apiKey) {
+    throw new Error(
+      'GEMINI_API_KEY မရှိပါ။'
+    );
   }
 
-  if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY မရှိပါ။");
+  if (!String(script).trim()) {
+    throw new Error(
+      'Recap script မရှိပါ။'
+    );
   }
 
   if (!GEMINI_VOICES.includes(voice)) {
-    voice = "Kore";
+    voice = 'Kore';
   }
 
-  const response = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/interactions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": GEMINI_API_KEY
-      },
-      body: JSON.stringify({
-        model: DEFAULT_TTS_MODEL,
-        input: [
-          {
-            type: "user_input",
-            content: [
+  const response =
+    await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/interactions',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type':
+            'application/json',
+
+          'x-goog-api-key':
+            apiKey
+        },
+
+        body: JSON.stringify({
+          model: TTS_MODEL,
+
+          input: [
+            {
+              type: 'user_input',
+
+              content: [
+                {
+                  type: 'text',
+
+                  text: String(script),
+
+                  annotations: [
+                    {
+                      type:
+                        'speech_metadata',
+
+                      style:
+                        'Natural Myanmar movie recap narrator. Clear Burmese pronunciation. Smooth storytelling. Medium pace. Expressive but not theatrical.'
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+
+          response_format: {
+            type: 'audio'
+          },
+
+          generation_config: {
+            speech_config: [
               {
-                type: "text",
-                text: script,
-                annotations: [
-                  {
-                    type: "speech_metadata",
-                    style:
-                      "Natural Myanmar movie recap narrator. Clear Burmese pronunciation. Smooth storytelling. Medium pace. Expressive but not theatrical."
-                  }
-                ]
+                voice
               }
             ]
           }
-        ],
-        response_format: {
-          type: "audio"
-        },
-        generation_config: {
-          speech_config: [
-            {
-              voice
-            }
-          ]
-        }
-      })
-    }
-  );
+        })
+      }
+    );
 
-  const responseText = await response.text();
+  const raw =
+    await response.text();
 
   let data;
 
   try {
-    data = JSON.parse(responseText);
+    data = JSON.parse(raw);
   } catch {
     throw new Error(
-      `Gemini TTS JSON မရပါ။ HTTP ${response.status}: ${responseText.slice(0, 2000)}`
+      `Gemini TTS JSON မရပါ။ HTTP ${response.status}: ${raw.slice(0, 1500)}`
     );
   }
 
   if (!response.ok) {
     throw new Error(
-      `Gemini TTS error ${response.status}: ${
-        data?.error?.message || responseText.slice(0, 2000)
-      }`
+      `Gemini TTS ${response.status}: ` +
+      `${data?.error?.message || raw.slice(0, 1500)}`
     );
   }
 
-  let audioBase64 = null;
+  let base64 =
+    data?.output_audio?.data;
 
-  // New Interactions API convenience shape.
-  if (data?.output_audio?.data) {
-    audioBase64 = data.output_audio.data;
-  }
+  if (
+    !base64 &&
+    Array.isArray(data?.steps)
+  ) {
+    for (
+      let i = data.steps.length - 1;
+      i >= 0 && !base64;
+      i--
+    ) {
+      const content =
+        data.steps[i]?.content || [];
 
-  // REST raw response shape.
-  if (!audioBase64 && Array.isArray(data?.steps)) {
-    for (let i = data.steps.length - 1; i >= 0; i--) {
-      const step = data.steps[i];
+      for (
+        let j = content.length - 1;
+        j >= 0;
+        j--
+      ) {
+        const item = content[j];
 
-      if (!Array.isArray(step?.content)) continue;
-
-      for (let j = step.content.length - 1; j >= 0; j--) {
-        const item = step.content[j];
-
-        if (item?.type === "audio" && item?.data) {
-          audioBase64 = item.data;
+        if (
+          item?.type === 'audio' &&
+          item?.data
+        ) {
+          base64 = item.data;
           break;
         }
       }
-
-      if (audioBase64) break;
     }
   }
 
-  if (!audioBase64) {
-    throw new Error("Gemini TTS audio data မတွေ့ပါ။");
+  if (!base64) {
+    throw new Error(
+      'Gemini TTS audio data မတွေ့ပါ။'
+    );
   }
 
-  const rawWav = path.join(jobDir, "gemini_raw.wav");
+  const rawWav =
+    path.join(
+      jobDir,
+      'gemini_raw.wav'
+    );
+
+  const outputWav =
+    path.join(
+      jobDir,
+      'voice.wav'
+    );
 
   fs.writeFileSync(
     rawWav,
-    Buffer.from(audioBase64, "base64")
+    Buffer.from(
+      base64,
+      'base64'
+    )
   );
-
-  // Apply speed / pitch / volume AFTER TTS.
-  const finalWav = path.join(jobDir, "voice.wav");
 
   const filters = [];
 
-  const safeVolume = clamp(volume, 0, 3);
-  if (Math.abs(safeVolume - 1) > 0.01) {
-    filters.push(`volume=${safeVolume}`);
+  const vol =
+    clamp(volume, 0, 3);
+
+  const spd =
+    clamp(speed, 0.5, 2);
+
+  const pit =
+    clamp(pitch, -12, 12);
+
+  if (
+    Math.abs(vol - 1) > 0.01
+  ) {
+    filters.push(
+      `volume=${vol}`
+    );
   }
 
-  const safeSpeed = clamp(speed, 0.5, 2);
-
-  if (Math.abs(safeSpeed - 1) > 0.01) {
-    filters.push(`atempo=${safeSpeed}`);
-  }
-
-  const safePitch = clamp(pitch, -12, 12);
-
-  if (Math.abs(safePitch) > 0.01) {
-    const ratio = Math.pow(2, safePitch / 12);
+  if (
+    Math.abs(pit) > 0.01
+  ) {
+    const ratio =
+      Math.pow(
+        2,
+        pit / 12
+      );
 
     filters.push(
-      `asetrate=24000*${ratio.toFixed(6)}`,
-      "aresample=24000",
+      `asetrate=24000*${ratio.toFixed(6)}`
+    );
+
+    filters.push(
+      'aresample=24000'
+    );
+
+    filters.push(
       `atempo=${(1 / ratio).toFixed(6)}`
+    );
+  }
+
+  if (
+    Math.abs(spd - 1) > 0.01
+  ) {
+    filters.push(
+      `atempo=${spd}`
     );
   }
 
   if (filters.length) {
     await ffmpeg([
-      "-i",
+      '-i',
       rawWav,
-      "-af",
-      filters.join(","),
-      "-ar",
-      "24000",
-      "-ac",
-      "1",
-      "-c:a",
-      "pcm_s16le",
-      finalWav
+
+      '-af',
+      filters.join(','),
+
+      '-ar',
+      '24000',
+
+      '-ac',
+      '1',
+
+      '-c:a',
+      'pcm_s16le',
+
+      outputWav
     ]);
   } else {
-    fs.copyFileSync(rawWav, finalWav);
+    fs.copyFileSync(
+      rawWav,
+      outputWav
+    );
   }
 
   return {
-    audioPath: finalWav,
+    audioPath: outputWav,
     voice,
-    model: DEFAULT_TTS_MODEL
+    model: TTS_MODEL
   };
 }
 
-// ------------------------------------------------------------
-// Groq Whisper timestamps
-// ------------------------------------------------------------
+// ============================================================
+// Groq Whisper
+// ============================================================
 
-async function transcribeVoiceWithGroq(audioPath, script) {
-  if (!GROQ_API_KEY) {
+async function groqTranscribe(
+  audioPath,
+  script,
+  apiKey
+) {
+  if (!apiKey) {
     throw new Error(
-      "GROQ_API_KEY မရှိပါ။ Voice-sync subtitle အတွက် GROQ_API_KEY လိုပါတယ်။"
+      'GROQ_API_KEY မရှိပါ။'
     );
   }
 
-  const audioBuffer = fs.readFileSync(audioPath);
-
-  const form = new FormData();
+  const form =
+    new FormData();
 
   form.append(
-    "file",
-    new Blob([audioBuffer], { type: "audio/wav" }),
-    "voice.wav"
+    'file',
+
+    new Blob(
+      [
+        fs.readFileSync(
+          audioPath
+        )
+      ],
+      {
+        type: 'audio/wav'
+      }
+    ),
+
+    'voice.wav'
   );
 
-  form.append("model", "whisper-large-v3-turbo");
-  form.append("response_format", "verbose_json");
-  form.append("timestamp_granularities[]", "word");
-  form.append("timestamp_granularities[]", "segment");
-  form.append("language", "my");
-  form.append("temperature", "0");
+  form.append(
+    'model',
+    'whisper-large-v3-turbo'
+  );
+
+  form.append(
+    'response_format',
+    'verbose_json'
+  );
+
+  form.append(
+    'timestamp_granularities[]',
+    'word'
+  );
+
+  form.append(
+    'timestamp_granularities[]',
+    'segment'
+  );
+
+  form.append(
+    'language',
+    'my'
+  );
+
+  form.append(
+    'temperature',
+    '0'
+  );
 
   if (script) {
     form.append(
-      "prompt",
-      script.slice(0, 800)
+      'prompt',
+      String(script).slice(
+        0,
+        800
+      )
     );
   }
 
-  const response = await fetch(
-    "https://api.groq.com/openai/v1/audio/transcriptions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`
-      },
-      body: form
-    }
-  );
+  const response =
+    await fetch(
+      'https://api.groq.com/openai/v1/audio/transcriptions',
+      {
+        method: 'POST',
 
-  const text = await response.text();
+        headers: {
+          Authorization:
+            `Bearer ${apiKey}`
+        },
+
+        body: form
+      }
+    );
+
+  const raw =
+    await response.text();
 
   let data;
 
   try {
-    data = JSON.parse(text);
+    data = JSON.parse(raw);
   } catch {
     throw new Error(
-      `Groq transcription JSON မရပါ။ HTTP ${response.status}: ${text.slice(0, 2000)}`
+      `Groq JSON မရပါ။ HTTP ${response.status}: ${raw.slice(0, 1500)}`
     );
   }
 
   if (!response.ok) {
     throw new Error(
-      `Groq transcription error ${response.status}: ${
-        data?.error?.message || text.slice(0, 2000)
-      }`
+      `Groq ${response.status}: ` +
+      `${data?.error?.message || raw.slice(0, 1500)}`
     );
   }
 
   return data;
 }
 
-// ------------------------------------------------------------
-// Subtitle helpers
-// ------------------------------------------------------------
+// ============================================================
+// ASS Subtitle
+// ============================================================
 
 function assTime(seconds) {
-  seconds = Math.max(0, Number(seconds) || 0);
+  seconds =
+    Math.max(
+      0,
+      Number(seconds) || 0
+    );
 
-  const h = Math.floor(seconds / 3600);
+  const hours =
+    Math.floor(
+      seconds / 3600
+    );
 
-  const m = Math.floor(
-    (seconds % 3600) / 60
+  const minutes =
+    Math.floor(
+      (seconds % 3600) / 60
+    );
+
+  const sec =
+    seconds % 60;
+
+  const centiseconds =
+    Math.floor(
+      (sec - Math.floor(sec)) * 100
+    );
+
+  return (
+    `${hours}:` +
+    `${String(minutes).padStart(2, '0')}:` +
+    `${String(Math.floor(sec)).padStart(2, '0')}.` +
+    `${String(centiseconds).padStart(2, '0')}`
   );
-
-  const s = seconds % 60;
-
-  const cs = Math.floor(
-    (s - Math.floor(s)) * 100
-  );
-
-  return `${h}:${String(m).padStart(2, "0")}:${String(
-    Math.floor(s)
-  ).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
-}
-
-function escapeAssText(text) {
-  return String(text || "")
-    .replace(/\\/g, "\\\\")
-    .replace(/\{/g, "\\{")
-    .replace(/\}/g, "\\}")
-    .replace(/\r?\n/g, "\\N");
 }
 
 function assColor(hex) {
-  let value = String(hex || "#FFFFFF")
-    .replace("#", "")
-    .trim();
+  let value =
+    String(
+      hex || '#FFFFFF'
+    ).replace('#', '');
 
-  if (!/^[0-9a-fA-F]{6}$/.test(value)) {
-    value = "FFFFFF";
+  if (
+    !/^[0-9a-fA-F]{6}$/.test(
+      value
+    )
+  ) {
+    value = 'FFFFFF';
   }
 
-  const r = value.substring(0, 2);
-  const g = value.substring(2, 4);
-  const b = value.substring(4, 6);
-
-  return `&H00${b}${g}${r}`;
+  return (
+    `&H00` +
+    value.slice(4, 6) +
+    value.slice(2, 4) +
+    value.slice(0, 2)
+  );
 }
 
-function makeAssHeader({
-  fontName = "Noto Sans Myanmar",
-  fontSize = 25,
-  outline = 2,
-  textColor = "#FFFFFF",
-  position = "bottom",
-  width = 1920,
-  height = 1080
-}) {
-  let alignment = 2;
-
-  if (position === "top") {
-    alignment = 8;
-  }
-
-  if (position === "middle") {
-    alignment = 5;
-  }
-
-  return `[Script Info]
-ScriptType: v4.00+
-PlayResX: ${width}
-PlayResY: ${height}
-ScaledBorderAndShadow: yes
-
-[V4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Recap,${fontName},${fontSize},${assColor(textColor)},${assColor("#FFFFFF")},&H00000000,&H88000000,0,0,0,0,100,100,0,0,1,${outline},0,${alignment},40,40,50,1
-
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-`;
+function escAss(text) {
+  return String(text || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/\r?\n/g, '\\N');
 }
 
-function createSubtitleEvents(transcription) {
+function eventsFromTranscription(
+  transcription
+) {
   const events = [];
 
-  // Prefer segment timestamps because they are more stable
-  // for readable subtitles.
-  if (Array.isArray(transcription?.segments)) {
-    for (const segment of transcription.segments) {
-      const text = String(segment.text || "").trim();
+  if (
+    Array.isArray(
+      transcription?.segments
+    )
+  ) {
+    for (
+      const segment of
+      transcription.segments
+    ) {
+      const text =
+        String(
+          segment.text || ''
+        ).trim();
 
-      if (!text) continue;
+      if (!text) {
+        continue;
+      }
 
       events.push({
-        start: Number(segment.start) || 0,
-        end: Number(segment.end) || 0,
+        start:
+          Number(
+            segment.start
+          ) || 0,
+
+        end:
+          Number(
+            segment.end
+          ) || 0,
+
         text
       });
     }
   }
 
-  // Fallback to word timestamps.
-  if (!events.length && Array.isArray(transcription?.words)) {
+  if (
+    !events.length &&
+    Array.isArray(
+      transcription?.words
+    )
+  ) {
     let current = null;
 
-    for (const word of transcription.words) {
-      const text = String(word.word || "").trim();
+    for (
+      const word of
+      transcription.words
+    ) {
+      const text =
+        String(
+          word.word || ''
+        ).trim();
 
-      if (!text) continue;
+      if (!text) {
+        continue;
+      }
 
-      const start = Number(word.start) || 0;
-      const end = Number(word.end) || start + 0.2;
+      const start =
+        Number(word.start) || 0;
+
+      const end =
+        Number(word.end) ||
+        start + 0.2;
 
       if (!current) {
         current = {
@@ -754,13 +954,14 @@ function createSubtitleEvents(transcription) {
         };
       } else {
         current.end = end;
-        current.text += " " + text;
+        current.text +=
+          ' ' + text;
       }
 
-      // Keep subtitles readable.
       if (
         current.text.length >= 48 ||
-        current.end - current.start >= 4
+        current.end -
+          current.start >= 4
       ) {
         events.push(current);
         current = null;
@@ -775,9 +976,7 @@ function createSubtitleEvents(transcription) {
   return events;
 }
 
-function makeAssFile({
-  transcription,
-  outputPath,
+function assHeader({
   fontName,
   fontSize,
   outline,
@@ -785,37 +984,105 @@ function makeAssFile({
   position,
   width,
   height,
+  free
+}) {
+  let alignment = 2;
+
+  if (position === 'top') {
+    alignment = 8;
+  }
+
+  if (position === 'middle') {
+    alignment = 5;
+  }
+
+  if (free) {
+    alignment = 7;
+  }
+
+  return (
+`[Script Info]
+ScriptType: v4.00+
+PlayResX: ${width}
+PlayResY: ${height}
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Recap,${fontName},${fontSize},${assColor(textColor)},${assColor('#FFFFFF')},&H00000000,&H88000000,0,0,0,0,100,100,0,0,1,${outline},0,${alignment},40,40,50,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`
+  );
+}
+
+function makeAss({
+  transcription,
+  file,
+  fontName = 'Noto Sans Myanmar',
+  fontSize = 25,
+  outline = 2,
+  textColor = '#FFFFFF',
+  position = 'bottom',
+  width = 1920,
+  height = 1080,
   subtitleX,
   subtitleY
 }) {
-  const header = makeAssHeader({
-    fontName,
-    fontSize,
-    outline,
-    textColor,
-    position,
-    width,
-    height
-  });
+  const free =
+    Number.isFinite(
+      Number(subtitleX)
+    ) &&
+    Number.isFinite(
+      Number(subtitleY)
+    );
 
-  let body = "";
+  const x =
+    clamp(
+      subtitleX,
+      0,
+      100
+    ) /
+    100 *
+    width;
 
-  const events = createSubtitleEvents(transcription);
+  const y =
+    clamp(
+      subtitleY,
+      0,
+      100
+    ) /
+    100 *
+    height;
 
-  for (const event of events) {
-    let text = escapeAssText(event.text);
+  let body =
+    assHeader({
+      fontName,
+      fontSize,
+      outline,
+      textColor,
+      position,
+      width,
+      height,
+      free
+    });
 
-    // If user dragged subtitle freely, use exact position.
-    const x = Number(subtitleX);
-    const y = Number(subtitleY);
+  for (
+    const event of
+    eventsFromTranscription(
+      transcription
+    )
+  ) {
+    let text =
+      escAss(
+        event.text
+      );
 
-    if (
-      Number.isFinite(x) &&
-      Number.isFinite(y) &&
-      x >= 0 &&
-      y >= 0
-    ) {
-      text = `{\\pos(${Math.round(x)},${Math.round(y)})}` + text;
+    if (free) {
+      text =
+        `{\\pos(${Math.round(x)},${Math.round(y)})}` +
+        text;
     }
 
     body +=
@@ -823,1166 +1090,1200 @@ function makeAssFile({
   }
 
   fs.writeFileSync(
-    outputPath,
-    header + body,
-    "utf8"
+    file,
+    body,
+    'utf8'
   );
-
-  return events;
 }
 
-// ------------------------------------------------------------
-// ASS path escaping
-// ------------------------------------------------------------
+// ============================================================
+// Blur / Output
+// ============================================================
 
-function escapeFilterPath(file) {
+function filterPath(file) {
   return file
-    .replace(/\\/g, "\\\\")
-    .replace(/:/g, "\\:")
+    .replace(/\\/g, '\\\\')
+    .replace(/:/g, '\\:')
     .replace(/'/g, "\\'");
 }
 
-// ------------------------------------------------------------
-// Blur area
-// ------------------------------------------------------------
-
-function buildBlurFilter({
-  inputWidth,
-  inputHeight,
-  blurOriginal,
-  blurX,
-  blurY,
-  blurWidth,
-  blurHeight
+function blurBox({
+  width,
+  height,
+  on,
+  x,
+  y,
+  w,
+  h
 }) {
-  if (!blurOriginal) {
+  if (!on) {
     return null;
   }
 
-  const x = clamp(blurX, 0, 100);
-  const y = clamp(blurY, 0, 100);
-  const w = clamp(blurWidth, 1, 100);
-  const h = clamp(blurHeight, 1, 100);
+  const bw =
+    Math.max(
+      2,
+      Math.round(
+        width *
+        clamp(w, 1, 100) /
+        100
+      )
+    );
 
-  let cropW = Math.round(
-    inputWidth * (w / 100)
-  );
+  const bh =
+    Math.max(
+      2,
+      Math.round(
+        height *
+        clamp(h, 1, 100) /
+        100
+      )
+    );
 
-  let cropH = Math.round(
-    inputHeight * (h / 100)
-  );
+  const bx =
+    Math.max(
+      0,
+      Math.min(
+        Math.round(
+          width *
+          clamp(x, 0, 100) /
+          100
+        ),
+        width - bw
+      )
+    );
 
-  let cropX = Math.round(
-    inputWidth * (x / 100)
-  );
-
-  let cropY = Math.round(
-    inputHeight * (y / 100)
-  );
-
-  cropW = Math.max(2, Math.min(cropW, inputWidth));
-  cropH = Math.max(2, Math.min(cropH, inputHeight));
-
-  cropX = Math.max(
-    0,
-    Math.min(cropX, inputWidth - cropW)
-  );
-
-  cropY = Math.max(
-    0,
-    Math.min(cropY, inputHeight - cropH)
-  );
+  const by =
+    Math.max(
+      0,
+      Math.min(
+        Math.round(
+          height *
+          clamp(y, 0, 100) /
+          100
+        ),
+        height - bh
+      )
+    );
 
   return {
-    cropW,
-    cropH,
-    cropX,
-    cropY
+    bw,
+    bh,
+    bx,
+    by
   };
 }
 
-// ------------------------------------------------------------
-// Output size
-// ------------------------------------------------------------
+function outputSpec(
+  size,
+  original
+) {
+  if (size === '9:16') {
+    return {
+      width: 1080,
+      height: 1920,
 
-function outputScaleFilter(outputSize) {
-  if (outputSize === "9:16") {
-    return "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2";
+      scale:
+        'scale=1080:1920:force_original_aspect_ratio=decrease,' +
+        'pad=1080:1920:(ow-iw)/2:(oh-ih)/2'
+    };
   }
 
-  if (outputSize === "1:1") {
-    return "scale=1080:1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2";
+  if (size === '1:1') {
+    return {
+      width: 1080,
+      height: 1080,
+
+      scale:
+        'scale=1080:1080:force_original_aspect_ratio=decrease,' +
+        'pad=1080:1080:(ow-iw)/2:(oh-ih)/2'
+    };
   }
 
-  if (outputSize === "16:9") {
-    return "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2";
+  if (size === '16:9') {
+    return {
+      width: 1920,
+      height: 1080,
+
+      scale:
+        'scale=1920:1080:force_original_aspect_ratio=decrease,' +
+        'pad=1920:1080:(ow-iw)/2:(oh-ih)/2'
+    };
   }
 
-  return null;
+  return {
+    width: original.width,
+    height: original.height,
+    scale: null
+  };
 }
 
-// ------------------------------------------------------------
-// Render final recap
-// ------------------------------------------------------------
+// ============================================================
+// Final Render
+// ============================================================
 
 async function renderRecap({
-  videoPath,
-  audioPath,
+  video,
+  audio,
   transcription,
-  jobDir,
-  settings
+  settings,
+  jobDir
 }) {
-  const originalSize = await getVideoSize(videoPath);
+  const original =
+    await videoSize(video);
 
-  let width = originalSize.width;
-  let height = originalSize.height;
+  const output =
+    outputSpec(
+      settings.outputSize,
+      original
+    );
 
-  if (settings.outputSize === "9:16") {
-    width = 1080;
-    height = 1920;
-  } else if (settings.outputSize === "1:1") {
-    width = 1080;
-    height = 1080;
-  } else if (settings.outputSize === "16:9") {
-    width = 1920;
-    height = 1080;
-  }
+  const ass =
+    path.join(
+      jobDir,
+      'subtitles.ass'
+    );
 
-  const assPath = path.join(jobDir, "recap.ass");
-
-  makeAssFile({
+  makeAss({
     transcription,
-    outputPath: assPath,
-    fontName: settings.fontName,
-    fontSize: settings.fontSize,
-    outline: settings.outline,
-    textColor: settings.textColor,
-    position: settings.position,
-    width,
-    height,
-    subtitleX: settings.subtitleX,
-    subtitleY: settings.subtitleY
+    file: ass,
+
+    fontName:
+      settings.fontName,
+
+    fontSize:
+      settings.fontSize,
+
+    outline:
+      settings.outline,
+
+    textColor:
+      settings.textColor,
+
+    position:
+      settings.position,
+
+    width:
+      output.width,
+
+    height:
+      output.height,
+
+    subtitleX:
+      settings.subtitleX,
+
+    subtitleY:
+      settings.subtitleY
   });
 
-  const finalPath = path.join(
-    jobDir,
-    "final_movie_recap.mp4"
-  );
+  const blur =
+    blurBox({
+      width:
+        original.width,
 
-  const blur = buildBlurFilter({
-    inputWidth: originalSize.width,
-    inputHeight: originalSize.height,
-    blurOriginal: settings.blurOriginal,
-    blurX: settings.blurX,
-    blurY: settings.blurY,
-    blurWidth: settings.blurWidth,
-    blurHeight: settings.blurHeight
-  });
+      height:
+        original.height,
+
+      on:
+        settings.blurOriginal,
+
+      x:
+        settings.blurX,
+
+      y:
+        settings.blurY,
+
+      w:
+        settings.blurWidth,
+
+      h:
+        settings.blurHeight
+    });
+
+  const assPath =
+    filterPath(ass);
 
   const filters = [];
 
-  // ----------------------------------------------------------
-  // Blur original subtitle
-  // ----------------------------------------------------------
-
   if (blur) {
     filters.push(
-      `[0:v]split=2[base][blurSrc]`,
-      `[blurSrc]crop=${blur.cropW}:${blur.cropH}:${blur.cropX}:${blur.cropY},boxblur=12:2[blurred]`,
-      `[base][blurred]overlay=${blur.cropX}:${blur.cropY}:enable='between(t,0,999999)'[blurVideo]`
+      `[0:v]split=2[base][src]`
     );
 
-    const outputScale = outputScaleFilter(settings.outputSize);
+    filters.push(
+      `[src]crop=${blur.bw}:${blur.bh}:${blur.bx}:${blur.by},boxblur=20:10[blur]`
+    );
 
-    if (outputScale) {
+    filters.push(
+      `[base][blur]overlay=${blur.bx}:${blur.by}[v0]`
+    );
+
+    if (output.scale) {
       filters.push(
-        `[blurVideo]${outputScale}[scaled]`
+        `[v0]${output.scale}[v1]`
       );
     } else {
       filters.push(
-        `[blurVideo]null[scaled]`
+        `[v0]null[v1]`
       );
     }
 
-    const assEscaped = escapeFilterPath(assPath);
-
-    filters.push(
-      `[scaled]ass='${assEscaped}'[vout]`
-    );
   } else {
-    const outputScale = outputScaleFilter(settings.outputSize);
-
-    if (outputScale) {
+    if (output.scale) {
       filters.push(
-        `[0:v]${outputScale}[scaled]`
+        `[0:v]${output.scale}[v1]`
       );
     } else {
       filters.push(
-        `[0:v]null[scaled]`
+        `[0:v]null[v1]`
       );
     }
-
-    const assEscaped = escapeFilterPath(assPath);
-
-    filters.push(
-      `[scaled]ass='${assEscaped}'[vout]`
-    );
   }
 
-  const filterComplex = filters.join(";");
+  filters.push(
+    `[v1]subtitles='${assPath}'[vout]`
+  );
 
-  const args = [
-    "-i",
-    videoPath,
-    "-i",
-    audioPath,
-    "-filter_complex",
-    filterComplex,
-    "-map",
-    "[vout]",
-    "-map",
-    "1:a:0",
-    "-c:v",
-    "libx264",
-    "-preset",
-    "veryfast",
-    "-crf",
-    "20",
-    "-pix_fmt",
-    "yuv420p",
-    "-c:a",
-    "aac",
-    "-b:a",
-    "192k",
-    "-shortest",
-    "-movflags",
-    "+faststart",
-    finalPath
-  ];
+  const outputFile =
+    path.join(
+      jobDir,
+      'myanmar_movie_recap.mp4'
+    );
 
-  await ffmpeg(args);
+  await ffmpeg([
+    '-i',
+    video,
 
-  return finalPath;
+    '-i',
+    audio,
+
+    '-filter_complex',
+    filters.join(';'),
+
+    '-map',
+    '[vout]',
+
+    '-map',
+    '1:a:0',
+
+    '-c:v',
+    'libx264',
+
+    '-preset',
+    'veryfast',
+
+    '-crf',
+    '20',
+
+    '-c:a',
+    'aac',
+
+    '-b:a',
+    '192k',
+
+    '-shortest',
+
+    '-movflags',
+    '+faststart',
+
+    outputFile
+  ]);
+
+  return outputFile;
 }
 
-// ------------------------------------------------------------
-// ONE-CLICK PIPELINE
-// ------------------------------------------------------------
+// ============================================================
+// Basic API
+// ============================================================
+
+app.get(
+  '/api/health',
+  (req, res) => {
+    res.json({
+      ok: true,
+      service: 'Burmese SRT'
+    });
+  }
+);
+
+app.get(
+  '/api/recap/voices',
+  (req, res) => {
+    res.json({
+      ok: true,
+      voices: GEMINI_VOICES,
+      model: TTS_MODEL
+    });
+  }
+);
+
+// ============================================================
+// Old SRT - Transcribe
+// ============================================================
 
 app.post(
-  "/api/recap/one-click",
-  upload.single("video"),
-  async (req, res) => {
-    const jobId = uid("recap");
-    const jobDir = path.join(WORK_DIR, jobId);
+  '/api/transcribe',
+  upload.single('video'),
 
-    fs.mkdirSync(jobDir, { recursive: true });
+  async (req, res) => {
+    if (!req.file) {
+      return jsonError(
+        res,
+        400,
+        'Video မရှိပါ။'
+      );
+    }
+
+    const key =
+      getGroqKey(req);
+
+    if (!key) {
+      return jsonError(
+        res,
+        400,
+        'Groq API Key မရှိပါ။'
+      );
+    }
 
     try {
-      if (!req.file) {
-        return jsonError(
-          res,
-          400,
-          "Video file မတွေ့ပါ။"
+      const data =
+        await groqTranscribe(
+          req.file.path,
+          '',
+          key
         );
-      }
 
-      if (!GEMINI_API_KEY) {
-        return jsonError(
-          res,
-          500,
-          "GEMINI_API_KEY မရှိပါ။"
-        );
-      }
+      res.json({
+        ok: true,
+        ...data
+      });
 
-      if (!GROQ_API_KEY) {
-        return jsonError(
-          res,
-          500,
-          "GROQ_API_KEY မရှိပါ။ Voice subtitle sync အတွက်လိုပါတယ်။"
-        );
-      }
-
-      const originalVideo = req.file.path;
-
-      const videoPath = path.join(
-        jobDir,
-        safeName(req.file.originalname || "input.mp4")
+    } catch (error) {
+      jsonError(
+        res,
+        500,
+        error.message
       );
 
-      fs.copyFileSync(
-        originalVideo,
-        videoPath
+    } finally {
+      fs.rm(
+        req.file.path,
+        {
+          force: true
+        },
+        () => {}
       );
+    }
+  }
+);
+
+// ============================================================
+// Old SRT - Translate
+// ============================================================
+
+app.post(
+  '/api/translate',
+
+  async (req, res) => {
+    const text =
+      String(
+        req.body?.text ??
+        req.body?.transcript ??
+        ''
+      ).trim();
+
+    const key =
+      getGeminiKey(req);
+
+    if (!text) {
+      return jsonError(
+        res,
+        400,
+        'Translate text မရှိပါ။'
+      );
+    }
+
+    if (!key) {
+      return jsonError(
+        res,
+        400,
+        'Gemini API Key မရှိပါ။'
+      );
+    }
+
+    try {
+      const data =
+        await geminiGenerate(
+          'gemini-3.8-flash',
+
+          {
+            contents: [
+              {
+                role: 'user',
+
+                parts: [
+                  {
+                    text:
+`Translate the following text into natural Myanmar subtitle language.
+
+Preserve the meaning.
+
+Do not add information.
+
+Return only the Myanmar translation.
+
+TEXT:
+
+${text}`
+                  }
+                ]
+              }
+            ],
+
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 8000
+            }
+          },
+
+          key
+        );
+
+      res.json({
+        ok: true,
+        text:
+          geminiText(data)
+      });
+
+    } catch (error) {
+      jsonError(
+        res,
+        500,
+        error.message
+      );
+    }
+  }
+);
+
+// ============================================================
+// One Clips - Scene Analysis
+// ============================================================
+
+app.post(
+  '/api/recap/analyze',
+  upload.single('video'),
+
+  async (req, res) => {
+    if (!req.file) {
+      return jsonError(
+        res,
+        400,
+        'Video မရှိပါ။'
+      );
+    }
+
+    const key =
+      getGeminiKey(req);
+
+    const job =
+      path.join(
+        WORK_DIR,
+        uid('analyze')
+      );
+
+    fs.mkdirSync(
+      job,
+      {
+        recursive: true
+      }
+    );
+
+    try {
+      const result =
+        await analyzeVideoScenes(
+          req.file.path,
+          job,
+          key
+        );
+
+      res.json({
+        ok: true,
+        ...result
+      });
+
+    } catch (error) {
+      jsonError(
+        res,
+        500,
+        error.message
+      );
+
+    } finally {
+      fs.rm(
+        req.file.path,
+        {
+          force: true
+        },
+        () => {}
+      );
+
+      setTimeout(
+        () => {
+          fs.rm(
+            job,
+            {
+              recursive: true,
+              force: true
+            },
+            () => {}
+          );
+        },
+        600000
+      );
+    }
+  }
+);
+
+// ============================================================
+// One Clips - Gemini TTS
+// ============================================================
+
+app.post(
+  '/api/recap/tts',
+
+  async (req, res) => {
+    const key =
+      getGeminiKey(req);
+
+    const job =
+      path.join(
+        WORK_DIR,
+        uid('tts')
+      );
+
+    fs.mkdirSync(
+      job,
+      {
+        recursive: true
+      }
+    );
+
+    try {
+      const result =
+        await geminiTTS({
+          script:
+            String(
+              req.body?.script ||
+              ''
+            ),
+
+          voice:
+            req.body?.voice,
+
+          speed:
+            req.body?.voiceSpeed,
+
+          pitch:
+            req.body?.voicePitch,
+
+          volume:
+            req.body?.voiceVolume,
+
+          jobDir:
+            job,
+
+          apiKey:
+            key
+        });
+
+      res.sendFile(
+        result.audioPath,
+
+        {
+          headers: {
+            'Content-Type':
+              'audio/wav',
+
+            'Content-Disposition':
+              'inline; filename="voice.wav"'
+          }
+        }
+      );
+
+    } catch (error) {
+      jsonError(
+        res,
+        500,
+        error.message
+      );
+
+    } finally {
+      setTimeout(
+        () => {
+          fs.rm(
+            job,
+            {
+              recursive: true,
+              force: true
+            },
+            () => {}
+          );
+        },
+        600000
+      );
+    }
+  }
+);
+
+// ============================================================
+// One Clips - Voice Sync
+// ============================================================
+
+app.post(
+  '/api/recap/voice-sync',
+  upload.single('audio'),
+
+  async (req, res) => {
+    if (!req.file) {
+      return jsonError(
+        res,
+        400,
+        'Audio မရှိပါ။'
+      );
+    }
+
+    const key =
+      getGroqKey(req);
+
+    try {
+      const result =
+        await groqTranscribe(
+          req.file.path,
+
+          req.body?.script ||
+            '',
+
+          key
+        );
+
+      res.json({
+        ok: true,
+        ...result
+      });
+
+    } catch (error) {
+      jsonError(
+        res,
+        500,
+        error.message
+      );
+
+    } finally {
+      fs.rm(
+        req.file.path,
+        {
+          force: true
+        },
+        () => {}
+      );
+    }
+  }
+);
+
+// ============================================================
+// Render Endpoint
+// ============================================================
+
+app.post(
+  '/api/render',
+  upload.single('video'),
+
+  async (req, res) => {
+    if (!req.file) {
+      return jsonError(
+        res,
+        400,
+        'Video မရှိပါ။'
+      );
+    }
+
+    const job =
+      path.join(
+        WORK_DIR,
+        uid('render')
+      );
+
+    fs.mkdirSync(
+      job,
+      {
+        recursive: true
+      }
+    );
+
+    try {
+      let transcription = {};
+
+      if (
+        typeof req.body?.transcription ===
+        'string'
+      ) {
+        transcription =
+          JSON.parse(
+            req.body.transcription
+          );
+      } else {
+        transcription =
+          req.body?.transcription ||
+          {};
+      }
+
+      const settings = {
+        ...req.body,
+
+        blurOriginal:
+          req.body.blurOriginal ===
+            'true' ||
+          req.body.blurOriginal ===
+            true,
+
+        fontSize:
+          Number(
+            req.body.fontSize
+          ) || 25,
+
+        outline:
+          Number(
+            req.body.outline
+          ) || 2
+      };
+
+      const output =
+        await renderRecap({
+          video:
+            req.file.path,
+
+          audio:
+            req.body.audioPath,
+
+          transcription,
+
+          settings,
+
+          jobDir:
+            job
+        });
+
+      res.sendFile(
+        output,
+
+        {
+          headers: {
+            'Content-Type':
+              'video/mp4',
+
+            'Content-Disposition':
+              'attachment; filename="myanmar_movie_recap.mp4"'
+          }
+        }
+      );
+
+    } catch (error) {
+      jsonError(
+        res,
+        500,
+        error.message
+      );
+
+    } finally {
+      fs.rm(
+        req.file.path,
+        {
+          force: true
+        },
+        () => {}
+      );
+
+      setTimeout(
+        () => {
+          fs.rm(
+            job,
+            {
+              recursive: true,
+              force: true
+            },
+            () => {}
+          );
+        },
+        600000
+      );
+    }
+  }
+);
+
+// ============================================================
+// ONE CLICK
+//
+// Video
+//   ↓
+// Gemini Scene Analysis
+//   ↓
+// Myanmar Recap Script
+//   ↓
+// Gemini TTS
+//   ↓
+// Groq Whisper Timestamp
+//   ↓
+// Subtitle
+//   ↓
+// Original Subtitle Blur
+//   ↓
+// Font / Color / Outline
+//   ↓
+// Output Size
+//   ↓
+// Final MP4
+// ============================================================
+
+app.post(
+  '/api/recap/one-click',
+  upload.single('video'),
+
+  async (req, res) => {
+    if (!req.file) {
+      return jsonError(
+        res,
+        400,
+        'Video မရှိပါ။'
+      );
+    }
+
+    const geminiKey =
+      getGeminiKey(req);
+
+    const groqKey =
+      getGroqKey(req);
+
+    if (!geminiKey) {
+      return jsonError(
+        res,
+        400,
+        'Gemini API Key မရှိပါ။'
+      );
+    }
+
+    if (!groqKey) {
+      return jsonError(
+        res,
+        400,
+        'Groq API Key မရှိပါ။'
+      );
+    }
+
+    const job =
+      path.join(
+        WORK_DIR,
+        uid('oneclick')
+      );
+
+    fs.mkdirSync(
+      job,
+      {
+        recursive: true
+      }
+    );
+
+    try {
 
       // ------------------------------------------------------
-      // Settings from frontend
+      // 1. Analyze actual video scenes
+      // ------------------------------------------------------
+
+      const analysis =
+        await analyzeVideoScenes(
+          req.file.path,
+          job,
+          geminiKey
+        );
+
+      // ------------------------------------------------------
+      // 2. Gemini TTS
+      // ------------------------------------------------------
+
+      const tts =
+        await geminiTTS({
+          script:
+            analysis.script,
+
+          voice:
+            req.body.voice ||
+            'Kore',
+
+          speed:
+            Number(
+              req.body.voiceSpeed
+            ) || 1,
+
+          pitch:
+            Number(
+              req.body.voicePitch
+            ) || 0,
+
+          volume:
+            Number(
+              req.body.voiceVolume
+            ) || 1,
+
+          jobDir:
+            job,
+
+          apiKey:
+            geminiKey
+        });
+
+      // ------------------------------------------------------
+      // 3. Groq Whisper
+      //
+      // Generated voice ကိုပြန် transcribe လုပ်ပြီး
+      // exact subtitle timing ရယူတယ်.
+      // ------------------------------------------------------
+
+      const sync =
+        await groqTranscribe(
+          tts.audioPath,
+
+          analysis.script,
+
+          groqKey
+        );
+
+      // ------------------------------------------------------
+      // 4. Render settings
       // ------------------------------------------------------
 
       const settings = {
-        voice:
-          req.body.voice ||
-          "Kore",
-
-        voiceSpeed:
-          clamp(
-            req.body.voiceSpeed || 1,
-            0.5,
-            2
-          ),
-
-        voiceVolume:
-          clamp(
-            req.body.voiceVolume || 1,
-            0,
-            3
-          ),
-
-        voicePitch:
-          clamp(
-            req.body.voicePitch || 0,
-            -12,
-            12
-          ),
 
         blurOriginal:
-          String(
-            req.body.blurOriginal || ""
-          ) === "true",
+          req.body.blurOriginal ===
+            'true' ||
+          req.body.blurOriginal ===
+            true,
 
         blurX:
           clamp(
-            req.body.blurX || 0,
+            req.body.blurX,
             0,
             100
           ),
 
         blurY:
           clamp(
-            req.body.blurY || 0,
+            req.body.blurY,
             0,
             100
           ),
 
         blurWidth:
           clamp(
-            req.body.blurWidth || 100,
+            req.body.blurWidth,
             1,
             100
           ),
 
         blurHeight:
           clamp(
-            req.body.blurHeight || 20,
+            req.body.blurHeight,
             1,
             100
           ),
 
         subtitleX:
-          req.body.subtitleX !== undefined
-            ? Number(req.body.subtitleX)
-            : null,
+          req.body.subtitleX !==
+            '' &&
+          req.body.subtitleX !=
+            null
+
+            ? clamp(
+                req.body.subtitleX,
+                0,
+                100
+              )
+
+            : NaN,
 
         subtitleY:
-          req.body.subtitleY !== undefined
-            ? Number(req.body.subtitleY)
-            : null,
+          req.body.subtitleY !==
+            '' &&
+          req.body.subtitleY !=
+            null
+
+            ? clamp(
+                req.body.subtitleY,
+                0,
+                100
+              )
+
+            : NaN,
 
         fontName:
           req.body.fontName ||
-          "Noto Sans Myanmar",
+          'Noto Sans Myanmar',
 
         fontSize:
           clamp(
-            req.body.fontSize || 25,
+            req.body.fontSize,
             10,
-            100
+            120
           ),
 
         outline:
           clamp(
-            req.body.outline || 2,
+            req.body.outline,
             0,
-            20
+            10
           ),
 
         textColor:
           req.body.textColor ||
-          "#FFFFFF",
+          '#FFFFFF',
 
         position:
           req.body.position ||
-          "bottom",
+          'bottom',
 
         outputSize:
           req.body.outputSize ||
-          "original"
+          'original'
       };
 
       // ------------------------------------------------------
-      // STEP 1
-      // Actual video scene analysis
+      // 5. Final MP4
       // ------------------------------------------------------
 
-      console.log(
-        `[${jobId}] STEP 1: analyzing video scenes`
-      );
-
-      const sceneResult =
-        await analyzeVideoScenes(
-          videoPath,
-          jobDir
-        );
-
-      const script =
-        sceneResult.script;
-
-      fs.writeFileSync(
-        path.join(jobDir, "recap_script.txt"),
-        script,
-        "utf8"
-      );
-
-      // ------------------------------------------------------
-      // STEP 2
-      // Gemini TTS
-      // ------------------------------------------------------
-
-      console.log(
-        `[${jobId}] STEP 2: generating Gemini TTS`
-      );
-
-      const tts =
-        await geminiTTS({
-          script,
-          voice: settings.voice,
-          jobDir,
-          speed: settings.voiceSpeed,
-          pitch: settings.voicePitch,
-          volume: settings.voiceVolume
-        });
-
-      // ------------------------------------------------------
-      // STEP 3
-      // Exact voice timestamps
-      // ------------------------------------------------------
-
-      console.log(
-        `[${jobId}] STEP 3: transcribing generated voice`
-      );
-
-      const transcription =
-        await transcribeVoiceWithGroq(
-          tts.audioPath,
-          script
-        );
-
-      fs.writeFileSync(
-        path.join(jobDir, "voice_timestamps.json"),
-        JSON.stringify(
-          transcription,
-          null,
-          2
-        ),
-        "utf8"
-      );
-
-      // ------------------------------------------------------
-      // STEP 4
-      // Render final MP4
-      // ------------------------------------------------------
-
-      console.log(
-        `[${jobId}] STEP 4: rendering final MP4`
-      );
-
-      const finalPath =
+      const output =
         await renderRecap({
-          videoPath,
-          audioPath: tts.audioPath,
-          transcription,
-          jobDir,
-          settings
+          video:
+            req.file.path,
+
+          audio:
+            tts.audioPath,
+
+          transcription:
+            sync,
+
+          settings,
+
+          jobDir:
+            job
         });
 
-      // ------------------------------------------------------
-      // Return final video
-      // ------------------------------------------------------
+      res.sendFile(
+        output,
 
-      console.log(
-        `[${jobId}] DONE`
-      );
+        {
+          headers: {
+            'Content-Type':
+              'video/mp4',
 
-      res.setHeader(
-        "Content-Type",
-        "video/mp4"
-      );
-
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="myanmar_movie_recap.mp4"'
-      );
-
-      const stream =
-        fs.createReadStream(finalPath);
-
-      stream.on("error", err => {
-        console.error(err);
-        if (!res.headersSent) {
-          res.status(500).json({
-            ok: false,
-            error: err.message
-          });
+            'Content-Disposition':
+              'attachment; filename="myanmar_movie_recap.mp4"'
+          }
         }
-      });
-
-      stream.pipe(res);
+      );
 
     } catch (error) {
+
       console.error(
-        `[${jobId}] ERROR`,
+        'ONE CLICK ERROR:',
         error
       );
 
-      if (!res.headersSent) {
-        return jsonError(
-          res,
-          500,
-          error.message || "One-Click Recap failed.",
-          {
-            jobId
-          }
-        );
-      }
-    } finally {
-      // Keep files for a short time so stream can finish.
-      setTimeout(() => {
-        try {
-          fs.rmSync(jobDir, {
-            recursive: true,
-            force: true
-          });
-        } catch {}
-      }, 10 * 60 * 1000);
-
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch {}
-    }
-  }
-);
-
-// ------------------------------------------------------------
-// Recap scene analysis endpoint
-// Useful for P1/P2 preview workflow
-// ------------------------------------------------------------
-
-app.post(
-  "/api/recap/analyze",
-  upload.single("video"),
-  async (req, res) => {
-    const jobDir = path.join(
-      WORK_DIR,
-      uid("analyze")
-    );
-
-    fs.mkdirSync(jobDir, {
-      recursive: true
-    });
-
-    try {
-      if (!req.file) {
-        return jsonError(
-          res,
-          400,
-          "Video file မတွေ့ပါ။"
-        );
-      }
-
-      const result =
-        await analyzeVideoScenes(
-          req.file.path,
-          jobDir
-        );
-
-      return res.json({
-        ok: true,
-        script: result.script,
-        duration: result.duration,
-        frameCount: result.frameCount
-      });
-
-    } catch (error) {
-      return jsonError(
+      jsonError(
         res,
         500,
         error.message
       );
-    } finally {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch {}
 
-      setTimeout(() => {
-        try {
-          fs.rmSync(jobDir, {
-            recursive: true,
-            force: true
-          });
-        } catch {}
-      }, 60000);
+    } finally {
+
+      fs.rm(
+        req.file.path,
+        {
+          force: true
+        },
+        () => {}
+      );
+
+      setTimeout(
+        () => {
+          fs.rm(
+            job,
+            {
+              recursive: true,
+              force: true
+            },
+            () => {}
+          );
+        },
+        600000
+      );
     }
   }
 );
 
-// ------------------------------------------------------------
-// Recap TTS endpoint
-// ------------------------------------------------------------
+// ============================================================
+// Frontend fallback
+// ============================================================
 
-app.post(
-  "/api/recap/tts",
-  async (req, res) => {
-    const jobDir = path.join(
-      WORK_DIR,
-      uid("tts")
-    );
+app.use(
+  (req, res, next) => {
 
-    fs.mkdirSync(jobDir, {
-      recursive: true
-    });
-
-    try {
-      const script =
-        String(req.body.script || "").trim();
-
-      if (!script) {
-        return jsonError(
-          res,
-          400,
-          "Script မရှိပါ။"
-        );
-      }
-
-      const result =
-        await geminiTTS({
-          script,
-          voice:
-            req.body.voice ||
-            "Kore",
-          jobDir,
-          speed:
-            clamp(
-              req.body.voiceSpeed || 1,
-              0.5,
-              2
-            ),
-          pitch:
-            clamp(
-              req.body.voicePitch || 0,
-              -12,
-              12
-            ),
-          volume:
-            clamp(
-              req.body.voiceVolume || 1,
-              0,
-              3
-            )
-        });
-
-      // Copy to a public temporary location.
-      const publicAudioDir =
+    if (
+      req.method === 'GET' &&
+      !req.path.startsWith('/api/')
+    ) {
+      return res.sendFile(
         path.join(
           PUBLIC_DIR,
-          "generated-audio"
-        );
-
-      fs.mkdirSync(
-        publicAudioDir,
-        {
-          recursive: true
-        }
-      );
-
-      const fileName =
-        `${uid("voice")}.wav`;
-
-      const destination =
-        path.join(
-          publicAudioDir,
-          fileName
-        );
-
-      fs.copyFileSync(
-        result.audioPath,
-        destination
-      );
-
-      return res.json({
-        ok: true,
-        voice: result.voice,
-        model: result.model,
-        audioUrl:
-          `/generated-audio/${fileName}`
-      });
-
-    } catch (error) {
-      return jsonError(
-        res,
-        500,
-        error.message
-      );
-    } finally {
-      setTimeout(() => {
-        try {
-          fs.rmSync(jobDir, {
-            recursive: true,
-            force: true
-          });
-        } catch {}
-      }, 10 * 60 * 1000);
-    }
-  }
-);
-
-// ------------------------------------------------------------
-// Voice list
-// ------------------------------------------------------------
-
-app.get(
-  "/api/recap/voices",
-  (req, res) => {
-    res.json({
-      ok: true,
-      model: DEFAULT_TTS_MODEL,
-      voices: GEMINI_VOICES
-    });
-  }
-);
-
-// ------------------------------------------------------------
-// Voice timestamp endpoint
-// ------------------------------------------------------------
-
-app.post(
-  "/api/recap/voice-sync",
-  upload.single("audio"),
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return jsonError(
-          res,
-          400,
-          "Audio file မတွေ့ပါ။"
-        );
-      }
-
-      const transcription =
-        await transcribeVoiceWithGroq(
-          req.file.path,
-          req.body.script || ""
-        );
-
-      return res.json({
-        ok: true,
-        transcription,
-        events:
-          createSubtitleEvents(
-            transcription
-          )
-      });
-
-    } catch (error) {
-      return jsonError(
-        res,
-        500,
-        error.message
-      );
-    } finally {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch {}
-    }
-  }
-);
-
-// ------------------------------------------------------------
-// OLD SRT: Groq transcription
-// ------------------------------------------------------------
-
-app.post(
-  "/api/transcribe",
-  upload.single("video"),
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return jsonError(
-          res,
-          400,
-          "Video file မတွေ့ပါ။"
-        );
-      }
-
-      if (!GROQ_API_KEY) {
-        return jsonError(
-          res,
-          500,
-          "GROQ_API_KEY မရှိပါ။"
-        );
-      }
-
-      const audioPath =
-        path.join(
-          WORK_DIR,
-          `${uid("audio")}.wav`
-        );
-
-      await ffmpeg([
-        "-i",
-        req.file.path,
-        "-vn",
-        "-ac",
-        "1",
-        "-ar",
-        "16000",
-        "-c:a",
-        "pcm_s16le",
-        audioPath
-      ]);
-
-      const transcription =
-        await transcribeVoiceWithGroq(
-          audioPath,
-          ""
-        );
-
-      return res.json({
-        ok: true,
-        text:
-          transcription.text || "",
-        segments:
-          transcription.segments || [],
-        words:
-          transcription.words || []
-      });
-
-    } catch (error) {
-      return jsonError(
-        res,
-        500,
-        error.message
-      );
-    } finally {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch {}
-    }
-  }
-);
-
-// ------------------------------------------------------------
-// OLD SRT: Gemini translation
-// ------------------------------------------------------------
-
-app.post(
-  "/api/translate",
-  async (req, res) => {
-    try {
-      const text =
-        String(req.body.text || "").trim();
-
-      if (!text) {
-        return jsonError(
-          res,
-          400,
-          "Translate text မရှိပါ။"
-        );
-      }
-
-      const prompt = `
-Translate the following subtitle transcript into natural Myanmar Burmese.
-
-Rules:
-- Preserve the meaning.
-- Keep subtitle-style short sentences.
-- Do not add explanations.
-- Do not add timestamps.
-- Return ONLY the Myanmar translation.
-
-TEXT:
-${text}
-`;
-
-      const models = [
-        "gemini-3.8-flash",
-        "gemini-3.1-flash",
-        "gemini-2.5-flash"
-      ];
-
-      let lastError = null;
-
-      for (const model of models) {
-        try {
-          const data =
-            await geminiGenerate(
-              model,
-              {
-                contents: [
-                  {
-                    role: "user",
-                    parts: [
-                      {
-                        text: prompt
-                      }
-                    ]
-                  }
-                ],
-                generationConfig: {
-                  temperature: 0.2
-                }
-              }
-            );
-
-          const translated =
-            extractGeminiText(data);
-
-          if (translated) {
-            return res.json({
-              ok: true,
-              text: translated
-            });
-          }
-
-        } catch (error) {
-          lastError = error;
-        }
-      }
-
-      throw (
-        lastError ||
-        new Error("Translation failed.")
-      );
-
-    } catch (error) {
-      return jsonError(
-        res,
-        500,
-        error.message
+          'index.html'
+        )
       );
     }
+
+    next();
   }
 );
 
-// ------------------------------------------------------------
-// OLD SRT render
-// ------------------------------------------------------------
+// ============================================================
+// Error Handler
+// ============================================================
 
-app.post(
-  "/api/render",
-  upload.single("video"),
-  async (req, res) => {
-    const jobDir = path.join(
-      WORK_DIR,
-      uid("render")
+app.use(
+  (err, req, res, next) => {
+
+    console.error(err);
+
+    if (res.headersSent) {
+      return next(err);
+    }
+
+    jsonError(
+      res,
+      500,
+      err.message ||
+        'Server error'
     );
-
-    fs.mkdirSync(jobDir, {
-      recursive: true
-    });
-
-    try {
-      if (!req.file) {
-        return jsonError(
-          res,
-          400,
-          "Video file မတွေ့ပါ။"
-        );
-      }
-
-      const videoPath =
-        req.file.path;
-
-      const originalSize =
-        await getVideoSize(videoPath);
-
-      const assPath =
-        path.join(
-          jobDir,
-          "subtitle.ass"
-        );
-
-      let transcription = {
-        segments: []
-      };
-
-      // Accept frontend-generated subtitle segments.
-      if (Array.isArray(req.body.segments)) {
-        transcription.segments =
-          req.body.segments;
-      } else if (
-        typeof req.body.segments === "string"
-      ) {
-        try {
-          transcription.segments =
-            JSON.parse(
-              req.body.segments
-            );
-        } catch {}
-      }
-
-      makeAssFile({
-        transcription,
-        outputPath: assPath,
-        fontName:
-          req.body.fontName ||
-          "Noto Sans Myanmar",
-        fontSize:
-          clamp(
-            req.body.fontSize || 25,
-            10,
-            100
-          ),
-        outline:
-          clamp(
-            req.body.outline || 2,
-            0,
-            20
-          ),
-        textColor:
-          req.body.textColor ||
-          "#FFFFFF",
-        position:
-          req.body.position ||
-          "bottom",
-        width:
-          originalSize.width,
-        height:
-          originalSize.height,
-        subtitleX:
-          req.body.subtitleX,
-        subtitleY:
-          req.body.subtitleY
-      });
-
-      const output =
-        path.join(
-          jobDir,
-          "rendered.mp4"
-        );
-
-      const assEscaped =
-        escapeFilterPath(
-          assPath
-        );
-
-      await ffmpeg([
-        "-i",
-        videoPath,
-        "-vf",
-        `ass='${assEscaped}'`,
-        "-c:v",
-        "libx264",
-        "-preset",
-        "veryfast",
-        "-crf",
-        "20",
-        "-pix_fmt",
-        "yuv420p",
-        "-c:a",
-        "copy",
-        "-movflags",
-        "+faststart",
-        output
-      ]);
-
-      res.setHeader(
-        "Content-Type",
-        "video/mp4"
-      );
-
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="rendered.mp4"'
-      );
-
-      fs.createReadStream(
-        output
-      ).pipe(res);
-
-    } catch (error) {
-      return jsonError(
-        res,
-        500,
-        error.message
-      );
-    }
   }
 );
 
-// ------------------------------------------------------------
-// Health
-// ------------------------------------------------------------
-
-app.get(
-  "/api/health",
-  (req, res) => {
-    res.json({
-      ok: true,
-      service: "myanmar-srt",
-      movieRecap: true,
-      oneClick: true,
-      gemini: Boolean(GEMINI_API_KEY),
-      groq: Boolean(GROQ_API_KEY),
-      ttsModel: DEFAULT_TTS_MODEL
-    });
-  }
-);
-
-// ------------------------------------------------------------
-// SPA fallback
-// ------------------------------------------------------------
-
-app.use((req, res) => {
-  const indexPath = path.join(
-    PUBLIC_DIR,
-    "index.html"
-  );
-
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
-  }
-
-  return res.status(404).send(
-    "index.html not found"
-  );
-});
-
-// ------------------------------------------------------------
+// ============================================================
 // Start
-// ------------------------------------------------------------
+// ============================================================
 
 app.listen(
   PORT,
-  "0.0.0.0",
   () => {
     console.log(
       `Myanmar SRT server running on port ${PORT}`
-    );
-
-    console.log(
-      `Gemini API: ${
-        GEMINI_API_KEY ? "OK" : "MISSING"
-      }`
-    );
-
-    console.log(
-      `Groq API: ${
-        GROQ_API_KEY ? "OK" : "MISSING"
-      }`
-    );
-
-    console.log(
-      `Movie Recap One-Click: ENABLED`
     );
   }
 );
