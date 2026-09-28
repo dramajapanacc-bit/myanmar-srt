@@ -237,7 +237,7 @@ Return JSON in this exact structure:
 
 
     const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=" +
       encodeURIComponent(process.env.GEMINI_API_KEY),
       {
         method: "POST",
