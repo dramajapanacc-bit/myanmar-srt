@@ -849,6 +849,12 @@ const MOVIE_VOICES = {
   nila: "Aoede"
 };
 
+/*
+   IMPORTANT:
+   TTS သို့ script စာသားကိုပဲ ပို့သည်။
+   style instruction ကို spoken text ထဲ မထည့်တော့ပါ။
+*/
+
 async function generateGeminiTTS(
   text,
   geminiKey,
@@ -875,28 +881,12 @@ async function generateGeminiTTS(
       )
     );
 
-  let style =
-    "Natural Myanmar movie recap narrator.";
-
-  if (safeSpeed < 0.9) {
-    style +=
-      " Speak slowly and clearly.";
-  }
-
-  if (safeSpeed > 1.1) {
-    style +=
-      " Speak slightly faster while remaining clear.";
-  }
-
-  if (safePitch < 0) {
-    style +=
-      " Use a slightly deeper vocal delivery.";
-  }
-
-  if (safePitch > 0) {
-    style +=
-      " Use a slightly brighter vocal delivery.";
-  }
+  /*
+     Gemini TTS ကို
+     "script ကိုပဲဖတ်ပါ"
+     လို့ သီးခြား instruction ပေးပြီး
+     spoken content ထဲမှာ script သီးသန့်ထားသည်။
+  */
 
   const response =
     await fetch(
@@ -913,21 +903,32 @@ async function generateGeminiTTS(
         },
 
         body: JSON.stringify({
+
           model:
             "gemini-3.8-flash-tts",
 
           input: [
+
             {
               type: "user_input",
 
               content: [
+
                 {
                   type: "text",
+
                   text:
-                    `${style}\n\n${text}`
+                    "Read the following Myanmar movie recap script verbatim. " +
+                    "Speak ONLY the script. " +
+                    "Do not read these instructions. " +
+                    "Do not add any words, explanations, introductions, or endings.\n\n" +
+                    "SCRIPT:\n" +
+                    text
                 }
+
               ]
             }
+
           ],
 
           response_format: {
@@ -944,6 +945,7 @@ async function generateGeminiTTS(
               }
             ]
           }
+
         })
       }
     );
@@ -1000,6 +1002,7 @@ async function generateGeminiTTS(
   }
 
   return {
+
     audio:
       Buffer.from(
         audioBase64,
@@ -1064,9 +1067,15 @@ app.post(
         );
 
       const volume =
-        Number(
-          req.body?.voiceVolume ||
-          1
+        Math.min(
+          2,
+          Math.max(
+            0,
+            Number(
+              req.body?.voiceVolume ||
+              1
+            )
+          )
         );
 
       const pitch =
@@ -1242,7 +1251,7 @@ function runFfmpeg(args) {
           } else {
             reject(
               new Error(
-                stderr.slice(-5000) ||
+                stderr.slice(-8000) ||
                 `FFmpeg exited with code ${code}`
               )
             );
@@ -1287,15 +1296,228 @@ function getOutputFilter(
 }
 
 /* =========================================================
-   SUBTITLE FILTER HELPER
+   HEX COLOR -> ASS COLOR
 ========================================================= */
 
-function escapeFilterPath(filePath) {
+function hexToAssColor(hex) {
 
-  return filePath
+  let value =
+    String(hex || "FFFFFF")
+      .replace(
+        /[^A-Fa-f0-9]/g,
+        ""
+      )
+      .slice(0, 6);
+
+  if (value.length !== 6) {
+    value = "FFFFFF";
+  }
+
+  const rr =
+    value.slice(0, 2);
+
+  const gg =
+    value.slice(2, 4);
+
+  const bb =
+    value.slice(4, 6);
+
+  /*
+     ASS uses AABBGGRR
+     Alpha = 00
+  */
+
+  return `&H00${bb}${gg}${rr}`;
+}
+
+/* =========================================================
+   ASS TEXT ESCAPE
+========================================================= */
+
+function escapeAssText(text) {
+
+  return String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\n/g, "\\N")
+    .replace(/\{/g, "\\{")
+    .replace(/\}/g, "\\}");
+}
+
+/* =========================================================
+   ASS TIME FORMAT
+========================================================= */
+
+function formatAssTime(seconds) {
+
+  const total =
+    Math.max(
+      0,
+      Number(seconds || 0)
+    );
+
+  const hours =
+    Math.floor(
+      total / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (total % 3600) / 60
+    );
+
+  const secs =
+    Math.floor(
+      total % 60
+    );
+
+  const centiseconds =
+    Math.floor(
+      (total - Math.floor(total)) * 100
+    );
+
+  return (
+    `${hours}:` +
+    `${String(minutes).padStart(2, "0")}:` +
+    `${String(secs).padStart(2, "0")}.` +
+    `${String(centiseconds).padStart(2, "0")}`
+  );
+}
+
+/* =========================================================
+   CREATE ASS SUBTITLE
+========================================================= */
+
+function makeAss(
+  transcript,
+  options
+) {
+
+  const fontName =
+    String(
+      options.fontName ||
+      "Noto Sans Myanmar"
+    );
+
+  const fontSize =
+    Number(
+      options.fontSize ||
+      25
+    );
+
+  const outline =
+    Number(
+      options.outline ||
+      2
+    );
+
+  const textColor =
+    hexToAssColor(
+      options.textColor ||
+      "FFFFFF"
+    );
+
+  const position =
+    String(
+      options.position ||
+      "bottom"
+    );
+
+  let alignment = 2;
+
+  if (position === "top") {
+    alignment = 8;
+  }
+
+  if (position === "middle") {
+    alignment = 5;
+  }
+
+  const header = `
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+ScaledBorderAndShadow: yes
+WrapStyle: 2
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Recap,${fontName},${fontSize},${textColor},${textColor},&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,${outline},0,${alignment},40,40,45,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`.trim() + "\n";
+
+  const lines =
+    transcript.map(
+      item => {
+
+        const start =
+          formatAssTime(
+            item.start
+          );
+
+        const end =
+          formatAssTime(
+            item.end
+          );
+
+        const text =
+          escapeAssText(
+            item.text
+          );
+
+        return (
+          `Dialogue: 0,${start},${end},Recap,,0,0,0,,${text}`
+        );
+      }
+    );
+
+  return (
+    header +
+    lines.join("\n") +
+    "\n"
+  );
+}
+
+/* =========================================================
+   ASS FILTER PATH
+========================================================= */
+
+function escapeAssFilterPath(
+  filePath
+) {
+
+  return String(filePath)
     .replace(/\\/g, "/")
-    .replace(/:/g, "\\:")
     .replace(/'/g, "\\'");
+}
+
+/* =========================================================
+   SAFE NUMBER
+========================================================= */
+
+function clamp(
+  value,
+  min,
+  max,
+  fallback
+) {
+
+  const number =
+    Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+
+  return Math.min(
+    max,
+    Math.max(
+      min,
+      number
+    )
+  );
 }
 
 /* =========================================================
@@ -1309,7 +1531,7 @@ app.post(
 
     let inputPath = null;
     let audioPath = null;
-    let srtPath = null;
+    let assPath = null;
     let outputPath = null;
 
     try {
@@ -1348,28 +1570,26 @@ app.post(
          STYLE
       ========================= */
 
+      const fontName =
+        String(
+          req.body?.fontName ||
+          "Noto Sans Myanmar"
+        );
+
       const fontSize =
-        Math.min(
+        clamp(
+          req.body?.fontSize,
+          16,
           72,
-          Math.max(
-            16,
-            Number(
-              req.body?.fontSize ||
-              28
-            )
-          )
+          25
         );
 
       const outline =
-        Math.min(
+        clamp(
+          req.body?.outline,
+          0,
           10,
-          Math.max(
-            0,
-            Number(
-              req.body?.outline ||
-              2
-            )
-          )
+          2
         );
 
       const textColor =
@@ -1390,27 +1610,62 @@ app.post(
           "bottom"
         );
 
-      let alignment = 2;
-
-      if (position === "top") {
-        alignment = 8;
-      }
-
-      if (position === "middle") {
-        alignment = 5;
-      }
-
       const outputSize =
         String(
           req.body?.outputSize ||
           "original"
         );
 
+      /* =========================
+         BLUR
+      ========================= */
+
       const blurOriginal =
         String(
           req.body?.blurOriginal ||
           "false"
         ) === "true";
+
+      /*
+         Frontend က percentage ဖြင့် ပို့သည်။
+         Default:
+         X  = 5%
+         Y  = 78%
+         W  = 90%
+         H  = 22%
+      */
+
+      const blurX =
+        clamp(
+          req.body?.blurX,
+          0,
+          100,
+          5
+        );
+
+      const blurY =
+        clamp(
+          req.body?.blurY,
+          0,
+          100,
+          78
+        );
+
+      const blurWidth =
+        clamp(
+          req.body?.blurWidth,
+          1,
+          100,
+          90
+        );
+
+      const blurHeight =
+        clamp(
+          req.body?.blurHeight,
+          1,
+          100,
+          22
+        );
 
       /* =========================
          VOICE
@@ -1437,32 +1692,38 @@ app.post(
         MOVIE_VOICES.thiha;
 
       const voiceSpeed =
-        Number(
-          req.body?.voiceSpeed ||
+        clamp(
+          req.body?.voiceSpeed,
+          0.5,
+          2,
           1
         );
 
       const voiceVolume =
-        Math.min(
+        clamp(
+          req.body?.voiceVolume,
+          0,
           2,
-          Math.max(
-            0,
-            Number(
-              req.body?.voiceVolume ||
-              1
-            )
-          )
+          1
         );
 
       const voicePitch =
-        Number(
-          req.body?.voicePitch ||
+        clamp(
+          req.body?.voicePitch,
+          -12,
+          12,
           0
         );
 
       /* =========================
          GENERATE VOICE
       ========================= */
+
+      console.log(
+        "Generating Movie Recap voice for final render:",
+        voice,
+        voiceName
+      );
 
       const tts =
         await generateGeminiTTS(
@@ -1488,7 +1749,7 @@ app.post(
       );
 
       /* =========================
-         SCRIPT SRT
+         SCRIPT TIMING
       ========================= */
 
       const scriptLines =
@@ -1529,22 +1790,43 @@ app.post(
           })
         );
 
-      const srtText =
-        makeSrt(
-          recapTranscript
+      /* =========================
+         ASS SUBTITLE FILE
+         FIXES PRIMARYCOLOUR ERROR
+      ========================= */
+
+      const assText =
+        makeAss(
+          recapTranscript,
+          {
+            fontName,
+            fontSize,
+            outline,
+            textColor,
+            position
+          }
         );
 
-      srtPath =
+      assPath =
         path.join(
           uploadDir,
-          `${jobId}.srt`
+          `${jobId}.ass`
         );
 
       fs.writeFileSync(
-        srtPath,
-        srtText,
+        assPath,
+        assText,
         "utf8"
       );
+
+      console.log(
+        "ASS subtitle created:",
+        assPath
+      );
+
+      /* =========================
+         OUTPUT
+      ========================= */
 
       outputPath =
         path.join(
@@ -1553,73 +1835,177 @@ app.post(
         );
 
       /* =========================
-         SUBTITLE STYLE
-      ========================= */
-
-      const subtitlePath =
-        escapeFilterPath(
-          srtPath
-        );
-
-      const subtitleFilter =
-        `subtitles='${subtitlePath}':` +
-        `force_style=` +
-        `FontSize=${fontSize},` +
-        `PrimaryColour=&H00${textColor},` +
-        `OutlineColour=&H00000000,` +
-        `Outline=${outline},` +
-        `Shadow=1,` +
-        `Alignment=${alignment},` +
-        `MarginV=35`;
-
-      /* =========================
          VIDEO FILTER
-         IMPORTANT:
-         Final video output is [vout]
-========================= */
-
-      let videoFilter = "";
-
-      if (blurOriginal) {
-
-        videoFilter =
-          `[0:v]split=2[base][blur];` +
-          `[blur]crop=w=iw:h=ih*0.22:y=ih*0.78,` +
-          `boxblur=10:1[blurred];` +
-          `[base][blurred]overlay=0:H-h[blurvideo];` +
-          `[blurvideo]${subtitleFilter}[vsub]`;
-
-      } else {
-
-        videoFilter =
-          `[0:v]${subtitleFilter}[vsub]`;
-      }
-
-      /* =========================
-         OUTPUT SIZE
       ========================= */
+
+      const assFilterPath =
+        escapeAssFilterPath(
+          assPath
+        );
 
       const sizeFilter =
         getOutputFilter(
           outputSize
         );
 
+      let videoFilter = "";
+
+      /*
+         1.
+         Output size ကို အရင်ပြောင်းမယ်။
+      */
+
       if (sizeFilter) {
 
-        videoFilter +=
-          `;[vsub]${sizeFilter}[vout]`;
+        videoFilter =
+          `[0:v]${sizeFilter}[sized]`;
 
       } else {
 
+        videoFilter =
+          `[0:v]null[sized]`;
+      }
+
+      /*
+         2.
+         Blur area ကို output video
+         ပေါ်မှာ percentage ဖြင့်
+         သတ်မှတ်မယ်။
+      */
+
+      if (blurOriginal) {
+
         videoFilter +=
-          `;[vsub]null[vout]`;
+          `;[sized]split=2[base][blur];`;
+
+        videoFilter +=
+          `[blur]` +
+          `crop=` +
+          `w=iw*${blurWidth / 100}:` +
+          `h=ih*${blurHeight / 100}:` +
+          `x=iw*${blurX / 100}:` +
+          `y=ih*${blurY / 100},` +
+          `boxblur=20:10[blurred];`;
+
+        videoFilter +=
+          `[base][blurred]` +
+          `overlay=` +
+          `x=W*${blurX / 100}:` +
+          `y=H*${blurY / 100}` +
+          `[blurvideo];`;
+
+        /*
+           3.
+           ASS subtitles
+        */
+
+        videoFilter +=
+          `[blurvideo]` +
+          `ass='${assFilterPath}'` +
+          `[vout]`;
+
+      } else {
+
+        /*
+           No blur
+        */
+
+        videoFilter +=
+          `;[sized]` +
+          `ass='${assFilterPath}'` +
+          `[vout]`;
       }
 
       /* =========================
-         FFMPEG
+         AUDIO FILTER
+      ========================= */
+
+      const audioFilters = [];
+
+      if (voiceVolume !== 1) {
+
+        audioFilters.push(
+          `volume=${voiceVolume}`
+        );
+      }
+
+      /*
+         Pitch control:
+         FFmpeg မှာ rubberband မရှိနိုင်တာကြောင့်
+         basic pitch adjustment ကို
+         asetrate + aresample + atempo ဖြင့်လုပ်သည်။
+      */
+
+      if (voicePitch !== 0) {
+
+        const factor =
+          Math.pow(
+            2,
+            voicePitch / 12
+          );
+
+        const safeFactor =
+          Math.max(
+            0.5,
+            Math.min(
+              2,
+              factor
+            )
+          );
+
+        const atempo =
+          1 / safeFactor;
+
+        audioFilters.push(
+          `asetrate=24000*${safeFactor}`,
+          `aresample=24000`,
+          `atempo=${atempo}`
+        );
+      }
+
+      /*
+         Speed
+      */
+
+      if (voiceSpeed !== 1) {
+
+        let remaining =
+          voiceSpeed;
+
+        /*
+           atempo supports
+           approximately 0.5 - 2.0
+        */
+
+        while (remaining > 2) {
+
+          audioFilters.push(
+            "atempo=2"
+          );
+
+          remaining /= 2;
+        }
+
+        while (remaining < 0.5) {
+
+          audioFilters.push(
+            "atempo=0.5"
+          );
+
+          remaining /= 0.5;
+        }
+
+        audioFilters.push(
+          `atempo=${remaining}`
+        );
+      }
+
+      /* =========================
+         FFMPEG ARGS
       ========================= */
 
       const args = [
+
         "-y",
 
         "-i",
@@ -1646,25 +2032,40 @@ app.post(
         "-crf",
         "23",
 
+        "-pix_fmt",
+        "yuv420p",
+
         "-c:a",
         "aac",
 
         "-b:a",
-        "128k",
+        "128k"
+      ];
 
-        "-af",
-        `volume=${voiceVolume}`,
+      if (audioFilters.length) {
 
+        args.push(
+          "-af",
+          audioFilters.join(",")
+        );
+      }
+
+      args.push(
         "-shortest",
 
         "-movflags",
         "+faststart",
 
         outputPath
-      ];
+      );
 
       console.log(
         "Starting Movie Recap FFmpeg..."
+      );
+
+      console.log(
+        "FFmpeg filter:",
+        videoFilter
       );
 
       console.log(
@@ -1694,19 +2095,25 @@ app.post(
         const file of [
           inputPath,
           audioPath,
-          srtPath
+          assPath
         ]
       ) {
 
         try {
+
           if (
             file &&
             fs.existsSync(file)
           ) {
             fs.unlinkSync(file);
           }
+
         } catch {}
       }
+
+      inputPath = null;
+      audioPath = null;
+      assPath = null;
 
       /* =========================
          AUTO DELETE OUTPUT
@@ -1753,7 +2160,27 @@ app.post(
 
         voiceVolume,
 
-        voicePitch
+        voicePitch,
+
+        fontName,
+
+        fontSize,
+
+        outline,
+
+        textColor,
+
+        position,
+
+        blurOriginal,
+
+        blurX,
+
+        blurY,
+
+        blurWidth,
+
+        blurHeight
       });
 
     } catch (error) {
@@ -1767,18 +2194,20 @@ app.post(
         const file of [
           inputPath,
           audioPath,
-          srtPath,
+          assPath,
           outputPath
         ]
       ) {
 
         try {
+
           if (
             file &&
             fs.existsSync(file)
           ) {
             fs.unlinkSync(file);
           }
+
         } catch {}
       }
 
@@ -1901,6 +2330,7 @@ app.post(
 
     let inputPath = null;
     let srtPath = null;
+    let assPath = null;
     let outputPath = null;
 
     try {
@@ -1952,6 +2382,12 @@ app.post(
           `${jobId}.srt`
         );
 
+      assPath =
+        path.join(
+          uploadDir,
+          `${jobId}.ass`
+        );
+
       outputPath =
         path.join(
           outputDir,
@@ -1964,16 +2400,18 @@ app.post(
         "utf8"
       );
 
+      const fontName =
+        String(
+          req.body?.fontName ||
+          "Noto Sans Myanmar"
+        );
+
       const fontSize =
-        Math.min(
+        clamp(
+          req.body?.fontSize,
+          16,
           72,
-          Math.max(
-            16,
-            Number(
-              req.body?.fontSize ||
-              28
-            )
-          )
+          25
         );
 
       const textColor =
@@ -1989,15 +2427,11 @@ app.post(
           "FFFFFF";
 
       const outline =
-        Math.min(
+        clamp(
+          req.body?.outline,
+          0,
           10,
-          Math.max(
-            0,
-            Number(
-              req.body?.outline ||
-              2
-            )
-          )
+          2
         );
 
       const position =
@@ -2006,31 +2440,25 @@ app.post(
           "bottom"
         );
 
-      let alignment = 2;
+      fs.writeFileSync(
+        assPath,
+        makeAss(
+          transcript,
+          {
+            fontName,
+            fontSize,
+            outline,
+            textColor,
+            position
+          }
+        ),
+        "utf8"
+      );
 
-      if (position === "top") {
-        alignment = 8;
-      }
-
-      if (position === "middle") {
-        alignment = 5;
-      }
-
-      const subtitlePath =
-        escapeFilterPath(
-          srtPath
+      const assFilterPath =
+        escapeAssFilterPath(
+          assPath
         );
-
-      const subtitleFilter =
-        `subtitles='${subtitlePath}':` +
-        `force_style=` +
-        `FontSize=${fontSize},` +
-        `PrimaryColour=&H00${textColor},` +
-        `OutlineColour=&H00000000,` +
-        `Outline=${outline},` +
-        `Shadow=1,` +
-        `Alignment=${alignment},` +
-        `MarginV=35`;
 
       const blurOriginal =
         String(
@@ -2038,21 +2466,69 @@ app.post(
           "false"
         ) === "true";
 
+      const blurX =
+        clamp(
+          req.body?.blurX,
+          0,
+          100,
+          5
+        );
+
+      const blurY =
+        clamp(
+          req.body?.blurY,
+          0,
+          100,
+          78
+        );
+
+      const blurWidth =
+        clamp(
+          req.body?.blurWidth,
+          1,
+          100,
+          90
+        );
+
+      const blurHeight =
+        clamp(
+          req.body?.blurHeight,
+          1,
+          100,
+          22
+        );
+
       let videoFilter;
 
       if (blurOriginal) {
 
         videoFilter =
           `[0:v]split=2[base][blur];` +
-          `[blur]crop=w=iw:h=ih*0.22:y=ih*0.78,` +
-          `boxblur=10:1[blurred];` +
-          `[base][blurred]overlay=0:H-h[blurvideo];` +
-          `[blurvideo]${subtitleFilter}[vout]`;
+
+          `[blur]` +
+          `crop=` +
+          `w=iw*${blurWidth / 100}:` +
+          `h=ih*${blurHeight / 100}:` +
+          `x=iw*${blurX / 100}:` +
+          `y=ih*${blurY / 100},` +
+          `boxblur=20:10[blurred];` +
+
+          `[base][blurred]` +
+          `overlay=` +
+          `x=W*${blurX / 100}:` +
+          `y=H*${blurY / 100}` +
+          `[blurvideo];` +
+
+          `[blurvideo]` +
+          `ass='${assFilterPath}'` +
+          `[vout]`;
 
       } else {
 
         videoFilter =
-          `[0:v]${subtitleFilter}[vout]`;
+          `[0:v]` +
+          `ass='${assFilterPath}'` +
+          `[vout]`;
       }
 
       const args = [
@@ -2080,6 +2556,9 @@ app.post(
         "-crf",
         "23",
 
+        "-pix_fmt",
+        "yuv420p",
+
         "-c:a",
         "aac",
 
@@ -2104,17 +2583,35 @@ app.post(
         );
       }
 
-      try {
-        fs.unlinkSync(inputPath);
-      } catch {}
+      for (
+        const file of [
+          inputPath,
+          srtPath,
+          assPath
+        ]
+      ) {
 
-      try {
-        fs.unlinkSync(srtPath);
-      } catch {}
+        try {
+
+          if (
+            file &&
+            fs.existsSync(file)
+          ) {
+            fs.unlinkSync(file);
+          }
+
+        } catch {}
+      }
+
+      inputPath = null;
+      srtPath = null;
+      assPath = null;
 
       setTimeout(
         () => {
+
           try {
+
             if (
               fs.existsSync(
                 outputPath
@@ -2124,6 +2621,7 @@ app.post(
                 outputPath
               );
             }
+
           } catch {}
         },
         10 * 60 * 1000
@@ -2153,17 +2651,20 @@ app.post(
         const file of [
           inputPath,
           srtPath,
+          assPath,
           outputPath
         ]
       ) {
 
         try {
+
           if (
             file &&
             fs.existsSync(file)
           ) {
             fs.unlinkSync(file);
           }
+
         } catch {}
       }
 
