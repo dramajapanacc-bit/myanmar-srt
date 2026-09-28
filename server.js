@@ -21,7 +21,28 @@ const MAX_MINUTES = 5;
 
 
 /* =========================
-   HEALTH CHECK
+   API KEY HELPER
+========================= */
+
+function getGroqKey(req) {
+  return (
+    req.headers["x-groq-api-key"] ||
+    process.env.GROQ_API_KEY ||
+    ""
+  ).trim();
+}
+
+function getGeminiKey(req) {
+  return (
+    req.headers["x-gemini-api-key"] ||
+    process.env.GEMINI_API_KEY ||
+    ""
+  ).trim();
+}
+
+
+/* =========================
+   HEALTH
 ========================= */
 
 app.get("/api/health", (req, res) => {
@@ -35,7 +56,7 @@ app.get("/api/health", (req, res) => {
 
 
 /* =========================
-   GROQ TRANSCRIPTION
+   GROQ TRANSCRIPT
 ========================= */
 
 app.post(
@@ -48,40 +69,31 @@ app.post(
     try {
 
       if (!req.file) {
-
         return res.status(400).json({
           error: "Video file မတွေ့ပါ"
         });
-
       }
 
       filePath = req.file.path;
 
-
       if (req.file.size > MAX_SIZE) {
-
         return res.status(400).json({
           error: "Video size က 100MB ထက်မကျော်ရပါ"
         });
-
       }
 
+      const groqKey = getGroqKey(req);
 
-      if (!process.env.GROQ_API_KEY) {
-
-        return res.status(500).json({
-          error: "GROQ_API_KEY မသတ်မှတ်ရသေးပါ"
+      if (!groqKey) {
+        return res.status(400).json({
+          error: "Groq API Key ထည့်ပေးပါ"
         });
-
       }
-
 
       const videoBuffer =
         fs.readFileSync(filePath);
 
-
       const form = new FormData();
-
 
       const blob = new Blob(
         [videoBuffer],
@@ -92,37 +104,31 @@ app.post(
         }
       );
 
-
       form.append(
         "file",
         blob,
         req.file.originalname
       );
 
-
       form.append(
         "model",
         "whisper-large-v3"
       );
-
 
       form.append(
         "response_format",
         "verbose_json"
       );
 
-
       form.append(
         "timestamp_granularities[]",
         "segment"
       );
 
-
       form.append(
         "temperature",
         "0"
       );
-
 
       const groqResponse =
         await fetch(
@@ -132,23 +138,22 @@ app.post(
 
             headers: {
               Authorization:
-                `Bearer ${process.env.GROQ_API_KEY}`
+                `Bearer ${groqKey}`
             },
 
             body: form
           }
         );
 
-
       const data =
         await groqResponse.json();
-
 
       if (!groqResponse.ok) {
 
         console.error(
-          "Groq error:",
-          data
+          "Groq request failed:",
+          data?.error?.message ||
+          "Unknown error"
         );
 
         return res.status(502).json({
@@ -156,20 +161,16 @@ app.post(
             data?.error?.message ||
             "Groq transcription မအောင်မြင်ပါ"
         });
-
       }
-
 
       const segments =
         Array.isArray(data.segments)
           ? data.segments
           : [];
 
-
       const transcript =
         segments
           .map((segment) => ({
-
             start:
               Number(segment.start || 0),
 
@@ -180,34 +181,26 @@ app.post(
               String(
                 segment.text || ""
               ).trim()
-
           }))
           .filter(
             item => item.text
           );
 
-
       if (!transcript.length) {
 
         return res.status(502).json({
-          error: "Groq က transcript မရပါ"
+          error:
+            "Groq က transcript မရပါ"
         });
-
       }
-
 
       const lastEnd =
         transcript[
           transcript.length - 1
         ].end;
 
-
-      const durationMinutes =
-        lastEnd / 60;
-
-
       if (
-        durationMinutes >
+        lastEnd / 60 >
         MAX_MINUTES + 0.25
       ) {
 
@@ -215,34 +208,29 @@ app.post(
           error:
             "Video က 5 မိနစ်ထက်ရှည်နေပါတယ်"
         });
-
       }
 
-
       return res.json({
-
         ok: true,
 
         durationSeconds:
           lastEnd,
 
         transcript
-
       });
-
 
     } catch (error) {
 
       console.error(
         "Transcription error:",
-        error
+        error.message
       );
 
-
       return res.status(500).json({
-        error: error.message
+        error:
+          error.message ||
+          "Transcription error"
       });
-
 
     } finally {
 
@@ -251,11 +239,8 @@ app.post(
         try {
           fs.unlinkSync(filePath);
         } catch {}
-
       }
-
     }
-
   }
 );
 
@@ -270,19 +255,19 @@ app.post(
 
     try {
 
-      if (!process.env.GEMINI_API_KEY) {
+      const geminiKey =
+        getGeminiKey(req);
 
-        return res.status(500).json({
+      if (!geminiKey) {
+
+        return res.status(400).json({
           error:
-            "GEMINI_API_KEY မသတ်မှတ်ရသေးပါ"
+            "Gemini API Key ထည့်ပေးပါ"
         });
-
       }
-
 
       const transcript =
         req.body?.transcript;
-
 
       if (
         !Array.isArray(transcript) ||
@@ -293,58 +278,56 @@ app.post(
           error:
             "Transcript မတွေ့ပါ"
         });
-
       }
 
 
-      const inputText =
+      const source =
         transcript
-          .map(
-            (item, index) =>
-              `${index + 1}. [${item.start} --> ${item.end}] ${item.text}`
-          )
+          .map((item, index) => {
+
+            return (
+              `${index + 1}. ` +
+              `[${item.start} --> ${item.end}] ` +
+              `${item.text}`
+            );
+
+          })
           .join("\n");
 
 
       const prompt = `
-You are a professional Myanmar subtitle translator.
+You are a professional Myanmar movie subtitle translator.
 
-Translate the following movie/drama transcript into natural, fluent Myanmar language.
+Translate the following subtitle transcript into natural, fluent Myanmar language.
 
-IMPORTANT RULES:
+Rules:
+- Translate every subtitle line.
+- Keep the exact same order.
+- Do not remove lines.
+- Do not add explanations.
+- Do not add English translation.
+- Keep names and proper nouns natural.
+- Make the Myanmar language suitable for movie/drama subtitles.
+- Return JSON only.
 
-1. Translate every subtitle.
-2. Keep the same subtitle order.
-3. Keep the original start and end timestamps.
-4. Do not add explanations.
-5. Do not add English translation.
-6. Do not remove subtitle lines.
-7. Preserve names and proper nouns naturally.
-8. Make the Myanmar language sound natural for movie/drama subtitles.
-9. Return JSON only.
+SOURCE:
 
-SOURCE TRANSCRIPT:
-
-${inputText}
+${source}
 `;
-
-
-      const geminiUrl =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=" +
-        encodeURIComponent(
-          process.env.GEMINI_API_KEY
-        );
 
 
       const geminiResponse =
         await fetch(
-          geminiUrl,
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent",
           {
             method: "POST",
 
             headers: {
               "Content-Type":
-                "application/json"
+                "application/json",
+
+              "x-goog-api-key":
+                geminiKey
             },
 
             body: JSON.stringify({
@@ -396,51 +379,37 @@ ${inputText}
                           "id",
                           "text"
                         ]
-
                       }
-
                     }
-
                   },
 
                   required: [
                     "segments"
                   ]
-
                 }
-
               }
-
             })
-
           }
         );
 
 
-      const rawText =
+      const raw =
         await geminiResponse.text();
 
 
       let geminiData;
 
-
       try {
 
         geminiData =
-          JSON.parse(rawText);
+          JSON.parse(raw);
 
       } catch {
 
-        console.error(
-          "Gemini raw response:",
-          rawText
-        );
-
         return res.status(502).json({
           error:
-            "Gemini က JSON response မပြန်နိုင်ပါ"
+            "Gemini က JSON response မပြန်ပါ"
         });
-
       }
 
 
@@ -448,29 +417,25 @@ ${inputText}
 
         console.error(
           "Gemini API error:",
-          geminiData
+          geminiData?.error?.message ||
+          "Unknown error"
         );
-
 
         return res.status(
           geminiResponse.status
         ).json({
-
           error:
             geminiData?.error?.message ||
             "Gemini translation မအောင်မြင်ပါ"
-
         });
-
       }
 
 
-      const candidate =
-        geminiData?.candidates?.[0];
-
-
       const responseText =
-        candidate?.content?.parts?.[0]?.text;
+        geminiData
+          ?.candidates?.[0]
+          ?.content?.parts?.[0]
+          ?.text;
 
 
       if (!responseText) {
@@ -479,56 +444,32 @@ ${inputText}
           error:
             "Gemini response မရပါ"
         });
-
       }
 
 
-      let translatedData;
-
+      let translated;
 
       try {
 
-        translatedData =
+        translated =
           JSON.parse(responseText);
 
       } catch {
-
-        console.error(
-          "Gemini text:",
-          responseText
-        );
 
         return res.status(502).json({
           error:
             "Gemini translation JSON မမှန်ပါ"
         });
-
       }
 
 
       const translatedSegments =
         Array.isArray(
-          translatedData.segments
+          translated?.segments
         )
-          ? translatedData.segments
+          ? translated.segments
           : [];
 
-
-      if (!translatedSegments.length) {
-
-        return res.status(502).json({
-          error:
-            "Gemini translation မရပါ"
-        });
-
-      }
-
-
-      /*
-        Gemini က timestamp မပြန်ရင်
-        original transcript ထဲက timestamp
-        ကို ပြန်ယူမယ်။
-      */
 
       const result =
         translatedSegments
@@ -540,29 +481,22 @@ ${inputText}
               ] ||
               transcript[index];
 
-
             if (!original) {
               return null;
             }
 
-
             return {
 
               start:
-                Number(
-                  original.start
-                ),
+                Number(original.start),
 
               end:
-                Number(
-                  original.end
-                ),
+                Number(original.end),
 
               text:
                 String(
                   item.text || ""
                 ).trim()
-
             };
 
           })
@@ -577,9 +511,8 @@ ${inputText}
 
         return res.status(502).json({
           error:
-            "Myanmar subtitle မထွက်ပါ"
+            "Myanmar translation မရပါ"
         });
-
       }
 
 
@@ -591,36 +524,29 @@ ${inputText}
 
       });
 
-
     } catch (error) {
 
       console.error(
         "Translation error:",
-        error
+        error.message
       );
 
-
       return res.status(500).json({
-
         error:
           error.message ||
-          "Gemini translation error"
-
+          "Translation error"
       });
-
     }
-
   }
 );
 
 
 /* =========================
-   START SERVER
+   SERVER
 ========================= */
 
 const PORT =
   process.env.PORT || 3000;
-
 
 app.listen(
   PORT,
