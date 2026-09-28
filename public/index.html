@@ -21,60 +21,69 @@ body{
 .container{
   width:min(100%,900px);
   margin:auto;
-  padding:18px;
-}
-
-h1,h2,h3{
-  margin-top:0;
+  padding:14px;
 }
 
 .card{
   background:#10141d;
   border:1px solid #273143;
   border-radius:22px;
-  padding:20px;
-  margin-bottom:18px;
+  padding:18px;
+  margin-bottom:16px;
   box-shadow:0 8px 30px rgba(0,0,0,.25);
 }
 
 .title{
-  font-size:30px;
+  font-size:29px;
   font-weight:800;
-  margin-bottom:6px;
+  margin-bottom:7px;
 }
 
 .subtitle{
   color:#aeb7c7;
-  font-size:16px;
-  margin-bottom:20px;
+  line-height:1.6;
 }
 
 .section-title{
   font-size:22px;
   font-weight:800;
-  margin-bottom:16px;
+  margin-bottom:15px;
 }
 
 label{
   display:block;
   color:#cbd2df;
-  margin:14px 0 7px;
-  font-size:16px;
+  margin:13px 0 7px;
 }
 
-input[type="text"],
-input[type="password"],
-input[type="number"],
+input[type=text],
+input[type=password],
+input[type=number],
 select,
 textarea{
   width:100%;
   background:#090c12;
   border:1px solid #303949;
   color:#fff;
-  border-radius:14px;
-  padding:14px;
+  border-radius:13px;
+  padding:13px;
   font-size:16px;
   outline:none;
+}
+
+textarea{
+  min-height:150px;
+  resize:vertical;
+  line-height:1.7;
+}
+
+input[type=file]{
+  width:100%;
+  background:#090c12;
+  border:1px solid #303949;
+  color:#ddd;
+  border-radius:13px;
+  padding:13px;
 }
 
 input:focus,
@@ -83,32 +92,17 @@ textarea:focus{
   border-color:#3b82f6;
 }
 
-textarea{
-  min-height:180px;
-  resize:vertical;
-  line-height:1.7;
-}
-
-input[type="file"]{
-  width:100%;
-  background:#090c12;
-  border:1px solid #303949;
-  color:#ddd;
-  border-radius:14px;
-  padding:13px;
-}
-
 button{
   width:100%;
   border:0;
   border-radius:14px;
-  padding:15px 18px;
+  padding:15px;
   font-size:17px;
   font-weight:700;
-  color:white;
+  color:#fff;
   background:#2563eb;
   cursor:pointer;
-  margin-top:12px;
+  margin-top:11px;
 }
 
 button:hover{
@@ -124,10 +118,6 @@ button:disabled{
   background:#252c38;
 }
 
-.secondary:hover{
-  background:#313b4b;
-}
-
 .success{
   background:#087443;
 }
@@ -136,24 +126,37 @@ button:disabled{
   background:#9f1239;
 }
 
+.status{
+  margin-top:12px;
+  padding:13px;
+  border-radius:12px;
+  background:#0b1018;
+  color:#dbe3ef;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.6;
+}
+
 .small{
   color:#9ca7b8;
   font-size:14px;
   line-height:1.7;
 }
 
-.status{
-  margin-top:12px;
-  padding:13px;
-  border-radius:12px;
-  background:#0b1018;
+.hidden{
+  display:none !important;
+}
+
+.file-info{
+  margin-top:10px;
+  padding:12px;
+  border-radius:13px;
+  background:#090d15;
   color:#cbd5e1;
-  white-space:pre-wrap;
-  word-break:break-word;
 }
 
 .progress-wrap{
-  margin-top:15px;
+  margin-top:14px;
   height:10px;
   border-radius:10px;
   background:#202735;
@@ -167,96 +170,50 @@ button:disabled{
   transition:.2s;
 }
 
-.row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-.row3{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:12px;
-}
-
-@media(max-width:650px){
-  .row,
-  .row3{
-    grid-template-columns:1fr;
-  }
-
-  .container{
-    padding:12px;
-  }
-
-  .card{
-    padding:16px;
-  }
-
-  .title{
-    font-size:27px;
-  }
-}
-
-/* API SETTINGS */
 details{
-  margin-bottom:18px;
+  margin-bottom:4px;
 }
 
 summary{
   cursor:pointer;
-  list-style:none;
   font-size:19px;
   font-weight:800;
-  padding:4px 0;
 }
 
-summary::-webkit-details-marker{
-  display:none;
-}
+/* STEPS */
 
-/* STEP BAR */
 .steps{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:8px;
-  margin:20px 0;
+  gap:7px;
+  margin:17px 0;
 }
 
 .step{
   background:#090d15;
-  border-radius:15px;
-  padding:12px 5px;
+  border-radius:13px;
+  padding:11px 4px;
   text-align:center;
-  color:#8f99aa;
+  color:#9ca7b8;
 }
 
 .step strong{
   display:block;
   color:#60a5fa;
   font-size:18px;
-  margin-bottom:5px;
 }
 
 .step span{
-  font-size:12px;
-}
-
-/* FILE INFO */
-.file-info{
-  margin-top:10px;
-  padding:13px;
-  background:#090d15;
-  border-radius:14px;
-  color:#cbd5e1;
+  font-size:11px;
 }
 
 /* RANGE */
+
 .range-box{
   background:#0b1018;
   border:1px solid #293242;
-  border-radius:16px;
-  padding:14px;
+  border-radius:15px;
+  padding:13px;
   margin-top:10px;
 }
 
@@ -264,28 +221,28 @@ summary::-webkit-details-marker{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:8px;
+  margin-bottom:7px;
 }
 
 .range-value{
   background:#252d3a;
-  padding:8px 12px;
-  border-radius:10px;
-  min-width:78px;
+  padding:7px 10px;
+  border-radius:9px;
+  min-width:70px;
   text-align:center;
 }
 
-input[type="range"]{
+input[type=range]{
   width:100%;
   accent-color:#2583ef;
 }
 
-/* FONT SELECT */
+/* FONT */
+
 .font-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
+  gap:9px;
 }
 
 .font-option{
@@ -300,18 +257,16 @@ input[type="range"]{
 .font-option label{
   margin:0;
   display:block;
-  padding:15px;
+  padding:14px;
   background:#0a0f17;
   border:1px solid #303949;
-  border-radius:14px;
+  border-radius:13px;
   cursor:pointer;
-  color:#e5e7eb;
 }
 
 .font-option input:checked + label{
   border-color:#3b82f6;
   background:#12213b;
-  box-shadow:0 0 0 1px #3b82f6 inset;
 }
 
 .font-noto{
@@ -330,11 +285,33 @@ input[type="range"]{
   font-family:sans-serif;
 }
 
+/* CHECK */
+
+.check-card{
+  background:#0b1018;
+  border:1px solid #293242;
+  border-radius:15px;
+  padding:14px;
+}
+
+.check-line{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.check-line input{
+  width:22px;
+  height:22px;
+  margin-top:2px;
+}
+
 /* PREVIEW */
+
 .preview-title{
-  font-size:20px;
+  font-size:21px;
   font-weight:800;
-  margin-bottom:12px;
+  margin:18px 0 11px;
 }
 
 .preview-wrap{
@@ -346,29 +323,37 @@ input[type="range"]{
   border-radius:18px;
   overflow:hidden;
   user-select:none;
-  touch-action:none;
 }
 
 #recapVideoPreview{
   display:block;
   width:100%;
   height:auto;
-  max-height:520px;
+  min-height:230px;
+  max-height:560px;
   background:#000;
+  object-fit:contain;
 }
 
-/*
-  OVERLAY LAYER
-*/
+.preview-empty{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#9ca3af;
+  font-size:18px;
+  pointer-events:none;
+}
+
 .preview-overlay{
   position:absolute;
   inset:0;
   pointer-events:none;
 }
 
-/*
-  Blur selection
-*/
+/* BLUR BOX */
+
 .blur-box{
   position:absolute;
   left:10%;
@@ -376,8 +361,7 @@ input[type="range"]{
   width:80%;
   height:15%;
   border:2px dashed #60a5fa;
-  background:rgba(90,120,255,.15);
-  box-shadow:0 0 0 9999px rgba(0,0,0,.02);
+  background:rgba(50,100,255,.12);
   pointer-events:auto;
   touch-action:none;
   cursor:move;
@@ -391,52 +375,19 @@ input[type="range"]{
   padding:4px 8px;
   border-radius:6px;
   background:#2563eb;
-  color:#fff;
+  color:white;
   font-size:11px;
   font-weight:bold;
 }
 
-.resize-handle{
-  position:absolute;
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:#fff;
-  border:3px solid #2563eb;
-}
+/* SUBTITLE BOX */
 
-.resize-handle.br{
-  right:-9px;
-  bottom:-9px;
-  cursor:nwse-resize;
-}
-
-.resize-handle.tl{
-  left:-9px;
-  top:-9px;
-  cursor:nwse-resize;
-}
-
-.resize-handle.tr{
-  right:-9px;
-  top:-9px;
-  cursor:nesw-resize;
-}
-
-.resize-handle.bl{
-  left:-9px;
-  bottom:-9px;
-  cursor:nesw-resize;
-}
-
-/*
-  Subtitle selection
-*/
 .subtitle-box{
   position:absolute;
   left:20%;
   top:78%;
   width:60%;
+  height:15%;
   min-height:45px;
   border:2px dashed #facc15;
   background:rgba(250,204,21,.08);
@@ -450,7 +401,8 @@ input[type="range"]{
   text-align:center;
   padding:8px;
   font-weight:bold;
-  line-height:1.25;
+  line-height:1.3;
+  text-shadow:0 2px 4px #000;
 }
 
 .subtitle-box::before{
@@ -464,9 +416,46 @@ input[type="range"]{
   color:#111;
   font-size:11px;
   font-weight:bold;
+  text-shadow:none;
 }
 
-/* LIVE PREVIEW BUTTONS */
+/* RESIZE */
+
+.resize-handle{
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid #2563eb;
+}
+
+.subtitle-box .resize-handle{
+  border-color:#eab308;
+}
+
+.resize-handle.tl{
+  left:-9px;
+  top:-9px;
+}
+
+.resize-handle.tr{
+  right:-9px;
+  top:-9px;
+}
+
+.resize-handle.bl{
+  left:-9px;
+  bottom:-9px;
+}
+
+.resize-handle.br{
+  right:-9px;
+  bottom:-9px;
+}
+
+/* TOOLS */
+
 .preview-tools{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -482,59 +471,18 @@ input[type="range"]{
   background:#16a34a !important;
 }
 
-/* CHECKBOX */
-.check-card{
-  background:#0b1018;
-  border:1px solid #293242;
-  border-radius:16px;
-  padding:15px;
-  margin-bottom:14px;
-}
-
-.check-line{
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
-}
-
-.check-line input{
-  width:22px;
-  height:22px;
-  margin-top:2px;
-}
-
 /* RESULT */
+
 .result-box{
-  padding:18px;
+  padding:16px;
   border-radius:16px;
   background:#0a0f17;
   border:1px solid #293242;
   margin-top:14px;
 }
 
-audio{
-  width:100%;
-  margin-top:10px;
-}
-
 video{
   max-width:100%;
-}
-
-.hidden{
-  display:none !important;
-}
-
-.link-btn{
-  display:block;
-  text-align:center;
-  text-decoration:none;
-  background:#16a34a;
-  color:#fff;
-  padding:15px;
-  border-radius:14px;
-  font-weight:700;
-  margin-top:12px;
 }
 
 .note{
@@ -546,6 +494,37 @@ video{
   margin-top:12px;
   line-height:1.7;
 }
+
+@media(max-width:650px){
+
+  .container{
+    padding:10px;
+  }
+
+  .card{
+    padding:15px;
+  }
+
+  .steps{
+    gap:4px;
+  }
+
+  .step{
+    padding:9px 2px;
+  }
+
+  .step span{
+    font-size:9px;
+  }
+
+  .font-grid{
+    grid-template-columns:1fr;
+  }
+
+  .preview-wrap{
+    border-radius:13px;
+  }
+}
 </style>
 </head>
 
@@ -554,19 +533,27 @@ video{
 <div class="container">
 
   <!-- HEADER -->
+
   <div class="card">
 
-    <div class="title">🇲🇲 Burmese SRT</div>
+    <div class="title">
+      🇲🇲 Burmese SRT
+    </div>
 
     <div class="subtitle">
       Myanmar Subtitle • Movie Recap • Gemini Voice • One Clips
     </div>
 
-    <!-- API SETTINGS -->
-    <details>
-      <summary>⚙️ API Settings</summary>
+    <details style="margin-top:18px;">
 
-      <label>Groq API Key</label>
+      <summary>
+        ⚙️ API Settings
+      </summary>
+
+      <label>
+        Groq API Key
+      </label>
+
       <input
         id="groqApiKey"
         type="password"
@@ -574,7 +561,10 @@ video{
         autocomplete="off"
       >
 
-      <label>Gemini API Key</label>
+      <label>
+        Gemini API Key
+      </label>
+
       <input
         id="geminiApiKey"
         type="password"
@@ -582,27 +572,37 @@ video{
         autocomplete="off"
       >
 
-      <button id="saveApiKeys" class="success">
+      <button
+        id="saveApiKeys"
+        class="success"
+      >
         💾 Save API Keys
       </button>
 
-      <button id="clearApiKeys" class="secondary">
+      <button
+        id="clearApiKeys"
+        class="secondary"
+      >
         🗑️ Clear API Keys
       </button>
 
       <div class="small">
-        API Key များကို Browser Local Storage ထဲမှာ သိမ်းထားပါမယ်။
+        API Keys များကို Browser Local Storage ထဲမှာ သိမ်းထားပါမယ်။
       </div>
 
-      <div id="apiStatus" class="status hidden"></div>
+      <div
+        id="apiStatus"
+        class="status hidden"
+      ></div>
+
     </details>
 
   </div>
 
 
-  <!-- ========================= -->
+  <!-- ========================================= -->
   <!-- MYANMAR SRT -->
-  <!-- ========================= -->
+  <!-- ========================================= -->
 
   <div class="card">
 
@@ -610,7 +610,9 @@ video{
       🇲🇲 Myanmar Subtitle
     </div>
 
-    <label>🎬 Video File</label>
+    <label>
+      🎬 Video
+    </label>
 
     <input
       id="srtVideo"
@@ -618,61 +620,71 @@ video{
       accept="video/*"
     >
 
-    <div id="srtFileInfo" class="file-info hidden"></div>
+    <div
+      id="srtFileInfo"
+      class="file-info hidden"
+    ></div>
 
     <button id="transcribeBtn">
-      🎙️ Transcribe Video
+      🎙️ Transcribe
     </button>
 
-    <div id="srtProgressWrap" class="progress-wrap hidden">
-      <div id="srtProgress" class="progress"></div>
-    </div>
+    <div
+      id="transcribeStatus"
+      class="status hidden"
+    ></div>
 
-    <div id="transcribeStatus" class="status hidden"></div>
-
-    <label>Chinese / Original Transcript</label>
+    <label>
+      Original Transcript
+    </label>
 
     <textarea
       id="sourceTranscript"
-      placeholder="Transcript will appear here..."
+      placeholder="Transcript..."
     ></textarea>
 
     <button id="translateBtn">
       🇲🇲 Translate to Myanmar
     </button>
 
-    <div id="translateStatus" class="status hidden"></div>
+    <div
+      id="translateStatus"
+      class="status hidden"
+    ></div>
 
-    <label>🇲🇲 Myanmar Subtitle</label>
+    <label>
+      🇲🇲 Myanmar Subtitle
+    </label>
 
     <textarea
       id="myanmarSubtitle"
-      placeholder="Myanmar subtitle will appear here..."
+      placeholder="Myanmar subtitle..."
     ></textarea>
 
-    <button id="downloadSrt" class="success">
+    <button
+      id="downloadSrt"
+      class="success"
+    >
       ⬇️ Download Myanmar SRT
     </button>
 
   </div>
 
 
-  <!-- ========================= -->
-  <!-- ONE CLIPS TOOL -->
-  <!-- ========================= -->
+  <!-- ========================================= -->
+  <!-- ONE CLIPS -->
+  <!-- ========================================= -->
 
   <div class="card">
 
-    <div class="title" style="font-size:28px;">
+    <div class="title">
       ✂️ One Clips Tool
     </div>
 
     <div class="subtitle">
-      Movie → AI Recap → Voice → Subtitle → Final Clip
+      Movie → AI Scene → Myanmar Recap → Gemini Voice → Subtitle → Final MP4
     </div>
 
-
-    <!-- STEPS -->
 
     <div class="steps">
 
@@ -704,9 +716,11 @@ video{
     </div>
 
 
-    <!-- VIDEO -->
+    <!-- VIDEO FILE -->
 
-    <label>🎥 Movie Video</label>
+    <label>
+      🎥 Video
+    </label>
 
     <input
       id="recapVideo"
@@ -714,44 +728,71 @@ video{
       accept="video/*"
     >
 
-    <div id="recapFileInfo" class="file-info hidden"></div>
+    <div
+      id="recapFileInfo"
+      class="file-info hidden"
+    ></div>
 
 
-    <!-- SETTINGS -->
+    <!-- VOICE -->
 
-    <div class="card" style="margin-top:16px;margin-bottom:0;">
+    <div class="card" style="margin-top:15px;">
 
-      <div class="section-title" style="font-size:21px;">
-        ⚙️ One Clips Settings
+      <div class="section-title">
+        🎙️ Gemini Voice
       </div>
 
-
-      <!-- GEMINI VOICE -->
-
-      <label>Gemini TTS Voice</label>
+      <label>
+        Gemini TTS Voice
+      </label>
 
       <select id="recapVoice">
 
-        <option value="Kore">Kore</option>
-        <option value="Aoede">Aoede</option>
-        <option value="Puck">Puck</option>
-        <option value="Charon">Charon</option>
-        <option value="Fenrir">Fenrir</option>
+        <option value="Kore">
+          Kore
+        </option>
+
+        <option value="Aoede">
+          Aoede
+        </option>
+
+        <option value="Puck">
+          Puck
+        </option>
+
+        <option value="Charon">
+          Charon
+        </option>
+
+        <option value="Fenrir">
+          Fenrir
+        </option>
+
+        <option value="Zephyr">
+          Zephyr
+        </option>
+
+        <option value="Leda">
+          Leda
+        </option>
+
+        <option value="Orus">
+          Orus
+        </option>
 
       </select>
 
-      <div class="small">
-        Gemini TTS မှာ support လုပ်ထားတဲ့ voice name ကို backend က အသုံးပြုပါမယ်။
-      </div>
-
-
-      <!-- SPEED -->
 
       <div class="range-box">
 
         <div class="range-top">
           <span>Voice Speed</span>
-          <span id="speedValue" class="range-value">1.00x</span>
+          <span
+            id="speedValue"
+            class="range-value"
+          >
+            1.00x
+          </span>
         </div>
 
         <input
@@ -766,13 +807,16 @@ video{
       </div>
 
 
-      <!-- VOLUME -->
-
       <div class="range-box">
 
         <div class="range-top">
           <span>Voice Volume</span>
-          <span id="volumeValue" class="range-value">100%</span>
+          <span
+            id="volumeValue"
+            class="range-value"
+          >
+            100%
+          </span>
         </div>
 
         <input
@@ -787,13 +831,16 @@ video{
       </div>
 
 
-      <!-- PITCH -->
-
       <div class="range-box">
 
         <div class="range-top">
           <span>Voice Pitch</span>
-          <span id="pitchValue" class="range-value">0</span>
+          <span
+            id="pitchValue"
+            class="range-value"
+          >
+            0
+          </span>
         </div>
 
         <input
@@ -810,7 +857,7 @@ video{
     </div>
 
 
-    <!-- ORIGINAL SUBTITLE BLUR -->
+    <!-- BLUR -->
 
     <div class="check-card">
 
@@ -829,8 +876,7 @@ video{
           </strong>
 
           <div class="small">
-            Movie ထဲမှာ ပါပြီးသား subtitle area ကို Live Preview မှာ
-            ရွေးပြီး နေရာပြောင်း / အရွယ်ပြောင်းနိုင်ပါတယ်။
+            Video ပေါ်မှာ Blur Box ကို ရွှေ့ / ချဲ့နိုင်ပါတယ်။
           </div>
 
         </div>
@@ -842,9 +888,9 @@ video{
 
     <!-- FONT -->
 
-    <div class="card" style="margin:0 0 14px 0;">
+    <div class="card">
 
-      <div class="section-title" style="font-size:20px;">
+      <div class="section-title">
         🔤 Subtitle Font
       </div>
 
@@ -860,7 +906,10 @@ video{
             checked
           >
 
-          <label for="fontNoto" class="font-noto">
+          <label
+            for="fontNoto"
+            class="font-noto"
+          >
             Noto Sans Myanmar
           </label>
 
@@ -876,7 +925,10 @@ video{
             value="Myanmar Text"
           >
 
-          <label for="fontMyanmar" class="font-myanmar">
+          <label
+            for="fontMyanmar"
+            class="font-myanmar"
+          >
             Myanmar Text
           </label>
 
@@ -892,7 +944,10 @@ video{
             value="Arial"
           >
 
-          <label for="fontArial" class="font-arial">
+          <label
+            for="fontArial"
+            class="font-arial"
+          >
             Arial
           </label>
 
@@ -908,7 +963,10 @@ video{
             value="Sans Serif"
           >
 
-          <label for="fontSans" class="font-sans">
+          <label
+            for="fontSans"
+            class="font-sans"
+          >
             Sans Serif
           </label>
 
@@ -917,13 +975,17 @@ video{
       </div>
 
 
-      <!-- FONT SIZE -->
-
       <div class="range-box">
 
         <div class="range-top">
           <span>Font Size</span>
-          <span id="fontSizeValue" class="range-value">25</span>
+
+          <span
+            id="fontSizeValue"
+            class="range-value"
+          >
+            25
+          </span>
         </div>
 
         <input
@@ -931,20 +993,23 @@ video{
           type="range"
           min="12"
           max="72"
-          step="1"
           value="25"
         >
 
       </div>
 
 
-      <!-- OUTLINE -->
-
       <div class="range-box">
 
         <div class="range-top">
           <span>Outline</span>
-          <span id="outlineValue" class="range-value">2</span>
+
+          <span
+            id="outlineValue"
+            class="range-value"
+          >
+            2
+          </span>
         </div>
 
         <input
@@ -952,16 +1017,15 @@ video{
           type="range"
           min="0"
           max="10"
-          step="1"
           value="2"
         >
 
       </div>
 
 
-      <!-- COLOR -->
-
-      <label>Text Color</label>
+      <label>
+        Text Color
+      </label>
 
       <input
         id="textColor"
@@ -970,62 +1034,93 @@ video{
         style="
           width:100%;
           height:52px;
-          padding:5px;
-          background:#090c12;
+          padding:4px;
         "
       >
 
 
-      <!-- POSITION -->
-
-      <label>Subtitle Position</label>
+      <label>
+        Position
+      </label>
 
       <select id="subtitlePosition">
 
-        <option value="bottom">Bottom</option>
-        <option value="middle">Middle</option>
-        <option value="top">Top</option>
+        <option value="bottom">
+          Bottom
+        </option>
+
+        <option value="middle">
+          Middle
+        </option>
+
+        <option value="top">
+          Top
+        </option>
 
       </select>
 
 
-      <!-- OUTPUT SIZE -->
-
-      <label>Output Size</label>
+      <label>
+        Output Size
+      </label>
 
       <select id="outputSize">
 
-        <option value="original">Original Size</option>
-        <option value="9:16">9:16</option>
-        <option value="1:1">1:1</option>
-        <option value="16:9">16:9</option>
+        <option value="original">
+          Original Size
+        </option>
+
+        <option value="9:16">
+          9:16
+        </option>
+
+        <option value="1:1">
+          1:1
+        </option>
+
+        <option value="16:9">
+          16:9
+        </option>
 
       </select>
-
-      <div class="small">
-        Original Size = မူရင်း Video အရွယ်အစားကို အသုံးပြုပါမယ်။
-      </div>
 
     </div>
 
 
+    <!-- ========================================= -->
     <!-- LIVE PREVIEW -->
+    <!-- ========================================= -->
 
     <div class="preview-title">
       👁️ Live Preview
     </div>
 
-    <div class="preview-wrap" id="previewWrap">
+    <div
+      id="previewWrap"
+      class="preview-wrap"
+    >
 
       <video
         id="recapVideoPreview"
         controls
         playsinline
+        preload="metadata"
       ></video>
 
-      <div class="preview-overlay">
+      <div
+        id="previewEmpty"
+        class="preview-empty"
+      >
+        🎬 Video ရွေးပြီး Live Preview ကြည့်ပါ
+      </div>
 
-        <!-- BLUR BOX -->
+
+      <div
+        id="previewOverlay"
+        class="preview-overlay"
+      >
+
+        <!-- BLUR -->
 
         <div
           id="blurBox"
@@ -1055,14 +1150,36 @@ video{
         </div>
 
 
-        <!-- SUBTITLE BOX -->
+        <!-- SUBTITLE -->
 
         <div
           id="subtitleBox"
           class="subtitle-box"
         >
 
-          မြန်မာ Movie Recap Subtitle
+          <span id="previewSubtitleText">
+            မြန်မာစာတန်းထိုး
+          </span>
+
+          <div
+            class="resize-handle tl"
+            data-handle="tl"
+          ></div>
+
+          <div
+            class="resize-handle tr"
+            data-handle="tr"
+          ></div>
+
+          <div
+            class="resize-handle bl"
+            data-handle="bl"
+          ></div>
+
+          <div
+            class="resize-handle br"
+            data-handle="br"
+          ></div>
 
         </div>
 
@@ -1071,7 +1188,7 @@ video{
     </div>
 
 
-    <!-- PREVIEW SELECT -->
+    <!-- PREVIEW TOOLS -->
 
     <div class="preview-tools">
 
@@ -1093,37 +1210,51 @@ video{
 
 
     <div class="note">
-      💡 <b>Blur ရွေးမယ်</b> ကိုနှိပ်ပြီး အပြာရောင် box ကို
-      မူရင်း subtitle ပေါ်တင်ပါ။<br>
-      💡 <b>Subtitle ရွေးမယ်</b> ကိုနှိပ်ပြီး အဝါရောင် box ကို
-      လိုချင်တဲ့နေရာကို ဆွဲရွှေ့ပါ။
+
+      💡 <b>Blur ရွေးမယ်</b> ကိုနှိပ်ပြီး
+      မူရင်း subtitle နေရာကို Video ပေါ်မှာ ဆွဲရွှေ့ပါ။<br>
+
+      💡 <b>Subtitle ရွေးမယ်</b> ကိုနှိပ်ပြီး
+      ကိုယ်ထည့်မယ့် မြန်မာ subtitle နေရာကို ဆွဲရွှေ့ပါ။
+
     </div>
 
 
-    <!-- STATUS -->
+    <!-- SCRIPT PREVIEW -->
+
+    <label>
+      📝 AI Myanmar Movie Recap Script
+    </label>
+
+    <textarea
+      id="recapScript"
+      placeholder="AI က video scene တွေကိုကြည့်ပြီး Myanmar recap script ထည့်ပေးပါမယ်..."
+    ></textarea>
+
 
     <div
-      id="oneClickStatus"
+      id="recapStatus"
       class="status hidden"
     ></div>
 
     <div
-      id="oneClickProgressWrap"
+      id="recapProgressWrap"
       class="progress-wrap hidden"
     >
       <div
-        id="oneClickProgress"
+        id="recapProgress"
         class="progress"
       ></div>
     </div>
 
 
-    <!-- ONE CLICK -->
-
     <button
       id="oneClickBtn"
-      class="success"
-      style="font-size:19px;padding:18px;"
+      style="
+        background:#2457df;
+        font-size:20px;
+        padding:20px;
+      "
     >
       🚀 One Clips တစ်ချက်နှိပ်ပြီး Final MP4 ထုတ်မယ်
     </button>
@@ -1131,29 +1262,46 @@ video{
 
     <!-- RESULT -->
 
-    <div
-      id="oneClickResult"
-      class="result-box hidden"
-    >
+    <div class="result-box">
 
       <div class="section-title">
         🎬 One Clips Result
       </div>
 
-      <div id="resultText"></div>
+      <div
+        id="resultStatus"
+        class="status"
+      >
+        Final MP4 မထွက်သေးပါ။
+      </div>
 
       <video
-        id="finalVideo"
+        id="resultVideo"
         controls
         playsinline
         class="hidden"
-        style="width:100%;margin-top:12px;border-radius:14px;"
+        style="
+          width:100%;
+          margin-top:12px;
+          border-radius:14px;
+        "
       ></video>
 
       <a
-        id="downloadFinal"
-        class="link-btn hidden"
-        download="burmese-recap.mp4"
+        id="downloadResult"
+        class="hidden"
+        download="myanmar_movie_recap.mp4"
+        style="
+          display:block;
+          margin-top:12px;
+          padding:15px;
+          background:#16a34a;
+          color:#fff;
+          text-align:center;
+          border-radius:14px;
+          text-decoration:none;
+          font-weight:700;
+        "
       >
         ⬇️ Download Final MP4
       </a>
@@ -1166,397 +1314,455 @@ video{
 
 
 <script>
-
-/* =========================================================
-   API SETTINGS
-========================================================= */
-
-const API_BASE = "";
-
-const groqApiKeyInput =
-  document.getElementById("groqApiKey");
-
-const geminiApiKeyInput =
-  document.getElementById("geminiApiKey");
-
-const saveApiKeys =
-  document.getElementById("saveApiKeys");
-
-const clearApiKeys =
-  document.getElementById("clearApiKeys");
-
-const apiStatus =
-  document.getElementById("apiStatus");
-
-
-function loadApiKeys(){
-
-  groqApiKeyInput.value =
-    localStorage.getItem("groqApiKey") || "";
-
-  geminiApiKeyInput.value =
-    localStorage.getItem("geminiApiKey") || "";
-
-}
-
-
-loadApiKeys();
-
-
-saveApiKeys.addEventListener("click",()=>{
-
-  localStorage.setItem(
-    "groqApiKey",
-    groqApiKeyInput.value.trim()
-  );
-
-  localStorage.setItem(
-    "geminiApiKey",
-    geminiApiKeyInput.value.trim()
-  );
-
-  apiStatus.classList.remove("hidden");
-
-  apiStatus.textContent =
-    "✅ API Keys saved successfully.";
-
-});
-
-
-clearApiKeys.addEventListener("click",()=>{
-
-  localStorage.removeItem("groqApiKey");
-  localStorage.removeItem("geminiApiKey");
-
-  groqApiKeyInput.value = "";
-  geminiApiKeyInput.value = "";
-
-  apiStatus.classList.remove("hidden");
-
-  apiStatus.textContent =
-    "🗑️ API Keys cleared.";
-
-});
-
-
 /* =========================================================
    HELPERS
 ========================================================= */
 
-function getApiHeaders(){
+const $ = id =>
+  document.getElementById(id);
 
-  const headers = {};
-
-  const groq =
-    localStorage.getItem("groqApiKey");
-
-  const gemini =
-    localStorage.getItem("geminiApiKey");
-
-  if(groq){
-    headers["x-groq-api-key"] = groq;
+function show(el){
+  if(el){
+    el.classList.remove('hidden');
   }
-
-  if(gemini){
-    headers["x-gemini-api-key"] = gemini;
-  }
-
-  return headers;
-
 }
 
-
-function showStatus(element,message){
-
-  element.classList.remove("hidden");
-
-  element.textContent = message;
-
+function hide(el){
+  if(el){
+    el.classList.add('hidden');
+  }
 }
 
+function setStatus(
+  el,
+  text
+){
+  if(!el) return;
 
-function formatBytes(bytes){
+  el.textContent =
+    String(text || '');
 
-  if(!bytes) return "0 B";
+  show(el);
+}
 
-  const units = [
-    "B",
-    "KB",
-    "MB",
-    "GB"
-  ];
+function getGroqKey(){
+  return (
+    localStorage.getItem(
+      'groqApiKey'
+    ) || ''
+  );
+}
 
-  let i=0;
-
-  let n=bytes;
-
-  while(n>=1024 && i<units.length-1){
-
-    n/=1024;
-    i++;
-
-  }
-
-  return n.toFixed(1)+" "+units[i];
-
+function getGeminiKey(){
+  return (
+    localStorage.getItem(
+      'geminiApiKey'
+    ) || ''
+  );
 }
 
 
 /* =========================================================
-   MYANMAR SRT
+   API KEY
 ========================================================= */
 
-const srtVideo =
-  document.getElementById("srtVideo");
+function loadKeys(){
 
-const srtFileInfo =
-  document.getElementById("srtFileInfo");
+  $('groqApiKey').value =
+    getGroqKey();
 
-const transcribeBtn =
-  document.getElementById("transcribeBtn");
+  $('geminiApiKey').value =
+    getGeminiKey();
 
-const translateBtn =
-  document.getElementById("translateBtn");
+}
 
-const sourceTranscript =
-  document.getElementById("sourceTranscript");
-
-const myanmarSubtitle =
-  document.getElementById("myanmarSubtitle");
-
-const transcribeStatus =
-  document.getElementById("transcribeStatus");
-
-const translateStatus =
-  document.getElementById("translateStatus");
-
-const srtProgressWrap =
-  document.getElementById("srtProgressWrap");
-
-const srtProgress =
-  document.getElementById("srtProgress");
+loadKeys();
 
 
-srtVideo.addEventListener("change",()=>{
+$('saveApiKeys')
+.addEventListener(
+  'click',
+  () => {
 
-  const file = srtVideo.files[0];
+    const groq =
+      $('groqApiKey').value.trim();
 
-  if(!file){
+    const gemini =
+      $('geminiApiKey').value.trim();
 
-    srtFileInfo.classList.add("hidden");
+    localStorage.setItem(
+      'groqApiKey',
+      groq
+    );
 
-    return;
+    localStorage.setItem(
+      'geminiApiKey',
+      gemini
+    );
+
+    setStatus(
+      $('apiStatus'),
+      '✅ API Keys saved successfully.'
+    );
 
   }
-
-  srtFileInfo.classList.remove("hidden");
-
-  srtFileInfo.innerHTML =
-    `🎬 ${file.name}<br>
-     Size: ${formatBytes(file.size)}`;
-
-});
+);
 
 
-/* TRANSCRIBE */
+$('clearApiKeys')
+.addEventListener(
+  'click',
+  () => {
 
-transcribeBtn.addEventListener("click",async()=>{
+    localStorage.removeItem(
+      'groqApiKey'
+    );
 
-  const file = srtVideo.files[0];
+    localStorage.removeItem(
+      'geminiApiKey'
+    );
 
-  if(!file){
+    $('groqApiKey').value = '';
+    $('geminiApiKey').value = '';
 
-    alert("Video File ရွေးပါ။");
-
-    return;
+    setStatus(
+      $('apiStatus'),
+      '🗑️ API Keys cleared.'
+    );
 
   }
+);
 
-  transcribeBtn.disabled = true;
 
-  srtProgressWrap.classList.remove("hidden");
+/* =========================================================
+   SRT FILE INFO
+========================================================= */
 
-  srtProgress.style.width = "10%";
+$('srtVideo')
+.addEventListener(
+  'change',
+  () => {
 
-  showStatus(
-    transcribeStatus,
-    "⏳ Video ကို Transcribe လုပ်နေပါတယ်..."
-  );
+    const file =
+      $('srtVideo').files[0];
 
-  try{
+    if(!file){
+      hide(
+        $('srtFileInfo')
+      );
+      return;
+    }
 
-    const formData = new FormData();
+    setStatus(
+      $('srtFileInfo'),
+      `🎬 ${file.name}\n` +
+      `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`
+    );
 
-    formData.append("video",file);
+  }
+);
 
-    const response =
-      await fetch(
-        API_BASE + "/api/transcribe",
-        {
-          method:"POST",
-          headers:getApiHeaders(),
-          body:formData
-        }
+
+/* =========================================================
+   OLD SRT TRANSCRIBE
+========================================================= */
+
+$('transcribeBtn')
+.addEventListener(
+  'click',
+  async () => {
+
+    const file =
+      $('srtVideo').files[0];
+
+    const key =
+      getGroqKey();
+
+    if(!file){
+      setStatus(
+        $('transcribeStatus'),
+        '❌ Video ရွေးပါ။'
+      );
+      return;
+    }
+
+    if(!key){
+      setStatus(
+        $('transcribeStatus'),
+        '❌ Groq API Key မရှိပါ။ API Settings မှာထည့်ပါ။'
+      );
+      return;
+    }
+
+    const form =
+      new FormData();
+
+    form.append(
+      'video',
+      file
+    );
+
+    setStatus(
+      $('transcribeStatus'),
+      '⏳ Transcribing...'
+    );
+
+    try{
+
+      const response =
+        await fetch(
+          '/api/transcribe',
+          {
+            method:'POST',
+
+            headers:{
+              'x-groq-api-key':
+                key
+            },
+
+            body:form
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if(!response.ok){
+        throw new Error(
+          data.error ||
+          'Transcribe failed'
+        );
+      }
+
+      $('sourceTranscript').value =
+        data.text ||
+        (
+          data.segments || []
+        )
+        .map(x => x.text)
+        .join('\n');
+
+      setStatus(
+        $('transcribeStatus'),
+        '✅ Transcribe ပြီးပါပြီ။'
       );
 
-    srtProgress.style.width = "60%";
+    }catch(error){
 
-    const data =
-      await response.json();
-
-    if(!response.ok){
-
-      throw new Error(
-        data.error ||
-        data.message ||
-        "Transcribe failed"
+      setStatus(
+        $('transcribeStatus'),
+        '❌ ' +
+        error.message
       );
 
     }
 
-    sourceTranscript.value =
-      data.transcript ||
-      data.text ||
-      "";
-
-    srtProgress.style.width = "100%";
-
-    showStatus(
-      transcribeStatus,
-      "✅ Transcription ပြီးပါပြီ။"
-    );
-
-  }catch(error){
-
-    showStatus(
-      transcribeStatus,
-      "❌ " + error.message
-    );
-
-  }finally{
-
-    transcribeBtn.disabled = false;
-
   }
-
-});
-
-
-/* TRANSLATE */
-
-translateBtn.addEventListener("click",async()=>{
-
-  const transcript =
-    sourceTranscript.value.trim();
-
-  if(!transcript){
-
-    alert("အရင် Transcribe လုပ်ပါ။");
-
-    return;
-
-  }
-
-  translateBtn.disabled = true;
-
-  showStatus(
-    translateStatus,
-    "⏳ Myanmar Translation လုပ်နေပါတယ်..."
-  );
-
-  try{
-
-    const response =
-      await fetch(
-        API_BASE + "/api/translate",
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            ...getApiHeaders()
-          },
-          body:JSON.stringify({
-            transcript
-          })
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if(!response.ok){
-
-      throw new Error(
-        data.error ||
-        data.message ||
-        "Translation failed"
-      );
-
-    }
-
-    myanmarSubtitle.value =
-      data.srt ||
-      data.subtitle ||
-      data.translation ||
-      data.text ||
-      "";
-
-    showStatus(
-      translateStatus,
-      "✅ Myanmar Subtitle ပြီးပါပြီ။"
-    );
-
-  }catch(error){
-
-    showStatus(
-      translateStatus,
-      "❌ " + error.message
-    );
-
-  }finally{
-
-    translateBtn.disabled = false;
-
-  }
-
-});
+);
 
 
-/* DOWNLOAD SRT */
+/* =========================================================
+   TRANSLATE
+========================================================= */
 
-document
-  .getElementById("downloadSrt")
-  .addEventListener("click",()=>{
+$('translateBtn')
+.addEventListener(
+  'click',
+  async () => {
 
     const text =
-      myanmarSubtitle.value.trim();
+      $('sourceTranscript')
+      .value
+      .trim();
+
+    const key =
+      getGeminiKey();
 
     if(!text){
-
-      alert("Myanmar Subtitle မရှိသေးပါ။");
-
+      setStatus(
+        $('translateStatus'),
+        '❌ Transcript မရှိပါ။'
+      );
       return;
+    }
+
+    if(!key){
+      setStatus(
+        $('translateStatus'),
+        '❌ Gemini API Key မရှိပါ။'
+      );
+      return;
+    }
+
+    setStatus(
+      $('translateStatus'),
+      '⏳ Myanmar ဘာသာပြန်နေပါတယ်...'
+    );
+
+    try{
+
+      const response =
+        await fetch(
+          '/api/translate',
+          {
+            method:'POST',
+
+            headers:{
+              'Content-Type':
+                'application/json',
+
+              'x-gemini-api-key':
+                key
+            },
+
+            body:JSON.stringify({
+              text
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if(!response.ok){
+        throw new Error(
+          data.error ||
+          'Translation failed'
+        );
+      }
+
+      $('myanmarSubtitle').value =
+        data.text || '';
+
+      setStatus(
+        $('translateStatus'),
+        '✅ Myanmar Translation ပြီးပါပြီ။'
+      );
+
+    }catch(error){
+
+      setStatus(
+        $('translateStatus'),
+        '❌ ' +
+        error.message
+      );
 
     }
+
+  }
+);
+
+
+/* =========================================================
+   DOWNLOAD SRT
+========================================================= */
+
+function secondsToSrtTime(
+  seconds
+){
+
+  const s =
+    Math.max(
+      0,
+      Number(seconds) || 0
+    );
+
+  const hours =
+    Math.floor(
+      s / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (s % 3600) / 60
+    );
+
+  const sec =
+    Math.floor(
+      s % 60
+    );
+
+  const ms =
+    Math.floor(
+      (s % 1) * 1000
+    );
+
+  return (
+    String(hours).padStart(2,'0') +
+    ':' +
+    String(minutes).padStart(2,'0') +
+    ':' +
+    String(sec).padStart(2,'0') +
+    ',' +
+    String(ms).padStart(3,'0')
+  );
+}
+
+
+$('downloadSrt')
+.addEventListener(
+  'click',
+  () => {
+
+    const text =
+      $('myanmarSubtitle')
+      .value
+      .trim();
+
+    if(!text){
+      alert(
+        'Myanmar subtitle မရှိသေးပါ။'
+      );
+      return;
+    }
+
+    const lines =
+      text
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(Boolean);
+
+    let srt = '';
+
+    lines.forEach(
+      (line,index) => {
+
+        const start =
+          index * 4;
+
+        const end =
+          start + 4;
+
+        srt +=
+`${index + 1}
+${secondsToSrtTime(start)} --> ${secondsToSrtTime(end)}
+${line}
+
+`;
+
+      }
+    );
 
     const blob =
       new Blob(
-        [text],
+        [srt],
         {
-          type:"text/plain;charset=utf-8"
+          type:
+            'application/x-subrip'
         }
       );
 
     const url =
-      URL.createObjectURL(blob);
+      URL.createObjectURL(
+        blob
+      );
 
     const a =
-      document.createElement("a");
+      document.createElement('a');
 
     a.href = url;
-
     a.download =
-      "Myanmar-Subtitle.srt";
+      'myanmar_subtitle.srt';
 
     document.body.appendChild(a);
 
@@ -1564,1144 +1770,1046 @@ document
 
     a.remove();
 
-    URL.revokeObjectURL(url);
-
-  });
-
-
-/* =========================================================
-   ONE CLIPS
-========================================================= */
-
-const recapVideo =
-  document.getElementById("recapVideo");
-
-const recapFileInfo =
-  document.getElementById("recapFileInfo");
-
-const recapVideoPreview =
-  document.getElementById("recapVideoPreview");
-
-const previewWrap =
-  document.getElementById("previewWrap");
-
-const blurBox =
-  document.getElementById("blurBox");
-
-const subtitleBox =
-  document.getElementById("subtitleBox");
-
-const oneClickBtn =
-  document.getElementById("oneClickBtn");
-
-const oneClickStatus =
-  document.getElementById("oneClickStatus");
-
-const oneClickResult =
-  document.getElementById("oneClickResult");
-
-const resultText =
-  document.getElementById("resultText");
-
-const finalVideo =
-  document.getElementById("finalVideo");
-
-const downloadFinal =
-  document.getElementById("downloadFinal");
-
-
-let recapObjectUrl = null;
-
-
-recapVideo.addEventListener("change",()=>{
-
-  const file = recapVideo.files[0];
-
-  if(!file){
-
-    recapFileInfo.classList.add("hidden");
-
-    return;
-
-  }
-
-  recapFileInfo.classList.remove("hidden");
-
-  recapFileInfo.innerHTML =
-    `🎥 ${file.name}<br>
-     Size: ${formatBytes(file.size)}`;
-
-  if(recapObjectUrl){
-
     URL.revokeObjectURL(
-      recapObjectUrl
+      url
     );
 
   }
-
-  recapObjectUrl =
-    URL.createObjectURL(file);
-
-  recapVideoPreview.src =
-    recapObjectUrl;
-
-  recapVideoPreview.load();
-
-});
-
-
-/* =========================================================
-   VOICE CONTROLS
-========================================================= */
-
-const voiceSpeed =
-  document.getElementById("voiceSpeed");
-
-const voiceVolume =
-  document.getElementById("voiceVolume");
-
-const voicePitch =
-  document.getElementById("voicePitch");
-
-const speedValue =
-  document.getElementById("speedValue");
-
-const volumeValue =
-  document.getElementById("volumeValue");
-
-const pitchValue =
-  document.getElementById("pitchValue");
-
-
-voiceSpeed.addEventListener("input",()=>{
-
-  speedValue.textContent =
-    Number(voiceSpeed.value).toFixed(2) + "x";
-
-});
-
-
-voiceVolume.addEventListener("input",()=>{
-
-  volumeValue.textContent =
-    Math.round(
-      Number(voiceVolume.value) * 100
-    ) + "%";
-
-});
-
-
-voicePitch.addEventListener("input",()=>{
-
-  pitchValue.textContent =
-    voicePitch.value;
-
-});
-
-
-/* =========================================================
-   FONT CONTROLS
-========================================================= */
-
-const fontSize =
-  document.getElementById("fontSize");
-
-const outline =
-  document.getElementById("outline");
-
-const textColor =
-  document.getElementById("textColor");
-
-const fontSizeValue =
-  document.getElementById("fontSizeValue");
-
-const outlineValue =
-  document.getElementById("outlineValue");
-
-
-function getSelectedFont(){
-
-  const selected =
-    document.querySelector(
-      'input[name="fontName"]:checked'
-    );
-
-  return selected
-    ? selected.value
-    : "Noto Sans Myanmar";
-
-}
-
-
-function updateSubtitlePreview(){
-
-  const size =
-    Number(fontSize.value);
-
-  const outlineSize =
-    Number(outline.value);
-
-  subtitleBox.style.fontSize =
-    Math.max(12,size * 0.65) + "px";
-
-  subtitleBox.style.color =
-    textColor.value;
-
-  subtitleBox.style.textShadow =
-    `
-      ${outlineSize}px ${outlineSize}px 0 #000,
-      -${outlineSize}px ${outlineSize}px 0 #000,
-      ${outlineSize}px -${outlineSize}px 0 #000,
-      -${outlineSize}px -${outlineSize}px 0 #000
-    `;
-
-  subtitleBox.style.fontFamily =
-    getSelectedFont();
-
-}
-
-
-fontSize.addEventListener("input",()=>{
-
-  fontSizeValue.textContent =
-    fontSize.value;
-
-  updateSubtitlePreview();
-
-});
-
-
-outline.addEventListener("input",()=>{
-
-  outlineValue.textContent =
-    outline.value;
-
-  updateSubtitlePreview();
-
-});
-
-
-textColor.addEventListener(
-  "input",
-  updateSubtitlePreview
 );
 
+
+/* =========================================================
+   RANGE VALUES
+========================================================= */
+
+function updateRanges(){
+
+  $('speedValue').textContent =
+    Number(
+      $('voiceSpeed').value
+    ).toFixed(2) +
+    'x';
+
+  $('volumeValue').textContent =
+    Math.round(
+      Number(
+        $('voiceVolume').value
+      ) * 100
+    ) +
+    '%';
+
+  $('pitchValue').textContent =
+    $('voicePitch').value;
+
+  $('fontSizeValue').textContent =
+    $('fontSize').value;
+
+  $('outlineValue').textContent =
+    $('outline').value;
+
+}
+
+[
+  'voiceSpeed',
+  'voiceVolume',
+  'voicePitch',
+  'fontSize',
+  'outline'
+]
+.forEach(
+  id => {
+
+    $(id)
+      .addEventListener(
+        'input',
+        updateRanges
+      );
+
+  }
+);
+
+updateRanges();
+
+
+/* =========================================================
+   LIVE VIDEO PREVIEW
+   IMPORTANT:
+   File ရွေးတာနဲ့ video.src ကို local blob URL ချိတ်ပေးတယ်.
+========================================================= */
+
+let previewObjectUrl =
+  null;
+
+
+$('recapVideo')
+.addEventListener(
+  'change',
+  () => {
+
+    const file =
+      $('recapVideo').files[0];
+
+    if(!file){
+
+      if(previewObjectUrl){
+        URL.revokeObjectURL(
+          previewObjectUrl
+        );
+
+        previewObjectUrl =
+          null;
+      }
+
+      $('recapVideoPreview').removeAttribute(
+        'src'
+      );
+
+      $('recapVideoPreview').load();
+
+      show(
+        $('previewEmpty')
+      );
+
+      hide(
+        $('recapFileInfo')
+      );
+
+      return;
+    }
+
+
+    /* old blob URL remove */
+
+    if(previewObjectUrl){
+
+      URL.revokeObjectURL(
+        previewObjectUrl
+      );
+
+    }
+
+
+    /* create local video URL */
+
+    previewObjectUrl =
+      URL.createObjectURL(
+        file
+      );
+
+
+    /* SET VIDEO SOURCE */
+
+    const video =
+      $('recapVideoPreview');
+
+    video.src =
+      previewObjectUrl;
+
+    video.muted = true;
+
+    video.load();
+
+
+    /* hide placeholder */
+
+    hide(
+      $('previewEmpty')
+    );
+
+
+    /* file info */
+
+    setStatus(
+      $('recapFileInfo'),
+      `🎬 ${file.name}\n` +
+      `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`
+    );
+
+
+    /* subtitle preview */
+
+    $('previewSubtitleText')
+      .textContent =
+        'မြန်မာစာတန်းထိုး';
+
+
+    /* Make sure preview appears */
+
+    video.style.display =
+      'block';
+
+  }
+);
+
+
+/* =========================================================
+   SUBTITLE PREVIEW TEXT
+========================================================= */
+
+$('myanmarSubtitle')
+.addEventListener(
+  'input',
+  () => {
+
+    const lines =
+      $('myanmarSubtitle')
+      .value
+      .split(/\r?\n/)
+      .map(x => x.trim())
+      .filter(Boolean);
+
+    $('previewSubtitleText')
+      .textContent =
+        lines[0] ||
+        'မြန်မာစာတန်းထိုး';
+
+  }
+);
+
+
+/* =========================================================
+   FONT PREVIEW
+========================================================= */
 
 document
   .querySelectorAll(
     'input[name="fontName"]'
   )
-  .forEach(input=>{
+  .forEach(
+    radio => {
 
-    input.addEventListener(
-      "change",
-      updateSubtitlePreview
-    );
+      radio.addEventListener(
+        'change',
+        () => {
 
-  });
+          $('subtitleBox')
+            .style.fontFamily =
+              radio.value;
 
-
-/* POSITION */
-
-const subtitlePosition =
-  document.getElementById("subtitlePosition");
-
-
-subtitlePosition.addEventListener("change",()=>{
-
-  const value =
-    subtitlePosition.value;
-
-  if(value==="top"){
-
-    subtitleBox.style.top =
-      "10%";
-
-  }else if(value==="middle"){
-
-    subtitleBox.style.top =
-      "45%";
-
-  }else{
-
-    subtitleBox.style.top =
-      "78%";
-
-  }
-
-});
-
-
-/* =========================================================
-   BLUR / SUBTITLE SELECT MODE
-========================================================= */
-
-const selectBlurBtn =
-  document.getElementById("selectBlurBtn");
-
-const selectSubtitleBtn =
-  document.getElementById(
-    "selectSubtitleBtn"
-  );
-
-
-let selectedTool = "blur";
-
-
-selectBlurBtn.addEventListener("click",()=>{
-
-  selectedTool = "blur";
-
-  selectBlurBtn.classList.add(
-    "tool-active"
-  );
-
-  selectSubtitleBtn.classList.remove(
-    "tool-active"
-  );
-
-  selectSubtitleBtn.classList.add(
-    "secondary"
-  );
-
-});
-
-
-selectSubtitleBtn.addEventListener("click",()=>{
-
-  selectedTool = "subtitle";
-
-  selectSubtitleBtn.classList.add(
-    "tool-active"
-  );
-
-  selectBlurBtn.classList.remove(
-    "tool-active"
-  );
-
-  selectBlurBtn.classList.add(
-    "secondary"
-  );
-
-});
-
-
-/* =========================================================
-   DRAG / RESIZE SYSTEM
-========================================================= */
-
-function makeInteractive(
-  element,
-  options={}
-){
-
-  let action = null;
-
-  let startX = 0;
-  let startY = 0;
-
-  let startLeft = 0;
-  let startTop = 0;
-
-  let startWidth = 0;
-  let startHeight = 0;
-
-  let handle = null;
-
-
-  function getPercentPosition(
-    clientX,
-    clientY
-  ){
-
-    const rect =
-      previewWrap.getBoundingClientRect();
-
-    return {
-
-      x:
-        ((clientX - rect.left) /
-        rect.width) * 100,
-
-      y:
-        ((clientY - rect.top) /
-        rect.height) * 100
-
-    };
-
-  }
-
-
-  element.addEventListener(
-    "pointerdown",
-    (e)=>{
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      const target =
-        e.target;
-
-      if(
-        target.classList.contains(
-          "resize-handle"
-        )
-      ){
-
-        handle =
-          target.dataset.handle;
-
-        action = "resize";
-
-      }else{
-
-        action = "drag";
-
-      }
-
-      startX = e.clientX;
-      startY = e.clientY;
-
-      startLeft =
-        element.offsetLeft;
-
-      startTop =
-        element.offsetTop;
-
-      startWidth =
-        element.offsetWidth;
-
-      startHeight =
-        element.offsetHeight;
-
-      element.setPointerCapture(
-        e.pointerId
+        }
       );
 
     }
   );
 
 
-  element.addEventListener(
-    "pointermove",
-    (e)=>{
-
-      if(!action) return;
-
-      const rect =
-        previewWrap.getBoundingClientRect();
-
-      const dx =
-        e.clientX - startX;
-
-      const dy =
-        e.clientY - startY;
-
-
-      if(action==="drag"){
-
-        let left =
-          startLeft + dx;
-
-        let top =
-          startTop + dy;
-
-
-        left =
-          Math.max(
-            0,
-            Math.min(
-              rect.width -
-              element.offsetWidth,
-              left
-            )
-          );
-
-
-        top =
-          Math.max(
-            0,
-            Math.min(
-              rect.height -
-              element.offsetHeight,
-              top
-            )
-          );
-
-
-        element.style.left =
-          (left / rect.width * 100) + "%";
-
-        element.style.top =
-          (top / rect.height * 100) + "%";
-
-      }
-
-
-      if(action==="resize"){
-
-        let left =
-          startLeft;
-
-        let top =
-          startTop;
-
-        let width =
-          startWidth;
-
-        let height =
-          startHeight;
-
-
-        if(handle.includes("r")){
-
-          width =
-            startWidth + dx;
-
-        }
-
-        if(handle.includes("l")){
-
-          width =
-            startWidth - dx;
-
-          left =
-            startLeft + dx;
-
-        }
-
-        if(handle.includes("b")){
-
-          height =
-            startHeight + dy;
-
-        }
-
-        if(handle.includes("t")){
-
-          height =
-            startHeight - dy;
-
-          top =
-            startTop + dy;
-
-        }
-
-
-        const minSize = 30;
-
-        if(width < minSize){
-
-          width = minSize;
-
-        }
-
-        if(height < minSize){
-
-          height = minSize;
-
-        }
-
-
-        if(
-          left < 0
-        ){
-
-          width += left;
-          left = 0;
-
-        }
-
-        if(
-          top < 0
-        ){
-
-          height += top;
-          top = 0;
-
-        }
-
-
-        if(
-          left + width >
-          rect.width
-        ){
-
-          width =
-            rect.width - left;
-
-        }
-
-        if(
-          top + height >
-          rect.height
-        ){
-
-          height =
-            rect.height - top;
-
-        }
-
-
-        element.style.left =
-          (left / rect.width * 100) + "%";
-
-        element.style.top =
-          (top / rect.height * 100) + "%";
-
-        element.style.width =
-          (width / rect.width * 100) + "%";
-
-        element.style.height =
-          (height / rect.height * 100) + "%";
-
-      }
-
-    }
-  );
-
-
-  element.addEventListener(
-    "pointerup",
-    ()=>{
-
-      action = null;
-      handle = null;
-
-    }
-  );
-
-
-  element.addEventListener(
-    "pointercancel",
-    ()=>{
-
-      action = null;
-      handle = null;
-
-    }
-  );
-
-}
-
-
-makeInteractive(blurBox);
-makeInteractive(subtitleBox);
-
-
-/* =========================================================
-   BLUR CHECKBOX
-========================================================= */
-
-const blurOriginal =
-  document.getElementById(
-    "blurOriginal"
-  );
-
-
-blurOriginal.addEventListener(
-  "change",
-  ()=>{
-
-    blurBox.style.display =
-      blurOriginal.checked
-      ? "block"
-      : "none";
+$('fontSize')
+.addEventListener(
+  'input',
+  () => {
+
+    $('subtitleBox')
+      .style.fontSize =
+        Number(
+          $('fontSize').value
+        ) + 'px';
+
+  }
+);
+
+
+$('textColor')
+.addEventListener(
+  'input',
+  () => {
+
+    $('subtitleBox')
+      .style.color =
+        $('textColor').value;
 
   }
 );
 
 
 /* =========================================================
-   GET BOX DATA
+   PREVIEW BOX STATE
 ========================================================= */
 
-function getBoxPercentages(
-  element
+const boxes = {
+
+  blur:{
+    el:$('blurBox'),
+
+    x:10,
+    y:72,
+    w:80,
+    h:15
+  },
+
+  subtitle:{
+    el:$('subtitleBox'),
+
+    x:20,
+    y:78,
+    w:60,
+    h:15
+  }
+
+};
+
+
+let activeTool =
+  'blur';
+
+
+function refreshBox(
+  name
 ){
 
-  return {
+  const b =
+    boxes[name];
 
-    x:
-      parseFloat(
-        element.style.left ||
-        "0"
-      ),
+  b.el.style.left =
+    b.x + '%';
 
-    y:
-      parseFloat(
-        element.style.top ||
-        "0"
-      ),
+  b.el.style.top =
+    b.y + '%';
 
-    width:
-      parseFloat(
-        element.style.width ||
-        "0"
-      ),
+  b.el.style.width =
+    b.w + '%';
 
-    height:
-      parseFloat(
-        element.style.height ||
-        "0"
-      )
-
-  };
+  b.el.style.height =
+    b.h + '%';
 
 }
 
 
+refreshBox('blur');
+refreshBox('subtitle');
+
+
 /* =========================================================
-   ONE CLICK
+   SELECT BLUR / SUBTITLE
 ========================================================= */
 
-oneClickBtn.addEventListener(
-  "click",
-  async()=>{
+$('selectBlurBtn')
+.addEventListener(
+  'click',
+  () => {
+
+    activeTool =
+      'blur';
+
+    $('selectBlurBtn')
+      .classList.add(
+        'tool-active'
+      );
+
+    $('selectSubtitleBtn')
+      .classList.remove(
+        'tool-active'
+      );
+
+  }
+);
+
+
+$('selectSubtitleBtn')
+.addEventListener(
+  'click',
+  () => {
+
+    activeTool =
+      'subtitle';
+
+    $('selectSubtitleBtn')
+      .classList.add(
+        'tool-active'
+      );
+
+    $('selectBlurBtn')
+      .classList.remove(
+        'tool-active'
+      );
+
+  }
+);
+
+
+/* =========================================================
+   DRAG + RESIZE
+========================================================= */
+
+function setupBoxDrag(
+  name
+){
+
+  const box =
+    boxes[name];
+
+  const el =
+    box.el;
+
+  let action =
+    null;
+
+  let startX = 0;
+  let startY = 0;
+
+  let original = null;
+
+
+  function pointerDown(
+    event
+  ){
+
+    if(
+      name !== activeTool
+    ){
+      return;
+    }
+
+    event.preventDefault();
+
+    const rect =
+      $('previewWrap')
+      .getBoundingClientRect();
+
+    const point =
+      event.touches ?
+        event.touches[0] :
+        event;
+
+    startX =
+      point.clientX;
+
+    startY =
+      point.clientY;
+
+    original = {
+      x:box.x,
+      y:box.y,
+      w:box.w,
+      h:box.h
+    };
+
+
+    const handle =
+      event.target
+        .closest(
+          '.resize-handle'
+        );
+
+    if(handle){
+
+      action = {
+        type:'resize',
+
+        handle:
+          handle.dataset.handle
+      };
+
+    }else{
+
+      action = {
+        type:'move'
+      };
+
+    }
+
+    el.setPointerCapture?.(
+      event.pointerId
+    );
+
+  }
+
+
+  function pointerMove(
+    event
+  ){
+
+    if(!action){
+      return;
+    }
+
+    event.preventDefault();
+
+    const rect =
+      $('previewWrap')
+      .getBoundingClientRect();
+
+    const dx =
+      (
+        event.clientX -
+        startX
+      ) /
+      rect.width *
+      100;
+
+    const dy =
+      (
+        event.clientY -
+        startY
+      ) /
+      rect.height *
+      100;
+
+
+    if(
+      action.type ===
+      'move'
+    ){
+
+      box.x =
+        Math.max(
+          0,
+          Math.min(
+            100 - box.w,
+            original.x + dx
+          )
+        );
+
+      box.y =
+        Math.max(
+          0,
+          Math.min(
+            100 - box.h,
+            original.y + dy
+          )
+        );
+
+    }else{
+
+      const handle =
+        action.handle;
+
+
+      if(handle.includes('r')){
+
+        box.w =
+          Math.max(
+            10,
+            Math.min(
+              100 - original.x,
+              original.w + dx
+            )
+          );
+
+      }
+
+      if(handle.includes('l')){
+
+        const right =
+          original.x +
+          original.w;
+
+        box.x =
+          Math.max(
+            0,
+            Math.min(
+              right - 10,
+              original.x + dx
+            )
+          );
+
+        box.w =
+          right -
+          box.x;
+
+      }
+
+
+      if(handle.includes('b')){
+
+        box.h =
+          Math.max(
+            8,
+            Math.min(
+              100 - original.y,
+              original.h + dy
+            )
+          );
+
+      }
+
+
+      if(handle.includes('t')){
+
+        const bottom =
+          original.y +
+          original.h;
+
+        box.y =
+          Math.max(
+            0,
+            Math.min(
+              bottom - 8,
+              original.y + dy
+            )
+          );
+
+        box.h =
+          bottom -
+          box.y;
+
+      }
+
+    }
+
+
+    refreshBox(name);
+
+  }
+
+
+  function pointerUp(){
+
+    action =
+      null;
+
+  }
+
+
+  el.addEventListener(
+    'pointerdown',
+    pointerDown
+  );
+
+  window.addEventListener(
+    'pointermove',
+    pointerMove,
+    {
+      passive:false
+    }
+  );
+
+  window.addEventListener(
+    'pointerup',
+    pointerUp
+  );
+
+}
+
+
+setupBoxDrag('blur');
+setupBoxDrag('subtitle');
+
+
+/* =========================================================
+   AI RECAP
+   One Click က server ထဲမှာ scene analysis လုပ်မှာဖြစ်လို့
+   status ကို ပြသပေးတယ်.
+========================================================= */
+
+$('oneClickBtn')
+.addEventListener(
+  'click',
+  async () => {
 
     const file =
-      recapVideo.files[0];
+      $('recapVideo').files[0];
+
+    const groqKey =
+      getGroqKey();
+
+    const geminiKey =
+      getGeminiKey();
+
 
     if(!file){
 
-      alert(
-        "Movie Video File ရွေးပါ။"
+      setStatus(
+        $('recapStatus'),
+        '❌ Video ရွေးပါ။'
       );
 
       return;
-
     }
 
 
-    const geminiKey =
-      localStorage.getItem(
-        "geminiApiKey"
+    if(!groqKey){
+
+      setStatus(
+        $('recapStatus'),
+        '❌ Groq API Key မရှိပါ။'
       );
+
+      return;
+    }
+
 
     if(!geminiKey){
 
-      alert(
-        "Gemini API Key ထည့်ပြီး Save API Keys ကိုနှိပ်ပါ။"
+      setStatus(
+        $('recapStatus'),
+        '❌ Gemini API Key မရှိပါ။'
       );
 
       return;
-
     }
 
 
-    oneClickBtn.disabled = true;
+    const form =
+      new FormData();
 
-    oneClickResult.classList.add(
-      "hidden"
+
+    form.append(
+      'video',
+      file
     );
 
-    finalVideo.classList.add(
-      "hidden"
+
+    form.append(
+      'voice',
+      $('recapVoice').value
     );
 
-    downloadFinal.classList.add(
-      "hidden"
+
+    form.append(
+      'voiceSpeed',
+      $('voiceSpeed').value
     );
 
-    oneClickProgressWrap.classList.remove(
-      "hidden"
+
+    form.append(
+      'voiceVolume',
+      $('voiceVolume').value
     );
 
-    oneClickProgress.style.width =
-      "5%";
+
+    form.append(
+      'voicePitch',
+      $('voicePitch').value
+    );
 
 
-    showStatus(
-      oneClickStatus,
-      "⏳ One Clips စတင်နေပါတယ်..."
+    form.append(
+      'blurOriginal',
+      $('blurOriginal').checked
+        ? 'true'
+        : 'false'
+    );
+
+
+    form.append(
+      'blurX',
+      boxes.blur.x
+    );
+
+
+    form.append(
+      'blurY',
+      boxes.blur.y
+    );
+
+
+    form.append(
+      'blurWidth',
+      boxes.blur.w
+    );
+
+
+    form.append(
+      'blurHeight',
+      boxes.blur.h
+    );
+
+
+    form.append(
+      'subtitleX',
+      boxes.subtitle.x
+    );
+
+
+    form.append(
+      'subtitleY',
+      boxes.subtitle.y
+    );
+
+
+    form.append(
+      'subtitleWidth',
+      boxes.subtitle.w
+    );
+
+
+    form.append(
+      'subtitleHeight',
+      boxes.subtitle.h
+    );
+
+
+    const font =
+      document
+        .querySelector(
+          'input[name="fontName"]:checked'
+        );
+
+
+    form.append(
+      'fontName',
+      font ?
+        font.value :
+        'Noto Sans Myanmar'
+    );
+
+
+    form.append(
+      'fontSize',
+      $('fontSize').value
+    );
+
+
+    form.append(
+      'textColor',
+      $('textColor').value
+    );
+
+
+    form.append(
+      'outline',
+      $('outline').value
+    );
+
+
+    form.append(
+      'position',
+      $('subtitlePosition').value
+    );
+
+
+    form.append(
+      'outputSize',
+      $('outputSize').value
+    );
+
+
+    form.append(
+      'groqApiKey',
+      groqKey
+    );
+
+
+    form.append(
+      'geminiApiKey',
+      geminiKey
+    );
+
+
+    /* UI */
+
+    $('oneClickBtn')
+      .disabled = true;
+
+
+    show(
+      $('recapProgressWrap')
+    );
+
+
+    $('recapProgress')
+      .style.width =
+        '8%';
+
+
+    setStatus(
+      $('recapStatus'),
+      '⏳ Video scene တွေကို AI က ဖတ်နေပါတယ်...'
+    );
+
+
+    setStatus(
+      $('resultStatus'),
+      '⏳ One Clips processing...'
+    );
+
+
+    hide(
+      $('resultVideo')
+    );
+
+    hide(
+      $('downloadResult')
     );
 
 
     try{
 
       /*
-        BOX POSITIONS
+        Progress animation
+        server response ရောက်တဲ့အထိ
+        UI ကိုအသက်ဝင်နေအောင်လုပ်ထားတယ်.
       */
 
-      const blur =
-        getBoxPercentages(
-          blurBox
+      let progress =
+        8;
+
+      const timer =
+        setInterval(
+          () => {
+
+            if(
+              progress < 92
+            ){
+
+              progress +=
+                Math.random() * 4;
+
+              $('recapProgress')
+                .style.width =
+                  Math.min(
+                    92,
+                    progress
+                  ) + '%';
+
+            }
+
+          },
+          1200
         );
-
-      const subtitle =
-        getBoxPercentages(
-          subtitleBox
-        );
-
-
-      /*
-        FONT
-      */
-
-      const selectedFont =
-        getSelectedFont();
-
-
-      /*
-        FORM DATA
-      */
-
-      const formData =
-        new FormData();
-
-      formData.append(
-        "video",
-        file
-      );
-
-      formData.append(
-        "voice",
-        document.getElementById(
-          "recapVoice"
-        ).value
-      );
-
-      formData.append(
-        "voiceSpeed",
-        voiceSpeed.value
-      );
-
-      formData.append(
-        "voiceVolume",
-        voiceVolume.value
-      );
-
-      formData.append(
-        "voicePitch",
-        voicePitch.value
-      );
-
-      formData.append(
-        "blurOriginal",
-        blurOriginal.checked
-          ? "true"
-          : "false"
-      );
-
-      formData.append(
-        "blurX",
-        blur.x
-      );
-
-      formData.append(
-        "blurY",
-        blur.y
-      );
-
-      formData.append(
-        "blurWidth",
-        blur.width
-      );
-
-      formData.append(
-        "blurHeight",
-        blur.height
-      );
-
-      formData.append(
-        "subtitleX",
-        subtitle.x
-      );
-
-      formData.append(
-        "subtitleY",
-        subtitle.y
-      );
-
-      formData.append(
-        "subtitleWidth",
-        subtitle.width
-      );
-
-      formData.append(
-        "subtitleHeight",
-        subtitle.height
-      );
-
-      formData.append(
-        "fontName",
-        selectedFont
-      );
-
-      formData.append(
-        "fontSize",
-        fontSize.value
-      );
-
-      formData.append(
-        "textColor",
-        textColor.value
-      );
-
-      formData.append(
-        "outline",
-        outline.value
-      );
-
-      formData.append(
-        "position",
-        subtitlePosition.value
-      );
-
-      formData.append(
-        "outputSize",
-        document.getElementById(
-          "outputSize"
-        ).value
-      );
-
-
-      /*
-        API KEYS
-      */
-
-      const groqKey =
-        localStorage.getItem(
-          "groqApiKey"
-        );
-
-      if(groqKey){
-
-        formData.append(
-          "groqApiKey",
-          groqKey
-        );
-
-      }
-
-      formData.append(
-        "geminiApiKey",
-        geminiKey
-      );
-
-
-      showStatus(
-        oneClickStatus,
-        "🎬 P1 Video → AI Scene Analysis..."
-      );
-
-      oneClickProgress.style.width =
-        "15%";
 
 
       const response =
         await fetch(
-          API_BASE +
-          "/api/recap/one-click",
+          '/api/recap/one-click',
           {
-            method:"POST",
-            headers:getApiHeaders(),
-            body:formData
+            method:'POST',
+
+            body:form
           }
         );
 
 
-      oneClickProgress.style.width =
-        "70%";
+      clearInterval(
+        timer
+      );
 
-
-      /*
-        ERROR
-      */
 
       if(!response.ok){
 
         let message =
-          "One Clips failed.";
+          'One Clips failed';
 
         try{
 
-          const errorData =
+          const data =
             await response.json();
 
           message =
-            errorData.error ||
-            errorData.message ||
+            data.error ||
             message;
 
-        }catch(_){
+        }catch(_){}
 
-          try{
-
-            const text =
-              await response.text();
-
-            if(text){
-
-              message = text;
-
-            }
-
-          }catch(__){}
-
-        }
-
-        throw new Error(message);
+        throw new Error(
+          message
+        );
 
       }
 
 
-      /*
-        MP4 RESPONSE
-      */
-
-      const contentType =
-        response.headers.get(
-          "content-type"
-        ) || "";
+      const blob =
+        await response.blob();
 
 
       if(
-        contentType.includes(
-          "application/json"
-        )
+        !blob ||
+        blob.size < 100
       ){
 
-        const data =
-          await response.json();
-
-        if(data.error){
-
-          throw new Error(
-            data.error
-          );
-
-        }
-
-
-        if(data.url){
-
-          finalVideo.src =
-            data.url;
-
-          downloadFinal.href =
-            data.url;
-
-        }
-
-        else if(data.videoUrl){
-
-          finalVideo.src =
-            data.videoUrl;
-
-          downloadFinal.href =
-            data.videoUrl;
-
-        }
-
-        else{
-
-          throw new Error(
-            "Final MP4 URL မရပါ။"
-          );
-
-        }
-
-      }else{
-
-        const blob =
-          await response.blob();
-
-        if(
-          !blob ||
-          blob.size === 0
-        ){
-
-          throw new Error(
-            "Final MP4 file အလွတ်ဖြစ်နေပါတယ်။"
-          );
-
-        }
-
-        const url =
-          URL.createObjectURL(blob);
-
-        finalVideo.src =
-          url;
-
-        downloadFinal.href =
-          url;
+        throw new Error(
+          'Final MP4 data မရပါ။'
+        );
 
       }
 
 
-      finalVideo.classList.remove(
-        "hidden"
+      $('recapProgress')
+        .style.width =
+          '100%';
+
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+
+      $('resultVideo')
+        .src =
+          url;
+
+
+      show(
+        $('resultVideo')
       );
 
-      downloadFinal.classList.remove(
-        "hidden"
-      );
 
-      downloadFinal.download =
-        "burmese-recap.mp4";
+      $('downloadResult')
+        .href =
+          url;
 
 
-      oneClickProgress.style.width =
-        "100%";
-
-
-      showStatus(
-        oneClickStatus,
-        "✅ One Clips ပြီးပါပြီ။ Final MP4 ထွက်ပါပြီ။"
+      show(
+        $('downloadResult')
       );
 
 
-      oneClickResult.classList.remove(
-        "hidden"
+      setStatus(
+        $('recapStatus'),
+        '✅ One Clips Final MP4 ပြီးပါပြီ။'
       );
 
-      resultText.innerHTML =
-        "🎉 AI Recap + Gemini Voice + Voice-Synced Subtitle + Blur + Final MP4 ပြီးပါပြီ။";
 
-
-      oneClickResult.scrollIntoView({
-        behavior:"smooth",
-        block:"center"
-      });
+      setStatus(
+        $('resultStatus'),
+        '✅ Final MP4 ready!'
+      );
 
 
     }catch(error){
 
-      console.error(error);
-
-      oneClickResult.classList.remove(
-        "hidden"
+      setStatus(
+        $('recapStatus'),
+        '❌ ' +
+        error.message
       );
 
-      resultText.innerHTML =
-        "❌ " +
-        (error.message ||
-        "Failed to fetch");
 
-
-      showStatus(
-        oneClickStatus,
-        "❌ " +
-        (error.message ||
-        "One Clips failed")
+      setStatus(
+        $('resultStatus'),
+        '❌ ' +
+        error.message
       );
-
 
     }finally{
 
-      oneClickBtn.disabled = false;
+      $('oneClickBtn')
+        .disabled = false;
 
     }
 
-  });
+  }
+);
 
 
 /* =========================================================
-   INITIAL PREVIEW STYLE
+   PREVIEW CLEANUP
 ========================================================= */
 
-updateSubtitlePreview();
+window.addEventListener(
+  'beforeunload',
+  () => {
+
+    if(previewObjectUrl){
+
+      URL.revokeObjectURL(
+        previewObjectUrl
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+$('recapVideoPreview')
+  .style.display =
+    'block';
 
 </script>
 
