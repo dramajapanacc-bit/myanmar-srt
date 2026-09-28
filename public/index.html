@@ -1,680 +1,687 @@
 <!DOCTYPE html>
 <html lang="my">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#080b18">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Myanmar SRT</title>
+  <title>Myanmar SRT</title>
 
-<style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-  -webkit-tap-highlight-color:transparent;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-body{
-  font-family:Arial,"Noto Sans Myanmar",sans-serif;
-  background:#070a16;
-  color:#fff;
-  min-height:100vh;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1115;
+      color: #ffffff;
+    }
 
-.header{
-  height:72px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 22px;
-  background:#080b1c;
-  border-bottom:1px solid #1d2440;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
+    .container {
+      max-width: 850px;
+      margin: auto;
+      padding: 20px;
+    }
 
-.logo{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  font-size:21px;
-  font-weight:700;
-}
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+    }
 
-.logoIcon{
-  width:42px;
-  height:42px;
-  border-radius:14px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(135deg,#7c4dff,#4d6cff);
-  font-size:23px;
-}
+    .subtitle {
+      text-align: center;
+      color: #aaa;
+      margin-bottom: 25px;
+    }
 
-.logo span{
-  color:#8095ff;
-}
+    .card {
+      background: #181b22;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #292d36;
+    }
 
-.menu{
-  font-size:27px;
-}
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
 
-.container{
-  width:min(760px,calc(100% - 28px));
-  margin:24px auto 60px;
-}
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      background: #101217;
+      color: white;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
 
-.card{
-  background:#10172b;
-  border:1px solid #202b48;
-  border-radius:22px;
-  padding:22px;
-  margin-bottom:18px;
-  box-shadow:0 10px 35px rgba(0,0,0,.22);
-}
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 15px;
+      border: 0;
+      border-radius: 9px;
+      background: #5865f2;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-h2{
-  font-size:20px;
-  margin-bottom:8px;
-}
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
-.desc{
-  color:#aab4ca;
-  line-height:1.65;
-  font-size:14px;
-  margin-bottom:18px;
-}
+    .translate-btn {
+      background: #16a085;
+    }
 
-.dropzone{
-  border:2px dashed #344064;
-  border-radius:18px;
-  padding:32px 18px;
-  text-align:center;
-  cursor:pointer;
-  background:#0b1020;
-}
+    .download-btn {
+      background: #e67e22;
+    }
 
-.dropIcon{
-  font-size:42px;
-  margin-bottom:10px;
-}
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      background: #101217;
+      border-radius: 8px;
+      color: #aaa;
+      white-space: pre-wrap;
+    }
 
-.dropTitle{
-  font-size:17px;
-  font-weight:700;
-}
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
 
-.dropText{
-  color:#929db7;
-  font-size:13px;
-  margin-top:8px;
-  line-height:1.6;
-}
+    .subtitle-box {
+      background: #101217;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
 
-button{
-  width:100%;
-  height:52px;
-  border:0;
-  border-radius:15px;
-  margin-top:12px;
-  background:#16c79a;
-  color:#04120e;
-  font-weight:700;
-  font-size:16px;
-  cursor:pointer;
-}
+    .line {
+      padding: 10px 5px;
+      border-bottom: 1px solid #292d36;
+    }
 
-button:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-}
+    .time {
+      color: #8e9cff;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
 
-.secondary{
-  background:#1a2340;
-  color:#dce3f5;
-}
+    .text {
+      font-size: 15px;
+      line-height: 1.6;
+    }
 
-.fileInfo{
-  margin-top:14px;
-  padding:14px;
-  background:#0a0f1f;
-  border-radius:14px;
-  display:none;
-  font-size:14px;
-  line-height:1.6;
-}
+    .hidden {
+      display: none;
+    }
 
-.progressWrap{
-  display:none;
-  margin-top:18px;
-}
-
-.progressBar{
-  height:9px;
-  border-radius:20px;
-  background:#202a44;
-  overflow:hidden;
-}
-
-.progress{
-  width:0%;
-  height:100%;
-  background:linear-gradient(90deg,#586cff,#19d4a2);
-  transition:width .3s;
-}
-
-.progressText{
-  margin-top:8px;
-  font-size:13px;
-  color:#aeb9d1;
-}
-
-.srtBox{
-  width:100%;
-  min-height:300px;
-  margin-top:15px;
-  border:1px solid #293451;
-  border-radius:15px;
-  background:#070b19;
-  color:#fff;
-  padding:15px;
-  font-size:14px;
-  line-height:1.7;
-  resize:vertical;
-  outline:none;
-}
-
-.status{
-  margin-top:10px;
-  color:#aeb9d1;
-  font-size:13px;
-}
-
-.ok{
-  color:#35dfad;
-}
-
-.bad{
-  color:#ff6b75;
-}
-
-.note{
-  background:#171e35;
-  border-left:4px solid #687cff;
-  border-radius:10px;
-  padding:13px;
-  color:#adb8d0;
-  font-size:13px;
-  line-height:1.6;
-  margin-top:14px;
-}
-
-.hidden{
-  display:none!important;
-}
-
-.footer{
-  text-align:center;
-  color:#59647e;
-  font-size:12px;
-  padding:10px 0 30px;
-}
-</style>
+    .info {
+      color: #999;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+  </style>
 </head>
 
 <body>
 
-<header class="header">
-  <div class="logo">
-    <div class="logoIcon">မ</div>
-    <div>Myanmar <span>SRT</span></div>
-  </div>
-</header>
+<div class="container">
 
-<main class="container">
+  <h1>🎬 Myanmar SRT</h1>
 
-<section class="card">
-
-  <h2>🔐 Backend Status</h2>
-
-  <div id="status" class="status">
-    စစ်ဆေးနေသည်...
+  <div class="subtitle">
+    Groq Transcript → Gemini Myanmar Translation
   </div>
 
-  <div class="note">
-    API Key ကို browser ထဲမှာ မသိမ်းပါ။
-    Backend server မှာသာ သိမ်းထားရပါမယ်။
-  </div>
+  <div class="card">
 
-</section>
+    <label>Video File</label>
 
+    <input
+      type="file"
+      id="videoInput"
+      accept="video/*"
+    >
 
-<section class="card">
-
-  <h2>🎬 Video ထည့်ရန်</h2>
-
-  <div class="desc">
-    Video ကို Backend သို့ပို့ပြီး
-    Groq Speech-to-Text ဖြင့်
-    Original transcript နှင့် timestamp ရယူပါမယ်။
-  </div>
-
-  <div
-    class="dropzone"
-    onclick="document.getElementById('fileInput').click()"
-  >
-
-    <div class="dropIcon">📤</div>
-
-    <div class="dropTitle">
-      Video ဖိုင်ရွေးပါ
+    <div class="info">
+      Maximum: 100MB / 5 minutes
     </div>
 
-    <div class="dropText">
-      MP4 • MOV • MKV • WEBM • AVI<br>
-      အများဆုံး 100MB • 5 မိနစ်
-    </div>
+    <button id="transcribeBtn">
+      🎙️ Groq Transcript
+    </button>
 
-  </div>
+    <button
+      id="translateBtn"
+      class="translate-btn"
+      disabled
+    >
+      🇲🇲 Gemini မြန်မာဘာသာပြန်
+    </button>
 
-  <input
-    id="fileInput"
-    type="file"
-    accept="video/*,.mp4,.mov,.mkv,.webm,.avi"
-    style="display:none"
-    onchange="selectFile(this)"
-  >
-
-  <div id="fileInfo" class="fileInfo"></div>
-
-  <div id="progressWrap" class="progressWrap">
-
-    <div class="progressBar">
-      <div id="progress" class="progress"></div>
-    </div>
-
-    <div id="progressText" class="progressText">
+    <div
+      id="status"
+      class="status"
+    >
       Ready
     </div>
 
   </div>
 
-  <button
-    id="transcribeBtn"
-    onclick="transcribe()"
+
+  <!-- ORIGINAL TRANSCRIPT -->
+
+  <div
+    id="originalSection"
+    class="card hidden"
   >
-    🎙️ Groq Transcript ရယူမည်
-  </button>
 
-</section>
+    <div class="section-title">
+      📝 Original Transcript
+    </div>
 
+    <div
+      id="originalBox"
+      class="subtitle-box"
+    ></div>
 
-<section
-  id="resultCard"
-  class="card hidden"
->
+    <button
+      id="downloadOriginalBtn"
+      class="download-btn"
+    >
+      ⬇️ Original SRT Download
+    </button>
 
-  <h2>🎙️ Original Transcript</h2>
-
-  <div class="desc">
-    Groq ကရရှိထားတဲ့ timestamp ပါတဲ့
-    Original transcript ဖြစ်ပါတယ်။
   </div>
 
-  <textarea
-    id="srtOutput"
-    class="srtBox"
-    spellcheck="false"
-  ></textarea>
 
-  <button
-    class="secondary"
-    onclick="downloadSRT()"
+  <!-- MYANMAR TRANSLATION -->
+
+  <div
+    id="myanmarSection"
+    class="card hidden"
   >
-    ⬇️ SRT Download
-  </button>
 
-</section>
+    <div class="section-title">
+      🇲🇲 Myanmar Translation
+    </div>
 
-</main>
+    <div
+      id="myanmarBox"
+      class="subtitle-box"
+    ></div>
 
-<div class="footer">
-  Myanmar SRT • Groq Backend
+    <button
+      id="downloadMyanmarBtn"
+      class="download-btn"
+    >
+      ⬇️ Myanmar SRT Download
+    </button>
+
+  </div>
+
 </div>
 
 
 <script>
 
-let selectedFile = null;
+  const videoInput =
+    document.getElementById("videoInput");
 
-const fileInput =
-  document.getElementById("fileInput");
+  const transcribeBtn =
+    document.getElementById("transcribeBtn");
 
-const fileInfo =
-  document.getElementById("fileInfo");
+  const translateBtn =
+    document.getElementById("translateBtn");
 
-const progressWrap =
-  document.getElementById("progressWrap");
+  const status =
+    document.getElementById("status");
 
-const progress =
-  document.getElementById("progress");
+  const originalSection =
+    document.getElementById("originalSection");
 
-const progressText =
-  document.getElementById("progressText");
+  const myanmarSection =
+    document.getElementById("myanmarSection");
 
-const resultCard =
-  document.getElementById("resultCard");
+  const originalBox =
+    document.getElementById("originalBox");
 
-const srtOutput =
-  document.getElementById("srtOutput");
+  const myanmarBox =
+    document.getElementById("myanmarBox");
 
-const transcribeBtn =
-  document.getElementById("transcribeBtn");
+  const downloadOriginalBtn =
+    document.getElementById("downloadOriginalBtn");
+
+  const downloadMyanmarBtn =
+    document.getElementById("downloadMyanmarBtn");
 
 
-async function checkBackend(){
+  let originalTranscript = [];
+  let myanmarTranscript = [];
 
-  try{
 
-    const response =
-      await fetch("/api/health");
+  function setStatus(message) {
+    status.textContent = message;
+  }
 
-    if(!response.ok){
-      throw new Error("Backend error");
-    }
 
-    const data =
-      await response.json();
+  function formatTime(seconds) {
 
-    document.getElementById("status").innerHTML =
-      "✅ Backend အလုပ်လုပ်နေပါတယ်";
+    seconds = Number(seconds || 0);
 
-    document.getElementById("status").className =
-      "status ok";
+    const hours =
+      Math.floor(seconds / 3600);
 
-  }catch(error){
+    const minutes =
+      Math.floor((seconds % 3600) / 60);
 
-    document.getElementById("status").innerHTML =
-      "❌ Backend မချိတ်ရသေးပါ";
+    const secs =
+      Math.floor(seconds % 60);
 
-    document.getElementById("status").className =
-      "status bad";
+    const ms =
+      Math.floor((seconds % 1) * 1000);
+
+    return (
+      String(hours).padStart(2, "0") +
+      ":" +
+      String(minutes).padStart(2, "0") +
+      ":" +
+      String(secs).padStart(2, "0") +
+      "," +
+      String(ms).padStart(3, "0")
+    );
+  }
+
+
+  function createSRT(segments) {
+
+    return segments.map((item, index) => {
+
+      return (
+        (index + 1) +
+        "\n" +
+        formatTime(item.start) +
+        " --> " +
+        formatTime(item.end) +
+        "\n" +
+        item.text +
+        "\n\n"
+      );
+
+    }).join("");
 
   }
 
-}
 
+  function showTranscript(box, segments) {
 
-function selectFile(input){
+    box.innerHTML = "";
 
-  if(!input.files.length){
-    return;
-  }
+    segments.forEach((item, index) => {
 
-  selectedFile =
-    input.files[0];
+      const div =
+        document.createElement("div");
 
-  const sizeMB =
-    selectedFile.size / 1024 / 1024;
+      div.className = "line";
 
-  fileInfo.style.display = "block";
+      div.innerHTML = `
+        <div class="time">
+          ${index + 1}.
+          ${formatTime(item.start)}
+          →
+          ${formatTime(item.end)}
+        </div>
 
-  fileInfo.innerHTML =
-    `
-      <b>📄 ${escapeHtml(selectedFile.name)}</b>
-      <br>
-      Size: ${sizeMB.toFixed(2)} MB
-      <br>
-      Type: ${escapeHtml(selectedFile.type || "Unknown")}
-    `;
+        <div class="text">
+          ${escapeHtml(item.text)}
+        </div>
+      `;
 
-  if(selectedFile.size > 100 * 1024 * 1024){
+      box.appendChild(div);
 
-    fileInfo.innerHTML +=
-      `<br><span class="bad">
-        ❌ 100MB ကျော်နေပါတယ်
-      </span>`;
-
-  }else{
-
-    fileInfo.innerHTML +=
-      `<br><span class="ok">
-        ✅ Upload လုပ်နိုင်ပါတယ်
-      </span>`;
+    });
 
   }
 
-}
 
+  function escapeHtml(text) {
 
-async function transcribe(){
+    const div =
+      document.createElement("div");
 
-  if(!selectedFile){
+    div.textContent = text;
 
-    alert("Video ဖိုင်အရင်ရွေးပါ။");
+    return div.innerHTML;
 
-    return;
   }
 
-  if(selectedFile.size > 100 * 1024 * 1024){
 
-    alert("Video က 100MB ထက်ကြီးနေပါတယ်။");
+  function downloadText(filename, text) {
 
-    return;
-  }
-
-  const formData =
-    new FormData();
-
-  formData.append(
-    "video",
-    selectedFile
-  );
-
-  progressWrap.style.display =
-    "block";
-
-  progress.style.width =
-    "10%";
-
-  progressText.textContent =
-    "Video ကို Backend သို့ပို့နေသည်...";
-
-  transcribeBtn.disabled =
-    true;
-
-  transcribeBtn.textContent =
-    "⏳ Processing...";
-
-
-  try{
-
-    progress.style.width =
-      "30%";
-
-    const response =
-      await fetch(
-        "/api/transcribe",
+    const blob =
+      new Blob(
+        [text],
         {
-          method:"POST",
-          body:formData
+          type: "text/plain;charset=utf-8"
         }
       );
 
-    progress.style.width =
-      "70%";
+    const url =
+      URL.createObjectURL(blob);
 
-    const data =
-      await response.json();
+    const a =
+      document.createElement("a");
 
-    if(!response.ok){
+    a.href = url;
 
-      throw new Error(
-        data.error ||
-        "Transcription မအောင်မြင်ပါ"
-      );
+    a.download = filename;
 
-    }
+    document.body.appendChild(a);
 
-    progress.style.width =
-      "100%";
+    a.click();
 
-    progressText.textContent =
-      "✅ Groq transcript ရပါပြီ";
+    a.remove();
 
-    const srt =
-      transcriptToSRT(
-        data.transcript
-      );
-
-    srtOutput.value =
-      srt;
-
-    resultCard.classList.remove(
-      "hidden"
-    );
-
-    resultCard.scrollIntoView({
-      behavior:"smooth"
-    });
-
-  }catch(error){
-
-    progressText.textContent =
-      "❌ Error";
-
-    alert(
-      "❌ " + error.message
-    );
-
-  }finally{
-
-    transcribeBtn.disabled =
-      false;
-
-    transcribeBtn.textContent =
-      "🎙️ Groq Transcript ရယူမည်";
+    URL.revokeObjectURL(url);
 
   }
 
-}
+
+  // GROQ TRANSCRIPTION
+
+  transcribeBtn.addEventListener(
+    "click",
+    async () => {
+
+      const file =
+        videoInput.files[0];
+
+      if (!file) {
+
+        setStatus(
+          "⚠️ Video file ရွေးပေးပါ"
+        );
+
+        return;
+      }
 
 
-function transcriptToSRT(segments){
+      if (file.size > 100 * 1024 * 1024) {
 
-  return segments.map(
-    (segment,index) => {
+        setStatus(
+          "⚠️ Video size က 100MB ထက်ကျော်နေပါတယ်"
+        );
 
-      const start =
-        secondsToSRT(segment.start);
+        return;
+      }
 
-      const end =
-        secondsToSRT(segment.end);
 
-      return (
-        `${index + 1}\n` +
-        `${start} --> ${end}\n` +
-        `${segment.text}\n`
+      transcribeBtn.disabled = true;
+
+      translateBtn.disabled = true;
+
+      setStatus(
+        "⏳ Groq က Video ကို စာသားအဖြစ် ပြောင်းနေပါတယ်..."
+      );
+
+
+      try {
+
+        const formData =
+          new FormData();
+
+        formData.append(
+          "video",
+          file
+        );
+
+
+        const response =
+          await fetch(
+            "/api/transcribe",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Groq transcription failed"
+          );
+
+        }
+
+
+        originalTranscript =
+          data.transcript || [];
+
+
+        if (!originalTranscript.length) {
+
+          throw new Error(
+            "Transcript မရပါ"
+          );
+
+        }
+
+
+        showTranscript(
+          originalBox,
+          originalTranscript
+        );
+
+
+        originalSection.classList.remove(
+          "hidden"
+        );
+
+
+        translateBtn.disabled = false;
+
+
+        setStatus(
+          "✅ Groq Transcript ရပါပြီ။\n\n" +
+          "အခု Gemini မြန်မာဘာသာပြန် ခလုတ်ကို နှိပ်ပါ။"
+        );
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+          "❌ Error: " +
+          error.message
+        );
+
+      } finally {
+
+        transcribeBtn.disabled = false;
+
+      }
+
+    }
+  );
+
+
+  // GEMINI TRANSLATION
+
+  translateBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!originalTranscript.length) {
+
+        setStatus(
+          "⚠️ အရင်ဆုံး Groq Transcript လုပ်ပါ"
+        );
+
+        return;
+
+      }
+
+
+      translateBtn.disabled = true;
+
+      setStatus(
+        "⏳ Gemini က မြန်မာဘာသာပြန်နေပါတယ်...\n" +
+        "ခဏစောင့်ပေးပါ။"
+      );
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/translate",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                transcript:
+                  originalTranscript
+              })
+
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Gemini translation failed"
+          );
+
+        }
+
+
+        myanmarTranscript =
+          data.transcript ||
+          data.segments ||
+          [];
+
+
+        if (!myanmarTranscript.length) {
+
+          throw new Error(
+            "မြန်မာဘာသာပြန်စာ မရပါ"
+          );
+
+        }
+
+
+        showTranscript(
+          myanmarBox,
+          myanmarTranscript
+        );
+
+
+        myanmarSection.classList.remove(
+          "hidden"
+        );
+
+
+        setStatus(
+          "✅ Gemini မြန်မာဘာသာပြန် ပြီးပါပြီ။\n\n" +
+          "Myanmar SRT ကို Download လုပ်နိုင်ပါပြီ။"
+        );
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+          "❌ Gemini Error: " +
+          error.message
+        );
+
+      } finally {
+
+        translateBtn.disabled = false;
+
+      }
+
+    }
+  );
+
+
+  // ORIGINAL SRT DOWNLOAD
+
+  downloadOriginalBtn.addEventListener(
+    "click",
+    () => {
+
+      if (!originalTranscript.length) {
+        return;
+      }
+
+      const srt =
+        createSRT(
+          originalTranscript
+        );
+
+      downloadText(
+        "Original_Transcript.srt",
+        srt
       );
 
     }
-  ).join("\n");
-
-}
-
-
-function secondsToSRT(seconds){
-
-  const totalMilliseconds =
-    Math.max(
-      0,
-      Math.round(
-        Number(seconds) * 1000
-      )
-    );
-
-  const hours =
-    Math.floor(
-      totalMilliseconds / 3600000
-    );
-
-  const minutes =
-    Math.floor(
-      (totalMilliseconds % 3600000) /
-      60000
-    );
-
-  const secs =
-    Math.floor(
-      (totalMilliseconds % 60000) /
-      1000
-    );
-
-  const ms =
-    totalMilliseconds % 1000;
-
-  return (
-    String(hours).padStart(2,"0") +
-    ":" +
-    String(minutes).padStart(2,"0") +
-    ":" +
-    String(secs).padStart(2,"0") +
-    "," +
-    String(ms).padStart(3,"0")
   );
 
-}
 
+  // MYANMAR SRT DOWNLOAD
 
-function downloadSRT(){
+  downloadMyanmarBtn.addEventListener(
+    "click",
+    () => {
 
-  const blob =
-    new Blob(
-      [srtOutput.value],
-      {
-        type:
-          "application/x-subrip;charset=utf-8"
+      if (!myanmarTranscript.length) {
+        return;
       }
-    );
 
-  const url =
-    URL.createObjectURL(blob);
+      const srt =
+        createSRT(
+          myanmarTranscript
+        );
 
-  const a =
-    document.createElement("a");
+      downloadText(
+        "Myanmar_Subtitle.srt",
+        srt
+      );
 
-  a.href = url;
-
-  a.download =
-    "Original_Transcript.srt";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  a.remove();
-
-  URL.revokeObjectURL(url);
-
-}
-
-
-function escapeHtml(value){
-
-  return String(value)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-
-}
-
-
-checkBackend();
+    }
+  );
 
 </script>
 
