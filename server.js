@@ -24,25 +24,103 @@ const TMP = path.join(os.tmpdir(), 'myanmar-srt');
 
 await fs.mkdir(TMP, { recursive: true });
 
+/* =========================
+   UPLOAD
+========================= */
+
+const allowedExtensions = new Set([
+  '.flac',
+  '.mp3',
+  '.mp4',
+  '.mpeg',
+  '.mpga',
+  '.m4a',
+  '.ogg',
+  '.opus',
+  '.wav',
+  '.webm'
+]);
+
 const upload = multer({
-  dest: TMP,
+  storage: multer.diskStorage({
+
+    destination: (_req, _file, cb) => {
+      cb(null, TMP);
+    },
+
+    filename: (_req, file, cb) => {
+
+      const originalExt =
+        path.extname(
+          file.originalname || ''
+        ).toLowerCase();
+
+      const ext =
+        allowedExtensions.has(originalExt)
+          ? originalExt
+          : '.mp4';
+
+      cb(
+        null,
+        `${crypto.randomUUID()}${ext}`
+      );
+
+    }
+
+  }),
+
   limits: {
     fileSize: MAX_BYTES,
     files: 1
+  },
+
+  fileFilter: (_req, file, cb) => {
+
+    const ext =
+      path.extname(
+        file.originalname || ''
+      ).toLowerCase();
+
+    if (!allowedExtensions.has(ext)) {
+
+      return cb(
+        new Error(
+          'Groq မထောက်ပံ့တဲ့ video/audio format ဖြစ်ပါတယ်။ MP4 သို့မဟုတ် WEBM ကိုသုံးပါ။'
+        )
+      );
+
+    }
+
+    cb(null, true);
+
   }
+
 });
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({
-  extended: true,
-  limit: '10mb'
-}));
+/* =========================
+   EXPRESS
+========================= */
 
-app.use(express.static(PUBLIC));
+app.use(
+  express.json({
+    limit: '10mb'
+  })
+);
 
-/* =========================================================
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: '10mb'
+  })
+);
+
+app.use(
+  express.static(PUBLIC)
+);
+
+/* =========================
    API KEY
-========================================================= */
+========================= */
 
 function getKey(
   req,
@@ -51,184 +129,264 @@ function getKey(
   envName,
   label
 ) {
+
   const key = String(
+
     req.headers[headerName] ||
+
     req.body?.[bodyName] ||
+
     process.env[envName] ||
+
     ''
+
   ).trim();
 
   if (!key) {
-    throw new Error(`${label} မရှိပါ`);
+
+    throw new Error(
+      `${label} မရှိပါ`
+    );
+
   }
 
   return key;
+
 }
 
-/* =========================================================
+/* =========================
    JSON HELPERS
-========================================================= */
+========================= */
 
 function parseJson(text) {
+
   try {
+
     return JSON.parse(text);
+
   } catch {
+
     return null;
+
   }
+
 }
 
 function extractJson(text) {
-  const raw = String(text || '').trim();
 
-  const direct = parseJson(raw);
+  const raw =
+    String(text || '').trim();
+
+  const direct =
+    parseJson(raw);
 
   if (direct !== null) {
     return direct;
   }
 
-  const cleaned = raw
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim();
+  const cleaned =
+    raw
 
-  const fenced = parseJson(cleaned);
+      .replace(
+        /^```json\s*/i,
+        ''
+      )
+
+      .replace(
+        /^```\s*/i,
+        ''
+      )
+
+      .replace(
+        /```\s*$/i,
+        ''
+      )
+
+      .trim();
+
+  const fenced =
+    parseJson(cleaned);
 
   if (fenced !== null) {
     return fenced;
   }
 
-  const start = cleaned.indexOf('[');
-  const end = cleaned.lastIndexOf(']');
+  const start =
+    cleaned.indexOf('[');
 
-  if (start >= 0 && end > start) {
-    const value = parseJson(
-      cleaned.slice(start, end + 1)
-    );
+  const end =
+    cleaned.lastIndexOf(']');
+
+  if (
+    start >= 0 &&
+    end > start
+  ) {
+
+    const value =
+      parseJson(
+        cleaned.slice(
+          start,
+          end + 1
+        )
+      );
 
     if (value !== null) {
       return value;
     }
+
   }
 
-  const objStart = cleaned.indexOf('{');
-  const objEnd = cleaned.lastIndexOf('}');
+  const objStart =
+    cleaned.indexOf('{');
 
-  if (objStart >= 0 && objEnd > objStart) {
-    const value = parseJson(
-      cleaned.slice(objStart, objEnd + 1)
-    );
+  const objEnd =
+    cleaned.lastIndexOf('}');
+
+  if (
+    objStart >= 0 &&
+    objEnd > objStart
+  ) {
+
+    const value =
+      parseJson(
+        cleaned.slice(
+          objStart,
+          objEnd + 1
+        )
+      );
 
     if (value !== null) {
       return value;
     }
+
   }
 
   return null;
+
 }
 
-/* =========================================================
+/* =========================
    FFPROBE
-========================================================= */
+========================= */
 
 async function probeVideo(file) {
-  const result = await new Promise(
-    (resolve, reject) => {
 
-      const child = spawn(
-        ffprobeStatic.path,
-        [
-          '-v',
-          'error',
+  const result =
+    await new Promise(
+      (resolve, reject) => {
 
-          '-show_entries',
-          'format=duration,size',
+        const child =
+          spawn(
+            ffprobeStatic.path,
+            [
+              '-v',
+              'error',
 
-          '-show_streams',
+              '-show_entries',
+              'format=duration,size',
 
-          '-of',
-          'json',
+              '-show_streams',
 
-          file
-        ]
-      );
+              '-of',
+              'json',
 
-      let stdout = '';
-      let stderr = '';
+              file
+            ]
+          );
 
-      child.stdout.on(
-        'data',
-        data => {
-          stdout += data.toString();
-        }
-      );
+        let stdout = '';
+        let stderr = '';
 
-      child.stderr.on(
-        'data',
-        data => {
-          stderr += data.toString();
-        }
-      );
+        child.stdout.on(
+          'data',
+          data => {
 
-      child.on(
-        'error',
-        reject
-      );
+            stdout +=
+              data.toString();
 
-      child.on(
-        'close',
-        code => {
-
-          if (code === 0) {
-            resolve({
-              stdout,
-              stderr
-            });
-          } else {
-            reject(
-              new Error(
-                stderr ||
-                `ffprobe exited with code ${code}`
-              )
-            );
           }
+        );
 
-        }
-      );
+        child.stderr.on(
+          'data',
+          data => {
 
-    }
-  );
+            stderr +=
+              data.toString();
 
-  const data = JSON.parse(
-    result.stdout
-  );
+          }
+        );
 
-  const duration = Number(
-    data?.format?.duration || 0
-  );
+        child.on(
+          'error',
+          reject
+        );
+
+        child.on(
+          'close',
+          code => {
+
+            if (code === 0) {
+
+              resolve({
+                stdout,
+                stderr
+              });
+
+            } else {
+
+              reject(
+                new Error(
+                  stderr ||
+                  `ffprobe exited with code ${code}`
+                )
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+  const data =
+    JSON.parse(
+      result.stdout
+    );
+
+  const duration =
+    Number(
+      data?.format?.duration || 0
+    );
 
   if (
     !Number.isFinite(duration) ||
     duration <= 0
   ) {
+
     throw new Error(
       'Video duration မဖတ်နိုင်ပါ'
     );
+
   }
 
   return {
     data,
     duration
   };
+
 }
 
-/* =========================================================
-   TRANSCRIPT CLEAN
-========================================================= */
+/* =========================
+   CLEAN TRANSCRIPT
+========================= */
 
 function cleanTranscriptText(text) {
 
-  return String(text || '')
+  return String(
+    text || ''
+  )
 
     .replace(
       /Return accurate segment[.!]?/gi,
@@ -251,36 +409,28 @@ function cleanTranscriptText(text) {
     )
 
     .trim();
+
 }
 
-/* =========================================================
+/* =========================
    GROQ TRANSCRIPTION
-========================================================= */
+========================= */
 
 async function transcribeGroq(
   file,
   apiKey
 ) {
 
-  const groq = new Groq({
-    apiKey
-  });
-
-  /*
-    IMPORTANT:
-
-    Groq prompt မပို့ပါဘူး။
-
-    ဒါကြောင့်
-    "Return accurate segment"
-    လို prompt စာတွေ subtitle ထဲ
-    ဝင်လာတာကို ရှောင်နိုင်ပါတယ်။
-  */
+  const groq =
+    new Groq({
+      apiKey
+    });
 
   const result =
     await groq.audio.transcriptions.create({
 
-      file: createReadStream(file),
+      file:
+        createReadStream(file),
 
       model:
         'whisper-large-v3-turbo',
@@ -288,21 +438,24 @@ async function transcribeGroq(
       response_format:
         'verbose_json',
 
-      timestamp_granularities: [
-        'word',
-        'segment'
-      ],
+      timestamp_granularities:
+        [
+          'word',
+          'segment'
+        ],
 
-      temperature: 0
+      temperature:
+        0
 
     });
 
   return result;
+
 }
 
-/* =========================================================
-   BUILD GROQ SEGMENTS
-========================================================= */
+/* =========================
+   BUILD SEGMENTS
+========================= */
 
 function buildSegments(
   result,
@@ -310,7 +463,9 @@ function buildSegments(
 ) {
 
   const segments =
-    Array.isArray(result?.segments)
+    Array.isArray(
+      result?.segments
+    )
       ? result.segments
       : [];
 
@@ -318,13 +473,20 @@ function buildSegments(
     segments
 
       .map(
-        (s, index) => {
+        (
+          s,
+          index
+        ) => {
 
           const start =
-            Number(s.start);
+            Number(
+              s.start
+            );
 
           const end =
-            Number(s.end);
+            Number(
+              s.end
+            );
 
           const text =
             cleanTranscriptText(
@@ -338,12 +500,18 @@ function buildSegments(
 
             start:
               Number.isFinite(start)
-                ? Math.max(0, start)
+                ? Math.max(
+                    0,
+                    start
+                  )
                 : 0,
 
             end:
               Number.isFinite(end)
-                ? Math.max(0, end)
+                ? Math.max(
+                    0,
+                    end
+                  )
                 : 0,
 
             text
@@ -359,8 +527,12 @@ function buildSegments(
           s.end > s.start
       );
 
-  if (cleaned.length) {
+  if (
+    cleaned.length
+  ) {
+
     return cleaned;
+
   }
 
   const fullText =
@@ -369,12 +541,15 @@ function buildSegments(
     );
 
   if (!fullText) {
+
     return [];
+
   }
 
   return [
 
     {
+
       id: 1,
 
       start: 0,
@@ -382,14 +557,16 @@ function buildSegments(
       end: duration,
 
       text: fullText
+
     }
 
   ];
+
 }
 
-/* =========================================================
-   GEMINI TRANSLATE ONE CHUNK
-========================================================= */
+/* =========================
+   GEMINI TRANSLATION
+========================= */
 
 async function translateChunk(
   segments,
@@ -406,9 +583,11 @@ async function translateChunk(
     segments.map(
       s => ({
 
-        id: s.id,
+        id:
+          s.id,
 
-        text: s.text
+        text:
+          s.text
 
       })
     );
@@ -450,11 +629,13 @@ ${JSON.stringify(source)}
 
         model,
 
-        contents: prompt,
+        contents:
+          prompt,
 
         config: {
 
-          temperature: 0.2,
+          temperature:
+            0.2,
 
           responseMimeType:
             'application/json'
@@ -483,6 +664,7 @@ ${JSON.stringify(source)}
     }
 
     throw error;
+
   }
 
   const parsed =
@@ -492,14 +674,20 @@ ${JSON.stringify(source)}
 
   const list =
     Array.isArray(parsed)
+
       ? parsed
+
       : Array.isArray(
           parsed?.transcript
         )
+
         ? parsed.transcript
+
         : [];
 
-  if (!list.length) {
+  if (
+    !list.length
+  ) {
 
     throw new Error(
       'Gemini က valid translation JSON မပြန်ပါ'
@@ -515,7 +703,9 @@ ${JSON.stringify(source)}
   ) {
 
     const id =
-      Number(item?.id);
+      Number(
+        item?.id
+      );
 
     const translation =
       String(
@@ -534,6 +724,7 @@ ${JSON.stringify(source)}
       );
 
     }
+
   }
 
   return segments.map(
@@ -547,11 +738,12 @@ ${JSON.stringify(source)}
 
     })
   );
+
 }
 
-/* =========================================================
-   GEMINI TRANSLATE ALL
-========================================================= */
+/* =========================
+   TRANSLATE ALL
+========================= */
 
 async function translateAll(
   segments,
@@ -559,18 +751,8 @@ async function translateAll(
   model = 'gemini-3.8-flash'
 ) {
 
-  /*
-    Normal 5-minute video:
-    Gemini request = 1 ခါ
-
-    Transcript အရမ်းများမှ
-    2 ခါအထိပဲ ခွဲမယ်။
-
-    အရင် ZIP ထဲကလို
-    35 lines တစ်ခါစီ မပို့တော့ပါဘူး။
-  */
-
-  const MAX_PER_REQUEST = 120;
+  const MAX_PER_REQUEST =
+    120;
 
   if (
     segments.length <=
@@ -614,11 +796,12 @@ async function translateAll(
     ...a,
     ...b
   ];
+
 }
 
-/* =========================================================
-   LONG SUBTITLE SPLITTER
-========================================================= */
+/* =========================
+   SUBTITLE SPLIT
+========================= */
 
 function splitLongSubtitle(
   text,
@@ -627,7 +810,9 @@ function splitLongSubtitle(
 ) {
 
   const value =
-    String(text || '').trim();
+    String(
+      text || ''
+    ).trim();
 
   if (!value) {
     return [];
@@ -675,13 +860,16 @@ function splitLongSubtitle(
         current.trim()
       );
 
-      current = word;
+      current =
+        word;
 
     } else {
 
-      current = next;
+      current =
+        next;
 
     }
+
   }
 
   if (current) {
@@ -691,11 +879,6 @@ function splitLongSubtitle(
     );
 
   }
-
-  /*
-    Burmese စာတွေမှာ space နည်းရင်
-    character အလိုက် ခွဲပေးမယ်။
-  */
 
   if (
     parts.length === 1 &&
@@ -722,14 +905,16 @@ function splitLongSubtitle(
     }
 
     return chars.filter(Boolean);
+
   }
 
   return parts;
+
 }
 
-/* =========================================================
-   SPLIT TRANSLATED SEGMENTS
-========================================================= */
+/* =========================
+   TIMED SUBTITLE SEGMENTS
+========================= */
 
 function splitTranslatedSegments(
   segments
@@ -751,7 +936,9 @@ function splitTranslatedSegments(
       ).trim();
 
     const parts =
-      splitLongSubtitle(text);
+      splitLongSubtitle(
+        text
+      );
 
     if (
       parts.length <= 1
@@ -776,6 +963,7 @@ function splitTranslatedSegments(
       });
 
       continue;
+
     }
 
     const totalWeight =
@@ -869,11 +1057,12 @@ function splitTranslatedSegments(
   }
 
   return output;
+
 }
 
-/* =========================================================
+/* =========================
    SRT TIME
-========================================================= */
+========================= */
 
 function srtTime(
   seconds
@@ -883,7 +1072,9 @@ function srtTime(
     Math.max(
       0,
       Math.round(
-        Number(seconds || 0) *
+        Number(
+          seconds || 0
+        ) *
         1000
       )
     );
@@ -909,39 +1100,55 @@ function srtTime(
     ms % 1000;
 
   return (
+
     `${String(h).padStart(2, '0')}:` +
+
     `${String(m).padStart(2, '0')}:` +
+
     `${String(s).padStart(2, '0')},` +
+
     `${String(milli).padStart(3, '0')}`
+
   );
+
 }
 
-/* =========================================================
+/* =========================
    MAKE SRT
-========================================================= */
+========================= */
 
 function makeSrt(
   segments
 ) {
 
   return segments
+
     .map(
-      (s, i) => {
+      (
+        s,
+        i
+      ) => {
 
         return (
+
           `${i + 1}\n` +
+
           `${srtTime(s.start)} --> ${srtTime(s.end)}\n` +
+
           `${s.translation || s.text}\n`
+
         );
 
       }
     )
+
     .join('\n');
+
 }
 
-/* =========================================================
-   CLEAN FILE
-========================================================= */
+/* =========================
+   CLEANUP
+========================= */
 
 function cleanup(file) {
 
@@ -960,17 +1167,18 @@ function cleanup(file) {
 
 }
 
-/* =========================================================
+/* =========================
    HEALTH
-========================================================= */
+========================= */
 
 app.get(
   '/api/health',
-  (req, res) => {
+  (_req, res) => {
 
     res.json({
 
-      ok: true,
+      ok:
+        true,
 
       service:
         'myanmar-srt',
@@ -1005,13 +1213,14 @@ app.get(
   }
 );
 
-/* =========================================================
+/* =========================
    GROQ TRANSCRIBE
-========================================================= */
+========================= */
 
 app.post(
   '/api/transcribe',
   upload.single('video'),
+
   async (
     req,
     res
@@ -1081,7 +1290,8 @@ app.post(
 
       res.json({
 
-        ok: true,
+        ok:
+          true,
 
         duration,
 
@@ -1110,7 +1320,8 @@ app.post(
 
       res.status(400).json({
 
-        ok: false,
+        ok:
+          false,
 
         error:
           error?.message ||
@@ -1127,12 +1338,13 @@ app.post(
   }
 );
 
-/* =========================================================
+/* =========================
    GEMINI TRANSLATE
-========================================================= */
+========================= */
 
 app.post(
   '/api/translate',
+
   async (
     req,
     res
@@ -1179,12 +1391,14 @@ app.post(
                 i + 1,
 
               start:
-                Number(s.start) ||
-                0,
+                Number(
+                  s.start
+                ) || 0,
 
               end:
-                Number(s.end) ||
-                0,
+                Number(
+                  s.end
+                ) || 0,
 
               text:
                 cleanTranscriptText(
@@ -1230,7 +1444,8 @@ app.post(
 
       res.json({
 
-        ok: true,
+        ok:
+          true,
 
         transcript:
           subtitleSegments,
@@ -1251,7 +1466,8 @@ app.post(
 
       res.status(400).json({
 
-        ok: false,
+        ok:
+          false,
 
         error:
           error?.message ||
@@ -1264,13 +1480,15 @@ app.post(
   }
 );
 
-/* =========================================================
-   OLD /api/process COMPATIBILITY
-========================================================= */
+/* =========================
+   COMPATIBILITY PROCESS API
+========================= */
 
 app.post(
   '/api/process',
+
   upload.single('video'),
+
   async (
     req,
     res
@@ -1367,7 +1585,8 @@ app.post(
       await fs.mkdir(
         work,
         {
-          recursive: true
+          recursive:
+            true
         }
       );
 
@@ -1401,7 +1620,8 @@ app.post(
 
       res.json({
 
-        ok: true,
+        ok:
+          true,
 
         duration,
 
@@ -1429,7 +1649,8 @@ app.post(
 
       res.status(400).json({
 
-        ok: false,
+        ok:
+          false,
 
         error:
           error?.message ||
@@ -1446,12 +1667,13 @@ app.post(
   }
 );
 
-/* =========================================================
+/* =========================
    DOWNLOAD
-========================================================= */
+========================= */
 
 app.get(
   '/api/download/:id/:file',
+
   async (
     req,
     res
@@ -1506,9 +1728,9 @@ app.get(
   }
 );
 
-/* =========================================================
+/* =========================
    MOVIE RECAP DISABLED
-========================================================= */
+========================= */
 
 for (
   const route of [
@@ -1536,14 +1758,16 @@ for (
 
   app.all(
     route,
+
     (
-      req,
+      _req,
       res
     ) => {
 
       res.status(410).json({
 
-        ok: false,
+        ok:
+          false,
 
         error:
           'Movie Recap / MP4 Render ကို SRT-only version မှာ ပိတ်ထားပါတယ်'
@@ -1555,20 +1779,22 @@ for (
 
 }
 
-/* =========================================================
-   API 404
-========================================================= */
+/* =========================
+   UNKNOWN API
+========================= */
 
 app.use(
   '/api',
+
   (
-    req,
+    _req,
     res
   ) => {
 
     res.status(404).json({
 
-      ok: false,
+      ok:
+        false,
 
       error:
         'API endpoint မတွေ့ပါ'
@@ -1578,9 +1804,9 @@ app.use(
   }
 );
 
-/* =========================================================
+/* =========================
    ERROR HANDLER
-========================================================= */
+========================= */
 
 app.use(
   (
@@ -1607,7 +1833,8 @@ app.use(
 
     res.status(500).json({
 
-      ok: false,
+      ok:
+        false,
 
       error:
         error?.message ||
@@ -1618,13 +1845,14 @@ app.use(
   }
 );
 
-/* =========================================================
-   START
-========================================================= */
+/* =========================
+   START SERVER
+========================= */
 
 app.listen(
   PORT,
   '0.0.0.0',
+
   () => {
 
     console.log(
