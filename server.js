@@ -12,105 +12,149 @@ import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
 import ffprobeStatic from 'ffprobe-static';
 
+
 const app = express();
 
-const PORT = Number(process.env.PORT || 10000);
+const PORT =
+  Number(process.env.PORT || 10000);
 
-const MAX_BYTES = 300 * 1024 * 1024;
-const MAX_SECONDS = 5 * 60;
+const MAX_BYTES =
+  300 * 1024 * 1024;
 
-const ROOT = process.cwd();
-const PUBLIC = path.join(ROOT, 'public');
-const TMP = path.join(os.tmpdir(), 'myanmar-srt');
+const MAX_SECONDS =
+  5 * 60;
 
-await fs.mkdir(TMP, { recursive: true });
+const ROOT =
+  process.cwd();
+
+const PUBLIC =
+  path.join(ROOT, 'public');
+
+const TMP =
+  path.join(
+    os.tmpdir(),
+    'myanmar-srt'
+  );
+
+
+await fs.mkdir(
+  TMP,
+  { recursive: true }
+);
 
 
 // ============================================================
 // MODELS
 // ============================================================
 
-const GROQ_MODEL = 'whisper-large-v3-turbo';
+const GROQ_MODEL =
+  'whisper-large-v3-turbo';
 
-const GEMINI_MODEL = 'gemini-3.8-flash';
-
-// OpenRouter FREE AUTO ROUTER
-const OPENROUTER_MODEL = 'openrouter/free';
+const GEMINI_MODEL =
+  'gemini-3.8-flash';
 
 
 // ============================================================
 // ALLOWED FILE TYPES
 // ============================================================
 
-const allowedExt = new Set([
-  '.flac',
-  '.mp3',
-  '.mp4',
-  '.mpeg',
-  '.mpga',
-  '.m4a',
-  '.ogg',
-  '.opus',
-  '.wav',
-  '.webm'
-]);
+const allowedExt =
+  new Set([
+    '.flac',
+    '.mp3',
+    '.mp4',
+    '.mpeg',
+    '.mpga',
+    '.m4a',
+    '.ogg',
+    '.opus',
+    '.wav',
+    '.webm'
+  ]);
 
 
 // ============================================================
-// UPLOAD
+// MULTER
 // ============================================================
 
-const upload = multer({
-  storage: multer.diskStorage({
+const upload =
+  multer({
 
-    destination: (_req, _file, cb) => {
-      cb(null, TMP);
+    storage:
+      multer.diskStorage({
+
+        destination:
+          (_req, _file, cb) => {
+            cb(
+              null,
+              TMP
+            );
+          },
+
+        filename:
+          (_req, file, cb) => {
+
+            const originalExt =
+              path
+                .extname(
+                  file.originalname || ''
+                )
+                .toLowerCase();
+
+            const ext =
+              allowedExt.has(
+                originalExt
+              )
+                ? originalExt
+                : '.mp4';
+
+            cb(
+              null,
+              `${crypto.randomUUID()}${ext}`
+            );
+          }
+      }),
+
+    limits: {
+      fileSize:
+        MAX_BYTES,
+
+      files:
+        1
     },
 
-    filename: (_req, file, cb) => {
+    fileFilter:
+      (_req, file, cb) => {
 
-      const originalExt =
-        path
-          .extname(file.originalname || '')
-          .toLowerCase();
+        const ext =
+          path
+            .extname(
+              file.originalname || ''
+            )
+            .toLowerCase();
 
-      const ext =
-        allowedExt.has(originalExt)
-          ? originalExt
-          : '.mp4';
+        if (
+          !allowedExt.has(ext)
+        ) {
 
-      cb(
-        null,
-        `${crypto.randomUUID()}${ext}`
-      );
-    }
-  }),
+          return cb(
+            new Error(
+              'MP4 သို့မဟုတ် WEBM video ကိုသုံးပါ။'
+            )
+          );
+        }
 
-  limits: {
-    fileSize: MAX_BYTES,
-    files: 1
-  },
+        cb(
+          null,
+          true
+        );
+      }
+  });
 
-  fileFilter: (_req, file, cb) => {
 
-    const ext =
-      path
-        .extname(file.originalname || '')
-        .toLowerCase();
-
-    if (!allowedExt.has(ext)) {
-
-      return cb(
-        new Error(
-          'MP4 သို့မဟုတ် WEBM video ကိုသုံးပါ။'
-        )
-      );
-    }
-
-    cb(null, true);
-  }
-});
-
+// ============================================================
+// EXPRESS
+// ============================================================
 
 app.use(
   express.json({
@@ -126,7 +170,9 @@ app.use(
 );
 
 app.use(
-  express.static(PUBLIC)
+  express.static(
+    PUBLIC
+  )
 );
 
 
@@ -162,12 +208,14 @@ function getKey(
 
 
 // ============================================================
-// TEXT CLEAN
+// CLEAN TEXT
 // ============================================================
 
 function cleanText(text) {
 
-  return String(text || '')
+  return String(
+    text || ''
+  )
     .replace(
       /Return accurate segment[.!]?/gi,
       ''
@@ -189,14 +237,19 @@ function cleanText(text) {
 
 
 // ============================================================
-// FFPROBE
+// PROBE VIDEO
 // ============================================================
 
-async function probeVideo(file) {
+async function probeVideo(
+  file
+) {
 
   const result =
     await new Promise(
-      (resolve, reject) => {
+      (
+        resolve,
+        reject
+      ) => {
 
         const child =
           spawn(
@@ -204,29 +257,38 @@ async function probeVideo(file) {
             [
               '-v',
               'error',
+
               '-show_entries',
               'format=duration,size',
+
               '-show_streams',
+
               '-of',
               'json',
+
               file
             ]
           );
 
-        let stdout = '';
-        let stderr = '';
+        let stdout =
+          '';
+
+        let stderr =
+          '';
 
         child.stdout.on(
           'data',
           d => {
-            stdout += d.toString();
+            stdout +=
+              d.toString();
           }
         );
 
         child.stderr.on(
           'data',
           d => {
-            stderr += d.toString();
+            stderr +=
+              d.toString();
           }
         );
 
@@ -239,7 +301,9 @@ async function probeVideo(file) {
           'close',
           code => {
 
-            if (code === 0) {
+            if (
+              code === 0
+            ) {
 
               resolve({
                 stdout,
@@ -260,18 +324,24 @@ async function probeVideo(file) {
       }
     );
 
+
   const data =
     JSON.parse(
       result.stdout
     );
 
+
   const duration =
     Number(
-      data?.format?.duration || 0
+      data?.format?.duration ||
+      0
     );
 
+
   if (
-    !Number.isFinite(duration) ||
+    !Number.isFinite(
+      duration
+    ) ||
     duration <= 0
   ) {
 
@@ -279,6 +349,7 @@ async function probeVideo(file) {
       'Video duration မဖတ်နိုင်ပါ'
     );
   }
+
 
   return {
     duration
@@ -300,31 +371,37 @@ async function transcribeGroq(
       apiKey
     });
 
-  return groq.audio.transcriptions.create({
 
-    file:
-      createReadStream(file),
+  return groq
+    .audio
+    .transcriptions
+    .create({
 
-    model:
-      GROQ_MODEL,
+      file:
+        createReadStream(
+          file
+        ),
 
-    response_format:
-      'verbose_json',
+      model:
+        GROQ_MODEL,
 
-    timestamp_granularities:
-      [
-        'word',
-        'segment'
-      ],
+      response_format:
+        'verbose_json',
 
-    temperature:
-      0
-  });
+      timestamp_granularities:
+        [
+          'word',
+          'segment'
+        ],
+
+      temperature:
+        0
+    });
 }
 
 
 // ============================================================
-// BUILD SEGMENTS
+// BUILD TRANSCRIPT SEGMENTS
 // ============================================================
 
 function buildSegments(
@@ -339,11 +416,15 @@ function buildSegments(
       ? result.segments
       : [];
 
+
   const output =
     segments
 
       .map(
-        (s, i) => ({
+        (
+          s,
+          i
+        ) => ({
 
           id:
             i + 1,
@@ -351,13 +432,17 @@ function buildSegments(
           start:
             Math.max(
               0,
-              Number(s.start) || 0
+              Number(
+                s.start
+              ) || 0
             ),
 
           end:
             Math.max(
               0,
-              Number(s.end) || 0
+              Number(
+                s.end
+              ) || 0
             ),
 
           text:
@@ -373,27 +458,42 @@ function buildSegments(
           s.end > s.start
       );
 
-  if (output.length) {
+
+  if (
+    output.length
+  ) {
 
     return output;
   }
+
 
   const fullText =
     cleanText(
       result?.text
     );
 
-  if (fullText) {
+
+  if (
+    fullText
+  ) {
 
     return [
       {
-        id: 1,
-        start: 0,
-        end: duration,
-        text: fullText
+        id:
+          1,
+
+        start:
+          0,
+
+        end:
+          duration,
+
+        text:
+          fullText
       }
     ];
   }
+
 
   return [];
 }
@@ -403,11 +503,15 @@ function buildSegments(
 // EXTRACT JSON
 // ============================================================
 
-function extractJson(text) {
+function extractJson(
+  text
+) {
 
   let raw =
-    String(text || '')
-      .trim();
+    String(
+      text || ''
+    ).trim();
+
 
   raw =
     raw
@@ -425,18 +529,26 @@ function extractJson(text) {
       )
       .trim();
 
+
   try {
 
-    return JSON.parse(raw);
+    return JSON.parse(
+      raw
+    );
 
   } catch {}
 
 
   const objectStart =
-    raw.indexOf('{');
+    raw.indexOf(
+      '{'
+    );
 
   const objectEnd =
-    raw.lastIndexOf('}');
+    raw.lastIndexOf(
+      '}'
+    );
+
 
   if (
     objectStart >= 0 &&
@@ -457,10 +569,15 @@ function extractJson(text) {
 
 
   const arrayStart =
-    raw.indexOf('[');
+    raw.indexOf(
+      '['
+    );
 
   const arrayEnd =
-    raw.lastIndexOf(']');
+    raw.lastIndexOf(
+      ']'
+    );
+
 
   if (
     arrayStart >= 0 &&
@@ -479,168 +596,8 @@ function extractJson(text) {
     } catch {}
   }
 
+
   return null;
-}
-
-
-// ============================================================
-// NORMALIZE TRANSLATION
-// ============================================================
-
-function normalizeTranslationResult(
-  parsed,
-  segments
-) {
-
-  let list = [];
-
-
-  if (Array.isArray(parsed)) {
-
-    list = parsed;
-  }
-
-
-  if (
-    !list.length &&
-    Array.isArray(
-      parsed?.translations
-    )
-  ) {
-
-    list =
-      parsed.translations;
-  }
-
-
-  if (
-    !list.length &&
-    Array.isArray(
-      parsed?.result
-    )
-  ) {
-
-    list =
-      parsed.result;
-  }
-
-
-  if (!list.length) {
-
-    return null;
-  }
-
-
-  const byId =
-    new Map();
-
-
-  for (
-    const item of list
-  ) {
-
-    const id =
-      Number(
-        item?.id
-      );
-
-    const translation =
-      String(
-        item?.translation ||
-        item?.text ||
-        item?.myanmar ||
-        ''
-      ).trim();
-
-    if (
-      Number.isFinite(id) &&
-      translation
-    ) {
-
-      byId.set(
-        id,
-        translation
-      );
-    }
-  }
-
-
-  if (!byId.size) {
-
-    return null;
-  }
-
-
-  const result =
-    segments.map(
-      s => ({
-
-        ...s,
-
-        translation:
-          byId.get(s.id) ||
-          s.text
-      })
-    );
-
-
-  // Require ALL lines
-  const missing =
-    result.some(
-      s =>
-        !byId.has(s.id)
-    );
-
-
-  if (missing) {
-
-    return null;
-  }
-
-
-  return result;
-}
-
-
-// ============================================================
-// GEMINI FALLBACK DETECTION
-// ============================================================
-
-function shouldFallbackToOpenRouter(
-  error
-) {
-
-  const message =
-    String(
-      error?.message ||
-      error ||
-      ''
-    ).toLowerCase();
-
-  return (
-
-    /429/.test(message) ||
-
-    /500/.test(message) ||
-
-    /503/.test(message) ||
-
-    /529/.test(message) ||
-
-    /quota/.test(message) ||
-
-    /resource.?exhausted/.test(message) ||
-
-    /rate.?limit/.test(message) ||
-
-    /unavailable/.test(message) ||
-
-    /overloaded/.test(message) ||
-
-    /high demand/.test(message) ||
-
-    /internal error/.test(message)
-  );
 }
 
 
@@ -648,7 +605,7 @@ function shouldFallbackToOpenRouter(
 // GEMINI TRANSLATION
 // ============================================================
 
-async function translateWithGemini(
+async function translateChunkGemini(
   segments,
   apiKey
 ) {
@@ -678,8 +635,9 @@ You are a professional Myanmar subtitle translator.
 Translate EVERY source dialogue line into natural,
 clear and concise Myanmar Unicode.
 
-The source language may be English, Chinese,
-Japanese, Korean, or any other spoken language.
+The source language may be:
+English, Chinese, Japanese, Korean,
+or any other spoken language.
 
 Return ONLY valid JSON.
 
@@ -716,9 +674,12 @@ ${JSON.stringify(input)}
 `;
 
 
+  let response;
+
+
   try {
 
-    const response =
+    response =
       await ai.models.generateContent({
 
         model:
@@ -737,495 +698,151 @@ ${JSON.stringify(input)}
         }
       });
 
-
-    const parsed =
-      extractJson(
-        response?.text || ''
-      );
-
-
-    const translated =
-      normalizeTranslationResult(
-        parsed,
-        segments
-      );
-
-
-    if (!translated) {
-
-      throw new Error(
-        'Gemini valid translation JSON မပြန်ပါ'
-      );
-    }
-
-
-    return translated;
-
   } catch (error) {
 
-    console.error(
-      'GEMINI ERROR:',
-      error
-    );
-
-    throw error;
-  }
-}
-
-
-// ============================================================
-// OPENROUTER FREE AUTO
-// ============================================================
-
-async function translateWithOpenRouter(
-  segments,
-  apiKey
-) {
-
-  if (!apiKey) {
-
-    throw new Error(
-      'OPENROUTER_API_KEY မရှိပါ'
-    );
-  }
-
-
-  const input =
-    segments.map(
-      s => ({
-
-        id:
-          s.id,
-
-        text:
-          s.text
-      })
-    );
-
-
-  const prompt = `
-You are a professional Myanmar subtitle translator.
-
-Translate EVERY source dialogue line into natural,
-clear and concise Myanmar Unicode.
-
-The source language may be English, Chinese,
-Japanese, Korean, or any other spoken language.
-
-IMPORTANT:
-
-Return ONLY valid JSON.
-
-Required exact structure:
-
-{
-  "translations": [
-    {
-      "id": 1,
-      "translation": "မြန်မာဘာသာပြန်"
-    }
-  ]
-}
-
-Rules:
-
-- Every input line MUST have exactly one output item.
-- Keep every id exactly unchanged.
-- Never remove a line.
-- Never merge lines.
-- Never reorder lines.
-- Never invent dialogue.
-- Translate only spoken dialogue.
-- No explanation.
-- No markdown.
-- No code fences.
-- No comments.
-- Keep names naturally.
-- Keep subtitles short and natural.
-- Prefer under 42 characters when possible.
-- Preserve original meaning and emotion.
-
-INPUT:
-
-${JSON.stringify(input)}
-`;
-
-
-  const body = {
-
-    model:
-      OPENROUTER_MODEL,
-
-    messages: [
-
-      {
-        role:
-          'system',
-
-        content:
-          'You are a reliable Myanmar subtitle translation engine. Return valid JSON only.'
-      },
-
-      {
-        role:
-          'user',
-
-        content:
-          prompt
-      }
-    ],
-
-    temperature:
-      0.1,
-
-    max_tokens:
-      4000,
-
-    response_format: {
-
-      type:
-        'json_object'
-    },
-
-    provider: {
-
-      allow_fallbacks:
-        true,
-
-      require_parameters:
-        true,
-
-      data_collection:
-        'deny'
-    }
-  };
-
-
-  let lastError =
-    null;
-
-
-  // Retry up to 3 times
-  for (
-    let attempt = 1;
-    attempt <= 3;
-    attempt++
-  ) {
-
-    try {
-
-      console.log(
-        `🔵 OpenRouter FREE attempt ${attempt}/3`
-      );
-
-
-      const response =
-        await fetch(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-
-            method:
-              'POST',
-
-            headers: {
-
-              'Authorization':
-                `Bearer ${apiKey}`,
-
-              'Content-Type':
-                'application/json',
-
-              'HTTP-Referer':
-                'https://myanmar-srt-txdb.onrender.com',
-
-              'X-Title':
-                'Myanmar SRT'
-            },
-
-            body:
-              JSON.stringify(body)
-          }
-        );
-
-
-      const raw =
-        await response.text();
-
-
-      console.log(
-        'OPENROUTER STATUS:',
-        response.status
-      );
-
-
-      if (!response.ok) {
-
-        console.error(
-          'OPENROUTER ERROR:',
-          raw
-        );
-
-
-        lastError =
-          new Error(
-            `OpenRouter Error ${response.status}: ${raw}`
-          );
-
-
-        // Wait before retrying 429/5xx
-        if (
-          response.status === 429 ||
-          response.status === 500 ||
-          response.status === 502 ||
-          response.status === 503 ||
-          response.status === 504
-        ) {
-
-          const wait =
-            attempt * 1500;
-
-          await new Promise(
-            resolve =>
-              setTimeout(
-                resolve,
-                wait
-              )
-          );
-
-          continue;
-        }
-
-
-        throw lastError;
-      }
-
-
-      let data;
-
-
-      try {
-
-        data =
-          JSON.parse(raw);
-
-      } catch {
-
-        throw new Error(
-          'OpenRouter API response JSON မဖတ်နိုင်ပါ'
-        );
-      }
-
-
-      const content =
-        data
-          ?.choices
-          ?.[0]
-          ?.message
-          ?.content;
-
-
-      if (!content) {
-
-        throw new Error(
-          'OpenRouter က empty response ပြန်ပါသည်'
-        );
-      }
-
-
-      console.log(
-        'OPENROUTER CONTENT:',
-        String(content).slice(
-          0,
-          1500
-        )
-      );
-
-
-      const parsed =
-        extractJson(
-          content
-        );
-
-
-      const translated =
-        normalizeTranslationResult(
-          parsed,
-          segments
-        );
-
-
-      if (!translated) {
-
-        lastError =
-          new Error(
-            'OpenRouter valid translation JSON မပြန်ပါ'
-          );
-
-
-        await new Promise(
-          resolve =>
-            setTimeout(
-              resolve,
-              attempt * 1000
-            )
-        );
-
-        continue;
-      }
-
-
-      return translated;
-
-    } catch (error) {
-
-      lastError =
-        error;
-
-
-      console.error(
-        'OPENROUTER ATTEMPT ERROR:',
+    const message =
+      String(
         error?.message ||
         error
       );
 
 
-      if (
-        attempt < 3
-      ) {
+    if (
+      /429|rate.?limit|quota|resource.?exhausted/i
+        .test(message)
+    ) {
 
-        await new Promise(
-          resolve =>
-            setTimeout(
-              resolve,
-              attempt * 1200
-            )
-        );
+      throw new Error(
+        'Gemini Free Tier quota ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး နောက်မှ Translate ပြန်နှိပ်ပါ။'
+      );
+    }
 
-        continue;
-      }
+
+    throw error;
+  }
+
+
+  const parsed =
+    extractJson(
+      response?.text ||
+      ''
+    );
+
+
+  let list = [];
+
+
+  if (
+    Array.isArray(
+      parsed
+    )
+  ) {
+
+    list =
+      parsed;
+  }
+
+
+  if (
+    !list.length &&
+    Array.isArray(
+      parsed?.translations
+    )
+  ) {
+
+    list =
+      parsed.translations;
+  }
+
+
+  if (
+    !list.length
+  ) {
+
+    throw new Error(
+      'Gemini က valid translation JSON မပြန်ပါ'
+    );
+  }
+
+
+  const byId =
+    new Map();
+
+
+  for (
+    const item of list
+  ) {
+
+    const id =
+      Number(
+        item?.id
+      );
+
+
+    const translation =
+      String(
+        item?.translation ||
+        item?.text ||
+        item?.myanmar ||
+        ''
+      ).trim();
+
+
+    if (
+      Number.isFinite(
+        id
+      ) &&
+      translation
+    ) {
+
+      byId.set(
+        id,
+        translation
+      );
     }
   }
 
 
-  throw (
-    lastError ||
-    new Error(
-      'OpenRouter Free translation မအောင်မြင်ပါ'
-    )
+  if (
+    !byId.size
+  ) {
+
+    throw new Error(
+      'Gemini translation data မမှန်ပါ'
+    );
+  }
+
+
+  return segments.map(
+    s => ({
+
+      ...s,
+
+      translation:
+        byId.get(
+          s.id
+        ) ||
+        s.text
+    })
   );
 }
 
 
 // ============================================================
-// TRANSLATE CHUNK
+// TRANSLATE ALL WITH GEMINI ONLY
 // ============================================================
 
-async function translateChunk(
+async function translateAllGemini(
   segments,
-  geminiKey,
-  openRouterKey
+  apiKey
 ) {
 
-  try {
+  // Smaller chunks reduce Gemini request size.
+  const max =
+    40;
 
-    console.log(
-      '🟢 Trying Gemini...'
-    );
-
-
-    const translated =
-      await translateWithGemini(
-        segments,
-        geminiKey
-      );
-
-
-    console.log(
-      '🟢 Gemini translation successful'
-    );
-
-
-    return {
-
-      translated,
-
-      provider:
-        'gemini'
-    };
-
-
-  } catch (geminiError) {
-
-    console.error(
-      'Gemini failed:',
-      geminiError?.message ||
-      geminiError
-    );
-
-
-    if (
-      !shouldFallbackToOpenRouter(
-        geminiError
-      )
-    ) {
-
-      throw geminiError;
-    }
-
-
-    if (!openRouterKey) {
-
-      throw new Error(
-        'Gemini မရပါ။ OPENROUTER_API_KEY မရှိပါ'
-      );
-    }
-
-
-    console.log(
-      '🔵 Falling back to OpenRouter FREE AUTO...'
-    );
-
-
-    const translated =
-      await translateWithOpenRouter(
-        segments,
-        openRouterKey
-      );
-
-
-    console.log(
-      '🔵 OpenRouter FREE AUTO successful'
-    );
-
-
-    return {
-
-      translated,
-
-      provider:
-        'openrouter-free-auto'
-    };
-  }
-}
-
-
-// ============================================================
-// TRANSLATE ALL
-// ============================================================
-
-async function translateAll(
-  segments,
-  geminiKey,
-  openRouterKey
-) {
-
-  // Smaller chunks = faster and more stable
-  const max = 25;
-
-  const results = [];
-
-  let provider =
-    'gemini';
+  const results =
+    [];
 
 
   for (
@@ -1242,41 +859,24 @@ async function translateAll(
 
 
     console.log(
-      `Translation chunk ${Math.floor(i / max) + 1}`
+      `Gemini translation chunk ${Math.floor(i / max) + 1}`
     );
 
 
-    const result =
-      await translateChunk(
+    const translated =
+      await translateChunkGemini(
         chunk,
-        geminiKey,
-        openRouterKey
+        apiKey
       );
 
 
     results.push(
-      ...result.translated
+      ...translated
     );
-
-
-    if (
-      result.provider !==
-      'gemini'
-    ) {
-
-      provider =
-        result.provider;
-    }
   }
 
 
-  return {
-
-    segments:
-      results,
-
-    provider
-  };
+  return results;
 }
 
 
@@ -1291,8 +891,9 @@ function splitSubtitle(
 ) {
 
   const value =
-    String(text || '')
-      .trim();
+    String(
+      text || ''
+    ).trim();
 
 
   if (!value) {
@@ -1302,8 +903,12 @@ function splitSubtitle(
 
 
   if (
-    value.length <= maxChars &&
-    value.split(/\s+/).length <= maxWords
+    value.length <=
+      maxChars &&
+    value.split(
+      /\s+/
+    ).length <=
+      maxWords
   ) {
 
     return [
@@ -1314,11 +919,14 @@ function splitSubtitle(
 
   const words =
     value
-      .split(/\s+/)
+      .split(
+        /\s+/
+      )
       .filter(Boolean);
 
 
-  const parts = [];
+  const parts =
+    [];
 
   let current =
     '';
@@ -1337,8 +945,12 @@ function splitSubtitle(
     if (
       current &&
       (
-        next.length > maxChars ||
-        next.split(/\s+/).length > maxWords
+        next.length >
+          maxChars ||
+        next.split(
+          /\s+/
+        ).length >
+          maxWords
       )
     ) {
 
@@ -1357,7 +969,9 @@ function splitSubtitle(
   }
 
 
-  if (current) {
+  if (
+    current
+  ) {
 
     parts.push(
       current.trim()
@@ -1367,10 +981,12 @@ function splitSubtitle(
 
   if (
     parts.length === 1 &&
-    parts[0].length > maxChars
+    parts[0].length >
+      maxChars
   ) {
 
-    const chunks = [];
+    const chunks =
+      [];
 
 
     for (
@@ -1390,8 +1006,9 @@ function splitSubtitle(
     }
 
 
-    return chunks
-      .filter(Boolean);
+    return chunks.filter(
+      Boolean
+    );
   }
 
 
@@ -1407,9 +1024,11 @@ function splitTranslatedSegments(
   segments
 ) {
 
-  const output = [];
+  const output =
+    [];
 
-  let id = 1;
+  let id =
+    1;
 
 
   for (
@@ -1474,7 +1093,8 @@ function splitTranslatedSegments(
     const duration =
       Math.max(
         0.2,
-        s.end - s.start
+        s.end -
+          s.start
       );
 
 
@@ -1562,23 +1182,28 @@ function srtTime(
 
   const h =
     Math.floor(
-      ms / 3600000
+      ms /
+      3600000
     );
 
 
   const m =
     Math.floor(
       (
-        ms % 3600000
-      ) / 60000
+        ms %
+        3600000
+      ) /
+      60000
     );
 
 
   const s =
     Math.floor(
       (
-        ms % 60000
-      ) / 1000
+        ms %
+        60000
+      ) /
+      1000
     );
 
 
@@ -1587,13 +1212,9 @@ function srtTime(
 
 
   return (
-
     `${String(h).padStart(2, '0')}:` +
-
     `${String(m).padStart(2, '0')}:` +
-
     `${String(s).padStart(2, '0')},` +
-
     `${String(milli).padStart(3, '0')}`
   );
 }
@@ -1608,20 +1229,19 @@ function makeSrt(
 ) {
 
   return segments
-
     .map(
       (
         s,
         i
-      ) =>
+      ) => (
 
         `${i + 1}\n` +
 
         `${srtTime(s.start)} --> ${srtTime(s.end)}\n` +
 
         `${s.translation || s.text}\n`
+      )
     )
-
     .join('\n');
 }
 
@@ -1634,12 +1254,15 @@ function cleanup(
   file
 ) {
 
-  if (file) {
+  if (
+    file
+  ) {
 
     fs.rm(
       file,
       {
-        force: true
+        force:
+          true
       }
     ).catch(
       () => {}
@@ -1683,26 +1306,21 @@ app.get(
           process.env.GEMINI_API_KEY
         ),
 
-      openRouterConfigured:
-        Boolean(
-          process.env.OPENROUTER_API_KEY
-        ),
-
       groqModel:
         GROQ_MODEL,
 
       geminiModel:
         GEMINI_MODEL,
 
-      openRouterModel:
-        OPENROUTER_MODEL
+      translation:
+        'Gemini Only'
     });
   }
 );
 
 
 // ============================================================
-// TRANSCRIBE
+// GROQ TRANSCRIBE
 // ============================================================
 
 app.post(
@@ -1723,7 +1341,9 @@ app.post(
 
     try {
 
-      if (!file) {
+      if (
+        !file
+      ) {
 
         throw new Error(
           'Video file မရှိပါ'
@@ -1808,7 +1428,9 @@ app.post(
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
         'TRANSCRIBE ERROR:',
@@ -1840,7 +1462,7 @@ app.post(
 
 
 // ============================================================
-// TRANSLATE
+// GEMINI TRANSLATE
 // ============================================================
 
 app.post(
@@ -1861,21 +1483,6 @@ app.post(
           'GEMINI_API_KEY',
           'Gemini API Key'
         );
-
-
-      const openRouterKey =
-        String(
-
-          req.headers[
-            'x-openrouter-api-key'
-          ] ||
-
-          req.body?.openRouterApiKey ||
-
-          process.env.OPENROUTER_API_KEY ||
-
-          ''
-        ).trim();
 
 
       const input =
@@ -1928,7 +1535,8 @@ app.post(
           .filter(
             s =>
               s.text &&
-              s.end > s.start
+              s.end >
+                s.start
           );
 
 
@@ -1942,17 +1550,16 @@ app.post(
       }
 
 
-      const result =
-        await translateAll(
+      const translated =
+        await translateAllGemini(
           normalized,
-          geminiKey,
-          openRouterKey
+          geminiKey
         );
 
 
       const subtitleSegments =
         splitTranslatedSegments(
-          result.segments
+          translated
         );
 
 
@@ -1962,7 +1569,7 @@ app.post(
           true,
 
         provider:
-          result.provider,
+          'gemini',
 
         transcript:
           subtitleSegments,
@@ -1974,7 +1581,9 @@ app.post(
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
         'TRANSLATE ERROR:',
@@ -1991,7 +1600,7 @@ app.post(
 
         error:
           error?.message ||
-          'Myanmar Translation Error'
+          'Gemini Myanmar Translation Error'
       });
     }
   }
@@ -2020,7 +1629,9 @@ app.post(
 
     try {
 
-      if (!file) {
+      if (
+        !file
+      ) {
 
         throw new Error(
           'Video file မရှိပါ'
@@ -2046,21 +1657,6 @@ app.post(
           'GEMINI_API_KEY',
           'Gemini API Key'
         );
-
-
-      const openRouterKey =
-        String(
-
-          req.headers[
-            'x-openrouter-api-key'
-          ] ||
-
-          req.body?.openRouterApiKey ||
-
-          process.env.OPENROUTER_API_KEY ||
-
-          ''
-        ).trim();
 
 
       const {
@@ -2097,16 +1693,15 @@ app.post(
 
 
       const translated =
-        await translateAll(
+        await translateAllGemini(
           original,
-          geminiKey,
-          openRouterKey
+          geminiKey
         );
 
 
       const segments =
         splitTranslatedSegments(
-          translated.segments
+          translated
         );
 
 
@@ -2115,10 +1710,10 @@ app.post(
         ok:
           true,
 
-        provider:
-          translated.provider,
-
         duration,
+
+        provider:
+          'gemini',
 
         segments,
 
@@ -2129,7 +1724,9 @@ app.post(
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
         'PROCESS ERROR:',
@@ -2180,7 +1777,10 @@ for (
 
   app.all(
     route,
-    (_req, res) =>
+    (
+      _req,
+      res
+    ) =>
       res.status(
         410
       ).json({
@@ -2201,7 +1801,10 @@ for (
 
 app.use(
   '/api',
-  (_req, res) =>
+  (
+    _req,
+    res
+  ) =>
     res.status(
       404
     ).json({
@@ -2284,15 +1887,11 @@ app.listen(
     );
 
     console.log(
-      `OpenRouter: ${OPENROUTER_MODEL}`
+      'Translation: GEMINI ONLY'
     );
 
     console.log(
-      'Translation fallback: GEMINI -> OPENROUTER FREE AUTO'
-    );
-
-    console.log(
-      'OpenRouter provider fallback: ENABLED'
+      'OpenRouter: DISABLED'
     );
 
     console.log(
