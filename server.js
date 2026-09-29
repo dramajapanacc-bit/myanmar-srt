@@ -420,6 +420,7 @@ function shouldFallbackToOpenRouter(
 
   return (
     /429/.test(message) ||
+    /500/.test(message) ||
     /503/.test(message) ||
     /529/.test(message) ||
     /quota/.test(message) ||
