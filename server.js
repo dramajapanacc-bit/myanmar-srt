@@ -1,239 +1,184 @@
-const express = require("express");
-const multer = require("multer");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
-const crypto = require("crypto");
-const { spawn } = require("child_process");
+import 'dotenv/config';
+import express from 'express';
+import multer from 'multer';
+import fs from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
+import os from 'node:os';
+import crypto from 'node:crypto';
+import Groq from 'groq-sdk';
+import { GoogleGenAI } from '@google/genai';
+import ffprobeStatic from 'ffprobe-static';
 
 const app = express();
 
-const PORT = process.env.PORT || 10000;
+const PORT = Number(process.env.PORT || 10000);
 
-const WORK_DIR = path.join(
-  os.tmpdir(),
-  "myanmar-srt-work"
-);
+const MAX_BYTES = 300 * 1024 * 1024;
+const MAX_SECONDS = 5 * 60;
 
-const PUBLIC_DIR = path.join(
-  __dirname,
-  "public"
-);
+const ROOT = process.cwd();
+const PUBLIC = path.join(ROOT, 'public');
+const TMP = path.join(os.tmpdir(), 'myanmar-srt');
 
-fs.mkdirSync(WORK_DIR, {
-  recursive: true
-});
-
-fs.mkdirSync(PUBLIC_DIR, {
-  recursive: true
-});
-
-app.use(cors());
-
-app.use(
-  express.json({
-    limit: "10mb"
-  })
-);
-
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb"
-  })
-);
-
-app.use(
-  express.static(PUBLIC_DIR)
-);
-
-
-/* =========================================================
-   UPLOAD
-========================================================= */
+await fs.mkdir(TMP, { recursive: true });
 
 const upload = multer({
-  dest: WORK_DIR,
-
+  dest: TMP,
   limits: {
-    fileSize: 300 * 1024 * 1024
+    fileSize: MAX_BYTES,
+    files: 1
   }
 });
 
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({
+  extended: true,
+  limit: '10mb'
+}));
+
+app.use(express.static(PUBLIC));
 
 /* =========================================================
    API KEY
 ========================================================= */
 
-function getGroqKey(req) {
-  return (
-    req.headers["x-groq-api-key"] ||
-    req.body?.groqApiKey ||
-    process.env.GROQ_API_KEY ||
-    ""
-  )
-    .toString()
-    .trim();
+function getKey(
+  req,
+  headerName,
+  bodyName,
+  envName,
+  label
+) {
+  const key = String(
+    req.headers[headerName] ||
+    req.body?.[bodyName] ||
+    process.env[envName] ||
+    ''
+  ).trim();
+
+  if (!key) {
+    throw new Error(`${label} မရှိပါ`);
+  }
+
+  return key;
 }
-
-
-function getGeminiKey(req) {
-  return (
-    req.headers["x-gemini-api-key"] ||
-    req.body?.geminiApiKey ||
-    process.env.GEMINI_API_KEY ||
-    ""
-  )
-    .toString()
-    .trim();
-}
-
 
 /* =========================================================
-   HELPERS
+   JSON HELPERS
 ========================================================= */
 
-function safeFileName(name) {
-  return String(name || "upload")
-    .replace(
-      /[^a-zA-Z0-9._-]/g,
-      "_"
-    )
-    .slice(0, 120);
-}
-
-
-function cleanupFile(filePath) {
-  try {
-    if (
-      filePath &&
-      fs.existsSync(filePath)
-    ) {
-      fs.unlinkSync(filePath);
-    }
-  } catch (_) {}
-}
-
-
-function parseJsonSafely(text) {
+function parseJson(text) {
   try {
     return JSON.parse(text);
-  } catch (_) {
+  } catch {
     return null;
   }
 }
 
+function extractJson(text) {
+  const raw = String(text || '').trim();
 
-function extractJsonObject(text) {
-  const value = String(
-    text || ""
-  ).trim();
+  const direct = parseJson(raw);
 
-  const direct =
-    parseJsonSafely(value);
-
-  if (direct) {
+  if (direct !== null) {
     return direct;
   }
 
-  const fenced = value
-    .replace(
-      /^```json\s*/i,
-      ""
-    )
-    .replace(
-      /^```\s*/i,
-      ""
-    )
-    .replace(
-      /```\s*$/i,
-      ""
-    )
+  const cleaned = raw
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
     .trim();
 
-  const fencedJson =
-    parseJsonSafely(fenced);
+  const fenced = parseJson(cleaned);
 
-  if (fencedJson) {
-    return fencedJson;
+  if (fenced !== null) {
+    return fenced;
   }
 
-  const start =
-    fenced.indexOf("{");
+  const start = cleaned.indexOf('[');
+  const end = cleaned.lastIndexOf(']');
 
-  const end =
-    fenced.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    const value = parseJson(
+      cleaned.slice(start, end + 1)
+    );
 
-  if (
-    start !== -1 &&
-    end > start
-  ) {
-    const obj =
-      parseJsonSafely(
-        fenced.slice(
-          start,
-          end + 1
-        )
-      );
+    if (value !== null) {
+      return value;
+    }
+  }
 
-    if (obj) {
-      return obj;
+  const objStart = cleaned.indexOf('{');
+  const objEnd = cleaned.lastIndexOf('}');
+
+  if (objStart >= 0 && objEnd > objStart) {
+    const value = parseJson(
+      cleaned.slice(objStart, objEnd + 1)
+    );
+
+    if (value !== null) {
+      return value;
     }
   }
 
   return null;
 }
 
-
 /* =========================================================
-   COMMAND RUNNER
+   FFPROBE
 ========================================================= */
 
-function runCommand(
-  command,
-  args,
-  options = {}
-) {
-  return new Promise(
+async function probeVideo(file) {
+  const result = await new Promise(
     (resolve, reject) => {
-      const child =
-        spawn(
-          command,
-          args,
-          {
-            windowsHide: true,
-            ...options
-          }
-        );
 
-      let stdout = "";
-      let stderr = "";
+      const child = spawn(
+        ffprobeStatic.path,
+        [
+          '-v',
+          'error',
 
-      child.stdout?.on(
-        "data",
+          '-show_entries',
+          'format=duration,size',
+
+          '-show_streams',
+
+          '-of',
+          'json',
+
+          file
+        ]
+      );
+
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on(
+        'data',
         data => {
-          stdout +=
-            data.toString();
+          stdout += data.toString();
         }
       );
 
-      child.stderr?.on(
-        "data",
+      child.stderr.on(
+        'data',
         data => {
-          stderr +=
-            data.toString();
+          stderr += data.toString();
         }
       );
 
       child.on(
-        "error",
+        'error',
         reject
       );
 
       child.on(
-        "close",
+        'close',
         code => {
+
           if (code === 0) {
             resolve({
               stdout,
@@ -242,635 +187,802 @@ function runCommand(
           } else {
             reject(
               new Error(
-                `${command} exited with code ${code}\n${stderr.slice(
-                  -4000
-                )}`
+                stderr ||
+                `ffprobe exited with code ${code}`
               )
             );
           }
+
         }
       );
+
     }
   );
-}
 
+  const data = JSON.parse(
+    result.stdout
+  );
 
-/* =========================================================
-   VIDEO DURATION
-========================================================= */
-
-async function videoDuration(
-  filePath
-) {
-  const result =
-    await runCommand(
-      "ffprobe",
-      [
-        "-v",
-        "error",
-
-        "-show_entries",
-        "format=duration",
-
-        "-of",
-        "default=noprint_wrappers=1:nokey=1",
-
-        filePath
-      ]
-    );
-
-  const duration =
-    Number(
-      result.stdout.trim()
-    );
+  const duration = Number(
+    data?.format?.duration || 0
+  );
 
   if (
-    !Number.isFinite(
-      duration
-    )
+    !Number.isFinite(duration) ||
+    duration <= 0
   ) {
     throw new Error(
-      "Video duration မဖတ်နိုင်ပါ"
+      'Video duration မဖတ်နိုင်ပါ'
     );
-  }
-
-  return duration;
-}
-
-
-/* =========================================================
-   TEXT CLEANING
-========================================================= */
-
-function cleanTranscriptText(
-  text
-) {
-  let value =
-    String(
-      text || ""
-    ).trim();
-
-  /*
-    Remove accidental prompt/instruction
-    text sometimes returned by Whisper.
-  */
-
-  value =
-    value.replace(
-      /\bReturn accurate segment\.?/gi,
-      ""
-    );
-
-  value =
-    value.replace(
-      /\bReturn the spoken word\.?/gi,
-      ""
-    );
-
-  value =
-    value.replace(
-      /\bReturn accurate transcript\.?/gi,
-      ""
-    );
-
-  value =
-    value.replace(
-      /\s{2,}/g,
-      " "
-    );
-
-  return value.trim();
-}
-
-
-/* =========================================================
-   WORD NORMALIZATION
-========================================================= */
-
-function normalizeWord(
-  word
-) {
-  if (!word) {
-    return null;
-  }
-
-  const start =
-    Number(
-      word.start
-    );
-
-  const end =
-    Number(
-      word.end
-    );
-
-  const text =
-    cleanTranscriptText(
-      word.word
-    );
-
-  if (
-    !text ||
-    !Number.isFinite(start) ||
-    !Number.isFinite(end)
-  ) {
-    return null;
   }
 
   return {
-    start,
-    end,
-    text
+    data,
+    duration
   };
 }
 
-
 /* =========================================================
-   SENTENCE END CHECK
+   TRANSCRIPT CLEAN
 ========================================================= */
 
-function isSentenceEnd(
-  text
-) {
-  const value =
-    String(
-      text || ""
-    ).trim();
+function cleanTranscriptText(text) {
 
-  return /[.!?။၊!?]$/.test(
-    value
-  );
+  return String(text || '')
+
+    .replace(
+      /Return accurate segment[.!]?/gi,
+      ''
+    )
+
+    .replace(
+      /Return accurate transcript[.!]?/gi,
+      ''
+    )
+
+    .replace(
+      /Return the spoken word[.!]?/gi,
+      ''
+    )
+
+    .replace(
+      /\s{2,}/g,
+      ' '
+    )
+
+    .trim();
 }
 
-
 /* =========================================================
-   SUBTITLE SPLITTER
-=========================================================
-
-   Main goal:
-
-   - Not too many words
-   - Not too many characters
-   - Not too long
-   - Prefer natural sentence breaks
-   - Keep real Groq word timestamps
-
+   GROQ TRANSCRIPTION
 ========================================================= */
 
-function splitWordsIntoSubtitles(
-  words
+async function transcribeGroq(
+  file,
+  apiKey
 ) {
-  const result = [];
 
-  let current = [];
+  const groq = new Groq({
+    apiKey
+  });
 
-  const MAX_CHARS = 42;
+  /*
+    IMPORTANT:
 
-  const MAX_WORDS = 10;
+    Groq prompt မပို့ပါဘူး။
 
-  const MAX_DURATION = 5.0;
+    ဒါကြောင့်
+    "Return accurate segment"
+    လို prompt စာတွေ subtitle ထဲ
+    ဝင်လာတာကို ရှောင်နိုင်ပါတယ်။
+  */
 
+  const result =
+    await groq.audio.transcriptions.create({
 
-  function flush() {
-    if (!current.length) {
-      return;
-    }
+      file: createReadStream(file),
 
-    const start =
-      current[0].start;
+      model:
+        'whisper-large-v3-turbo',
 
-    const end =
-      current[
-        current.length - 1
-      ].end;
+      response_format:
+        'verbose_json',
 
-    const text =
-      current
-        .map(
-          item =>
-            item.text
-        )
-        .join(" ")
-        .replace(
-          /\s+/g,
-          " "
-        )
-        .trim();
+      timestamp_granularities: [
+        'word',
+        'segment'
+      ],
 
-    if (text) {
-      result.push({
-        start,
-        end,
-        text
-      });
-    }
+      temperature: 0
 
-    current = [];
-  }
-
-
-  for (
-    const word of words
-  ) {
-    if (!word) {
-      continue;
-    }
-
-    if (!current.length) {
-      current.push(word);
-      continue;
-    }
-
-    const currentText =
-      current
-        .map(
-          item =>
-            item.text
-        )
-        .join(" ");
-
-    const candidateText =
-      currentText +
-      " " +
-      word.text;
-
-    const candidateStart =
-      current[0].start;
-
-    const candidateEnd =
-      word.end;
-
-    const candidateDuration =
-      candidateEnd -
-      candidateStart;
-
-    const tooManyChars =
-      candidateText.length >
-      MAX_CHARS;
-
-    const tooManyWords =
-      current.length >=
-      MAX_WORDS;
-
-    const tooLong =
-      candidateDuration >
-      MAX_DURATION;
-
-    /*
-      If current line already ends naturally,
-      prefer starting a new subtitle.
-    */
-
-    const naturalBreak =
-      isSentenceEnd(
-        currentText
-      );
-
-
-    if (
-      tooManyChars ||
-      tooManyWords ||
-      tooLong ||
-      naturalBreak
-    ) {
-      flush();
-
-      current.push(word);
-    } else {
-      current.push(word);
-    }
-  }
-
-  flush();
+    });
 
   return result;
 }
 
-
 /* =========================================================
-   FALLBACK SEGMENT SPLITTER
+   BUILD GROQ SEGMENTS
 ========================================================= */
 
-function splitSegmentByText(
-  segment
+function buildSegments(
+  result,
+  duration
 ) {
-  const text =
+
+  const segments =
+    Array.isArray(result?.segments)
+      ? result.segments
+      : [];
+
+  const cleaned =
+    segments
+
+      .map(
+        (s, index) => {
+
+          const start =
+            Number(s.start);
+
+          const end =
+            Number(s.end);
+
+          const text =
+            cleanTranscriptText(
+              s.text
+            );
+
+          return {
+
+            id:
+              index + 1,
+
+            start:
+              Number.isFinite(start)
+                ? Math.max(0, start)
+                : 0,
+
+            end:
+              Number.isFinite(end)
+                ? Math.max(0, end)
+                : 0,
+
+            text
+
+          };
+
+        }
+      )
+
+      .filter(
+        s =>
+          s.text &&
+          s.end > s.start
+      );
+
+  if (cleaned.length) {
+    return cleaned;
+  }
+
+  const fullText =
     cleanTranscriptText(
-      segment.text
+      result?.text
     );
 
-  if (!text) {
+  if (!fullText) {
     return [];
   }
 
-  const words =
-    text.split(
-      /\s+/
+  return [
+
+    {
+      id: 1,
+
+      start: 0,
+
+      end: duration,
+
+      text: fullText
+    }
+
+  ];
+}
+
+/* =========================================================
+   GEMINI TRANSLATE ONE CHUNK
+========================================================= */
+
+async function translateChunk(
+  segments,
+  apiKey,
+  model
+) {
+
+  const ai =
+    new GoogleGenAI({
+      apiKey
+    });
+
+  const source =
+    segments.map(
+      s => ({
+
+        id: s.id,
+
+        text: s.text
+
+      })
     );
 
-  if (
-    words.length <= 8 &&
-    (
-      Number(segment.end) -
-      Number(segment.start)
-    ) <= 5
-  ) {
-    return [
-      {
-        start:
-          Number(segment.start),
+  const prompt = `You are a professional Myanmar subtitle translator.
 
-        end:
-          Number(segment.end),
+Translate each English dialogue line into natural, concise Myanmar Unicode.
 
-        text
-      }
-    ];
+Return ONLY a JSON array.
+
+Each array item must contain exactly:
+id
+translation
+
+Rules:
+1. Keep the same id.
+2. Do not remove lines.
+3. Do not merge lines.
+4. Do not reorder lines.
+5. Do not invent dialogue.
+6. Translate only the spoken dialogue.
+7. Do not output instructions.
+8. Do not output explanations.
+9. Keep names naturally.
+10. Keep subtitles short and easy to read.
+11. Prefer under 42 characters per subtitle when possible.
+
+INPUT:
+
+${JSON.stringify(source)}
+`;
+
+  let response;
+
+  try {
+
+    response =
+      await ai.models.generateContent({
+
+        model,
+
+        contents: prompt,
+
+        config: {
+
+          temperature: 0.2,
+
+          responseMimeType:
+            'application/json'
+
+        }
+
+      });
+
+  } catch (error) {
+
+    const message =
+      String(
+        error?.message ||
+        error
+      );
+
+    if (
+      /429|rate.?limit|quota|resource.?exhausted/i
+        .test(message)
+    ) {
+
+      throw new Error(
+        'Gemini Free Tier quota ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး နောက်မှ Translate ပြန်နှိပ်ပါ။ Auto Retry မလုပ်ထားပါ။'
+      );
+
+    }
+
+    throw error;
   }
 
-  const duration =
-    Math.max(
-      0.1,
-      Number(segment.end) -
-        Number(segment.start)
+  const parsed =
+    extractJson(
+      response?.text || ''
     );
 
-  const totalChars =
-    Math.max(
-      1,
-      text.length
+  const list =
+    Array.isArray(parsed)
+      ? parsed
+      : Array.isArray(
+          parsed?.transcript
+        )
+        ? parsed.transcript
+        : [];
+
+  if (!list.length) {
+
+    throw new Error(
+      'Gemini က valid translation JSON မပြန်ပါ'
     );
 
-  const chunks = [];
+  }
 
-  let current = [];
+  const byId =
+    new Map();
 
-  let currentChars = 0;
+  for (
+    const item of list
+  ) {
+
+    const id =
+      Number(item?.id);
+
+    const translation =
+      String(
+        item?.translation ||
+        ''
+      ).trim();
+
+    if (
+      Number.isFinite(id) &&
+      translation
+    ) {
+
+      byId.set(
+        id,
+        translation
+      );
+
+    }
+  }
+
+  return segments.map(
+    s => ({
+
+      ...s,
+
+      translation:
+        byId.get(s.id) ||
+        s.text
+
+    })
+  );
+}
+
+/* =========================================================
+   GEMINI TRANSLATE ALL
+========================================================= */
+
+async function translateAll(
+  segments,
+  apiKey,
+  model = 'gemini-3.8-flash'
+) {
+
+  /*
+    Normal 5-minute video:
+    Gemini request = 1 ခါ
+
+    Transcript အရမ်းများမှ
+    2 ခါအထိပဲ ခွဲမယ်။
+
+    အရင် ZIP ထဲကလို
+    35 lines တစ်ခါစီ မပို့တော့ပါဘူး။
+  */
+
+  const MAX_PER_REQUEST = 120;
+
+  if (
+    segments.length <=
+    MAX_PER_REQUEST
+  ) {
+
+    return translateChunk(
+      segments,
+      apiKey,
+      model
+    );
+
+  }
+
+  const first =
+    segments.slice(
+      0,
+      MAX_PER_REQUEST
+    );
+
+  const second =
+    segments.slice(
+      MAX_PER_REQUEST
+    );
+
+  const a =
+    await translateChunk(
+      first,
+      apiKey,
+      model
+    );
+
+  const b =
+    await translateChunk(
+      second,
+      apiKey,
+      model
+    );
+
+  return [
+    ...a,
+    ...b
+  ];
+}
+
+/* =========================================================
+   LONG SUBTITLE SPLITTER
+========================================================= */
+
+function splitLongSubtitle(
+  text,
+  maxChars = 42,
+  maxWords = 10
+) {
+
+  const value =
+    String(text || '').trim();
+
+  if (!value) {
+    return [];
+  }
+
+  if (
+    value.length <= maxChars &&
+    value.split(/\s+/).length <= maxWords
+  ) {
+
+    return [
+      value
+    ];
+
+  }
+
+  const words =
+    value
+      .split(/\s+/)
+      .filter(Boolean);
+
+  const parts = [];
+
+  let current = '';
 
   for (
     const word of words
   ) {
-    const nextChars =
-      currentChars === 0
-        ? word.length
-        : currentChars +
-          1 +
-          word.length;
+
+    const next =
+      current
+        ? `${current} ${word}`
+        : word;
 
     if (
-      current.length >= 8 ||
-      nextChars > 42
-    ) {
-      if (current.length) {
-        chunks.push(
-          current.join(" ")
-        );
-      }
-
-      current = [
-        word
-      ];
-
-      currentChars =
-        word.length;
-    } else {
-      current.push(word);
-
-      currentChars =
-        nextChars;
-    }
-  }
-
-  if (current.length) {
-    chunks.push(
-      current.join(" ")
-    );
-  }
-
-  let offsetChars = 0;
-
-  return chunks.map(
-    chunk => {
-      const ratioStart =
-        offsetChars /
-        totalChars;
-
-      offsetChars +=
-        chunk.length;
-
-      const ratioEnd =
-        Math.min(
-          1,
-          offsetChars /
-            totalChars
-        );
-
-      return {
-        start:
-          Number(
-            segment.start
-          ) +
-          duration *
-            ratioStart,
-
-        end:
-          Number(
-            segment.start
-          ) +
-          duration *
-            ratioEnd,
-
-        text: chunk
-      };
-    }
-  );
-}
-
-
-/* =========================================================
-   BUILD FINAL TRANSCRIPT
-========================================================= */
-
-function buildTranscript(
-  data,
-  duration
-) {
-  const words = Array.isArray(
-    data?.words
-  )
-    ? data.words
-        .map(
-          normalizeWord
-        )
-        .filter(Boolean)
-    : [];
-
-
-  /*
-    BEST METHOD:
-    Use real word timestamps.
-  */
-
-  if (words.length) {
-    const subtitles =
-      splitWordsIntoSubtitles(
-        words
-      );
-
-    return subtitles
-      .map(
-        (item, index) => ({
-          id: index + 1,
-
-          start:
-            Number(
-              item.start.toFixed(3)
-            ),
-
-          end:
-            Number(
-              item.end.toFixed(3)
-            ),
-
-          text:
-            cleanTranscriptText(
-              item.text
-            )
-        })
+      current &&
+      (
+        next.length > maxChars ||
+        next.split(/\s+/).length >
+          maxWords
       )
-      .filter(
-        item =>
-          item.text &&
-          item.end >
-            item.start
-      );
-  }
-
-
-  /*
-    FALLBACK:
-    Use Groq segment timestamps.
-  */
-
-  const segments =
-    Array.isArray(
-      data?.segments
-    )
-      ? data.segments
-      : [];
-
-
-  const result = [];
-
-  for (
-    const segment of segments
-  ) {
-    const text =
-      cleanTranscriptText(
-        segment.text
-      );
-
-    const start =
-      Number(
-        segment.start
-      );
-
-    const end =
-      Number(
-        segment.end
-      );
-
-    if (
-      !text ||
-      !Number.isFinite(
-        start
-      ) ||
-      !Number.isFinite(
-        end
-      ) ||
-      end <= start
     ) {
-      continue;
-    }
 
-    const pieces =
-      splitSegmentByText({
-        start,
-        end,
-        text
-      });
+      parts.push(
+        current.trim()
+      );
 
-    for (
-      const piece of pieces
-    ) {
-      result.push({
-        id:
-          result.length + 1,
+      current = word;
 
-        start:
-          Number(
-            piece.start.toFixed(3)
-          ),
+    } else {
 
-        end:
-          Number(
-            piece.end.toFixed(3)
-          ),
+      current = next;
 
-        text:
-          cleanTranscriptText(
-            piece.text
-          )
-      });
     }
   }
 
+  if (current) {
+
+    parts.push(
+      current.trim()
+    );
+
+  }
 
   /*
-    LAST FALLBACK
+    Burmese စာတွေမှာ space နည်းရင်
+    character အလိုက် ခွဲပေးမယ်။
   */
 
   if (
-    !result.length &&
-    data?.text
+    parts.length === 1 &&
+    parts[0].length > maxChars
   ) {
-    const fallbackText =
-      cleanTranscriptText(
-        data.text
+
+    const chars = [];
+
+    for (
+      let i = 0;
+      i < parts[0].length;
+      i += maxChars
+    ) {
+
+      chars.push(
+        parts[0]
+          .slice(
+            i,
+            i + maxChars
+          )
+          .trim()
       );
 
-    if (fallbackText) {
-      result.push({
-        id: 1,
-        start: 0,
-        end: duration,
-        text: fallbackText
-      });
     }
+
+    return chars.filter(Boolean);
   }
 
-  return result;
+  return parts;
 }
 
+/* =========================================================
+   SPLIT TRANSLATED SEGMENTS
+========================================================= */
+
+function splitTranslatedSegments(
+  segments
+) {
+
+  const output = [];
+
+  let nextId = 1;
+
+  for (
+    const s of segments
+  ) {
+
+    const text =
+      String(
+        s.translation ||
+        s.text ||
+        ''
+      ).trim();
+
+    const parts =
+      splitLongSubtitle(text);
+
+    if (
+      parts.length <= 1
+    ) {
+
+      output.push({
+
+        id:
+          nextId++,
+
+        start:
+          s.start,
+
+        end:
+          s.end,
+
+        text,
+
+        translation:
+          text
+
+      });
+
+      continue;
+    }
+
+    const totalWeight =
+      parts.reduce(
+        (
+          sum,
+          p
+        ) =>
+          sum +
+          Math.max(
+            1,
+            p.length
+          ),
+        0
+      );
+
+    const duration =
+      Math.max(
+        0.2,
+        s.end - s.start
+      );
+
+    let cursor =
+      s.start;
+
+    parts.forEach(
+      (
+        part,
+        index
+      ) => {
+
+        const weight =
+          Math.max(
+            1,
+            part.length
+          ) /
+          totalWeight;
+
+        let end =
+          index ===
+          parts.length - 1
+
+            ? s.end
+
+            : cursor +
+              duration *
+              weight;
+
+        if (
+          end <= cursor
+        ) {
+
+          end =
+            cursor + 0.2;
+
+        }
+
+        if (
+          end > s.end
+        ) {
+
+          end =
+            s.end;
+
+        }
+
+        output.push({
+
+          id:
+            nextId++,
+
+          start:
+            cursor,
+
+          end,
+
+          text:
+            part,
+
+          translation:
+            part
+
+        });
+
+        cursor =
+          end;
+
+      }
+    );
+
+  }
+
+  return output;
+}
+
+/* =========================================================
+   SRT TIME
+========================================================= */
+
+function srtTime(
+  seconds
+) {
+
+  const ms =
+    Math.max(
+      0,
+      Math.round(
+        Number(seconds || 0) *
+        1000
+      )
+    );
+
+  const h =
+    Math.floor(
+      ms / 3600000
+    );
+
+  const m =
+    Math.floor(
+      (ms % 3600000) /
+      60000
+    );
+
+  const s =
+    Math.floor(
+      (ms % 60000) /
+      1000
+    );
+
+  const milli =
+    ms % 1000;
+
+  return (
+    `${String(h).padStart(2, '0')}:` +
+    `${String(m).padStart(2, '0')}:` +
+    `${String(s).padStart(2, '0')},` +
+    `${String(milli).padStart(3, '0')}`
+  );
+}
+
+/* =========================================================
+   MAKE SRT
+========================================================= */
+
+function makeSrt(
+  segments
+) {
+
+  return segments
+    .map(
+      (s, i) => {
+
+        return (
+          `${i + 1}\n` +
+          `${srtTime(s.start)} --> ${srtTime(s.end)}\n` +
+          `${s.translation || s.text}\n`
+        );
+
+      }
+    )
+    .join('\n');
+}
+
+/* =========================================================
+   CLEAN FILE
+========================================================= */
+
+function cleanup(file) {
+
+  if (file) {
+
+    fs.rm(
+      file,
+      {
+        force: true
+      }
+    ).catch(
+      () => {}
+    );
+
+  }
+
+}
 
 /* =========================================================
    HEALTH
 ========================================================= */
 
 app.get(
-  "/api/health",
-  async (req, res) => {
+  '/api/health',
+  (req, res) => {
+
     res.json({
+
       ok: true,
 
       service:
-        "myanmar-srt",
+        'myanmar-srt',
 
-      srtOnly: true,
+      srtOnly:
+        true,
 
-      movieRecap: false,
+      movieRecap:
+        false,
 
-      render: false,
+      render:
+        false,
 
       groqConfigured:
         Boolean(
@@ -882,284 +994,145 @@ app.get(
           process.env.GEMINI_API_KEY
         ),
 
-      timestamp:
-        new Date().toISOString()
+      groqModel:
+        'whisper-large-v3-turbo',
+
+      geminiModel:
+        'gemini-3.8-flash'
+
     });
+
   }
 );
-
 
 /* =========================================================
    GROQ TRANSCRIBE
 ========================================================= */
 
 app.post(
-  "/api/transcribe",
-
-  upload.single("video"),
-
+  '/api/transcribe',
+  upload.single('video'),
   async (
     req,
     res
   ) => {
-    let filePath = null;
+
+    const file =
+      req.file?.path;
 
     try {
-      const key =
-        getGroqKey(req);
 
-      if (!key) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Groq API Key မရှိပါ"
-          });
+      if (!file) {
+
+        throw new Error(
+          'Video file မရှိပါ'
+        );
+
       }
 
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Video file မရှိပါ"
-          });
-      }
+      const groqKey =
+        getKey(
+          req,
+          'x-groq-api-key',
+          'groqApiKey',
+          'GROQ_API_KEY',
+          'Groq API Key'
+        );
 
-      filePath =
-        req.file.path;
-
-
-      /*
-        Check video duration.
-      */
-
-      const duration =
-        await videoDuration(
-          filePath
+      const {
+        duration
+      } =
+        await probeVideo(
+          file
         );
 
       if (
-        duration > 300
+        duration >
+        MAX_SECONDS
       ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Video က 5 မိနစ်ထက်ကျော်နေပါတယ်"
-          });
-      }
 
-
-      /*
-        Upload video to Groq.
-      */
-
-      const form =
-        new FormData();
-
-      const bytes =
-        fs.readFileSync(
-          filePath
-        );
-
-      const blob =
-        new Blob(
-          [
-            bytes
-          ],
-          {
-            type:
-              req.file.mimetype ||
-              "video/mp4"
-          }
-        );
-
-      form.append(
-        "file",
-        blob,
-        safeFileName(
-          req.file.originalname
-        )
-      );
-
-
-      /*
-        Whisper model.
-      */
-
-      form.append(
-        "model",
-        "whisper-large-v3-turbo"
-      );
-
-
-      /*
-        Verbose JSON is required
-        for timestamps.
-      */
-
-      form.append(
-        "response_format",
-        "verbose_json"
-      );
-
-
-      /*
-        IMPORTANT:
-
-        Request WORD timestamps.
-
-        This is what lets us split
-        long subtitles properly.
-      */
-
-      form.append(
-        "timestamp_granularities[]",
-        "word"
-      );
-
-      form.append(
-        "timestamp_granularities[]",
-        "segment"
-      );
-
-
-      /*
-        Do NOT send a prompt containing
-        "Return accurate segment".
-
-        That text can sometimes appear
-        in the transcription.
-      */
-
-      form.append(
-        "language",
-        "en"
-      );
-
-
-      const response =
-        await fetch(
-          "https://api.groq.com/openai/v1/audio/transcriptions",
-          {
-            method:
-              "POST",
-
-            headers: {
-              Authorization:
-                `Bearer ${key}`
-            },
-
-            body:
-              form
-          }
-        );
-
-
-      const rawText =
-        await response.text();
-
-      const data =
-        parseJsonSafely(
-          rawText
-        );
-
-
-      if (!response.ok) {
         throw new Error(
-          data?.error?.message ||
-          data?.error ||
-          rawText ||
-          "Groq transcription failed"
+          'Video က 5 မိနစ်ထက်ကျော်နေပါတယ်'
         );
+
       }
 
-
-      /*
-        Build clean subtitle segments.
-      */
+      const result =
+        await transcribeGroq(
+          file,
+          groqKey
+        );
 
       const transcript =
-        buildTranscript(
-          data,
+        buildSegments(
+          result,
           duration
         );
 
+      if (
+        !transcript.length
+      ) {
 
-      if (!transcript.length) {
         throw new Error(
-          "Groq က စာသားမတွေ့ပါ။ Video ထဲမှာ အသံရှိ/မရှိ စစ်ပေးပါ"
+          'Groq က စာတန်းမထုတ်ပေးနိုင်ပါ'
         );
+
       }
 
-
-      /*
-        Full transcript text.
-      */
-
-      const fullText =
-        transcript
-          .map(
-            item =>
-              item.text
-          )
-          .join(" ");
-
-
-      console.log(
-        `Groq transcription complete: ${transcript.length} subtitle segments`
-      );
-
-
       res.json({
+
         ok: true,
 
         duration,
 
         language:
-          data?.language ||
-          "en",
+          result?.language ||
+          'auto',
 
         text:
-          data?.text ||
-          fullText,
+          result?.text ||
+          transcript
+            .map(
+              x => x.text
+            )
+            .join(' '),
 
         transcript
+
       });
 
-
     } catch (error) {
+
       console.error(
-        "TRANSCRIBE ERROR:",
+        'TRANSCRIBE ERROR:',
         error
       );
 
-      res
-        .status(500)
-        .json({
-          error:
-            error.message ||
-            "Groq Transcript Error"
-        });
+      res.status(400).json({
 
+        ok: false,
+
+        error:
+          error?.message ||
+          'Groq Transcript Error'
+
+      });
 
     } finally {
-      cleanupFile(
-        filePath
-      );
+
+      cleanup(file);
+
     }
+
   }
 );
 
-
 /* =========================================================
-   GEMINI TRANSLATION
+   GEMINI TRANSLATE
 ========================================================= */
 
 app.post(
-  "/api/translate",
-
+  '/api/translate',
   async (
     req,
     res
@@ -1167,662 +1140,443 @@ app.post(
 
     try {
 
-      const key =
-        getGeminiKey(req);
+      const geminiKey =
+        getKey(
+          req,
+          'x-gemini-api-key',
+          'geminiApiKey',
+          'GEMINI_API_KEY',
+          'Gemini API Key'
+        );
 
-
-      if (!key) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Gemini API Key မရှိပါ"
-          });
-      }
-
-
-      const transcript =
+      const input =
         Array.isArray(
           req.body?.transcript
         )
           ? req.body.transcript
           : [];
 
-
-      if (!transcript.length) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Transcript မရှိပါ"
-          });
-      }
-
-
-      /*
-        Preserve Groq timing.
-      */
-
-      const inputSegments =
-        transcript.map(
-          (item, index) => ({
-            id:
-              index + 1,
-
-            start:
-              Number(
-                item.start
-              ) || 0,
-
-            end:
-              Number(
-                item.end
-              ) || 0,
-
-            text:
-              String(
-                item.text ||
-                ""
-              ).trim()
-          })
-        );
-
-
-      /*
-        Gemini should ONLY translate.
-
-        It must NOT create timing.
-
-        It must NOT merge.
-
-        It must NOT split.
-
-      */
-
-      const prompt = `
-You are a professional Myanmar subtitle translator.
-
-Translate each English dialogue line into natural, clear Myanmar Burmese.
-
-VERY IMPORTANT:
-
-- Translate ONLY the dialogue text.
-- Do NOT add explanations.
-- Do NOT add comments.
-- Do NOT add instructions.
-- Do NOT invent dialogue.
-- Do NOT repeat the English dialogue.
-- Do NOT merge subtitle lines.
-- Do NOT split subtitle lines.
-- Keep exactly the same IDs.
-- Return JSON only.
-
-The "start" and "end" values are provided only for reference.
-DO NOT change them.
-
-Return exactly this structure:
-
-{
-  "transcript": [
-    {
-      "id": 1,
-      "text": "မြန်မာဘာသာပြန်စာ"
-    }
-  ]
-}
-
-SOURCE:
-${JSON.stringify(
-  inputSegments.map(
-    item => ({
-      id:
-        item.id,
-
-      text:
-        item.text
-    })
-  )
-)}
-`;
-
-
-      /*
-        Gemini Interactions API
-      */
-
-      const response =
-        await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/interactions",
-          {
-            method:
-              "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-
-              "x-goog-api-key":
-                key
-            },
-
-            body:
-              JSON.stringify({
-                model:
-                  "gemini-3.8-flash",
-
-                input:
-                  prompt
-              })
-          }
-        );
-
-
-      const rawText =
-        await response.text();
-
-      const data =
-        parseJsonSafely(
-          rawText
-        );
-
-
-      /*
-        Handle Gemini quota
-        separately.
-      */
-
       if (
-        response.status === 429
+        !input.length
       ) {
 
-        console.error(
-          "GEMINI RATE LIMIT:",
-          rawText
-        );
-
-        return res
-          .status(429)
-          .json({
-            error:
-              "Gemini Free Tier quota ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး နောက်မှ Translate ပြန်နှိပ်ပါ။ Auto Retry မလုပ်ထားပါ။"
-          });
-      }
-
-
-      if (!response.ok) {
-
         throw new Error(
-          data?.error?.message ||
-          data?.error ||
-          rawText ||
-          "Gemini translation failed"
+          'Transcript မရှိပါ'
         );
+
       }
 
+      const normalized =
+        input
 
-      const outputText =
-        extractInteractionText(
-          data
-        );
-
-
-      const parsed =
-        extractJsonObject(
-          outputText
-        );
-
-
-      if (!parsed) {
-        throw new Error(
-          "Gemini က valid JSON translation မပြန်ပါ"
-        );
-      }
-
-
-      const translated =
-        Array.isArray(
-          parsed.transcript
-        )
-          ? parsed.transcript
-          : Array.isArray(
-              parsed
-            )
-            ? parsed
-            : [];
-
-
-      if (!translated.length) {
-        throw new Error(
-          "Gemini Myanmar Translation data မမှန်ပါ"
-        );
-      }
-
-
-      /*
-        Match translation by ID.
-      */
-
-      const translatedById =
-        new Map();
-
-
-      translated.forEach(
-        (item, index) => {
-
-          const id =
-            Number(
-              item.id
-            ) ||
-            index + 1;
-
-
-          const text =
-            String(
-              item.text ||
-              ""
-            )
-              .trim();
-
-
-          translatedById.set(
-            id,
-            text
-          );
-        }
-      );
-
-
-      /*
-        ALWAYS keep original
-        Groq timing.
-      */
-
-      const result =
-        inputSegments
           .map(
-            item => ({
+            (
+              s,
+              i
+            ) => ({
+
               id:
-                item.id,
+                i + 1,
 
               start:
-                item.start,
+                Number(s.start) ||
+                0,
 
               end:
-                item.end,
+                Number(s.end) ||
+                0,
 
               text:
-                translatedById.get(
-                  item.id
-                ) ||
-                item.text
+                cleanTranscriptText(
+                  s.text
+                )
+
             })
           )
+
           .filter(
-            item =>
-              item.text
+            s =>
+              s.text &&
+              s.end > s.start
           );
 
+      if (
+        !normalized.length
+      ) {
 
-      console.log(
-        `Gemini translation complete: ${result.length} subtitle segments`
-      );
+        throw new Error(
+          'ဘာသာပြန်ရန် Transcript data မမှန်ပါ'
+        );
 
+      }
+
+      const model =
+        String(
+          req.body?.geminiModel ||
+          'gemini-3.8-flash'
+        ).trim();
+
+      const translated =
+        await translateAll(
+          normalized,
+          geminiKey,
+          model
+        );
+
+      const subtitleSegments =
+        splitTranslatedSegments(
+          translated
+        );
 
       res.json({
+
         ok: true,
 
         transcript:
-          result
-      });
+          subtitleSegments,
 
+        srt:
+          makeSrt(
+            subtitleSegments
+          )
+
+      });
 
     } catch (error) {
 
       console.error(
-        "TRANSLATE ERROR:",
+        'TRANSLATE ERROR:',
         error
       );
 
+      res.status(400).json({
 
-      res
-        .status(500)
-        .json({
-          error:
-            error.message ||
-            "Gemini Myanmar Translation Error"
-        });
+        ok: false,
+
+        error:
+          error?.message ||
+          'Gemini Myanmar Translation Error'
+
+      });
+
     }
+
   }
 );
 
-
 /* =========================================================
-   GEMINI OUTPUT EXTRACTION
+   OLD /api/process COMPATIBILITY
 ========================================================= */
 
-function extractInteractionText(
-  data
-) {
+app.post(
+  '/api/process',
+  upload.single('video'),
+  async (
+    req,
+    res
+  ) => {
 
-  if (!data) {
-    return "";
-  }
+    const file =
+      req.file?.path;
 
+    try {
 
-  if (
-    typeof data.output_text ===
-    "string"
-  ) {
-    return data.output_text;
-  }
+      if (!file) {
 
-
-  if (
-    typeof data.text ===
-    "string"
-  ) {
-    return data.text;
-  }
-
-
-  if (
-    typeof data.output ===
-    "string"
-  ) {
-    return data.output;
-  }
-
-
-  if (
-    Array.isArray(
-      data.output
-    )
-  ) {
-
-    const parts = [];
-
-
-    for (
-      const item of
-      data.output
-    ) {
-
-      if (
-        typeof item ===
-        "string"
-      ) {
-        parts.push(
-          item
+        throw new Error(
+          'Video file မရှိပါ'
         );
 
-        continue;
       }
 
-
-      if (
-        typeof item?.text ===
-        "string"
-      ) {
-        parts.push(
-          item.text
+      const groqKey =
+        getKey(
+          req,
+          'x-groq-api-key',
+          'groqKey',
+          'GROQ_API_KEY',
+          'Groq API Key'
         );
 
-        continue;
-      }
+      const geminiKey =
+        getKey(
+          req,
+          'x-gemini-api-key',
+          'geminiKey',
+          'GEMINI_API_KEY',
+          'Gemini API Key'
+        );
 
+      const {
+        duration
+      } =
+        await probeVideo(
+          file
+        );
 
       if (
-        Array.isArray(
-          item?.content
-        )
+        duration >
+        MAX_SECONDS
       ) {
 
-        for (
-          const content of
-          item.content
-        ) {
+        throw new Error(
+          'Video က 5 မိနစ်ထက်ကျော်နေပါတယ်'
+        );
 
-          if (
-            typeof content ===
-            "string"
-          ) {
+      }
 
-            parts.push(
-              content
-            );
+      const result =
+        await transcribeGroq(
+          file,
+          groqKey
+        );
 
-          } else if (
-            typeof content?.text ===
-            "string"
-          ) {
+      const original =
+        buildSegments(
+          result,
+          duration
+        );
 
-            parts.push(
-              content.text
-            );
-          }
+      const model =
+        String(
+          req.body?.geminiModel ||
+          'gemini-3.8-flash'
+        ).trim();
+
+      const translated =
+        await translateAll(
+          original,
+          geminiKey,
+          model
+        );
+
+      const subtitleSegments =
+        splitTranslatedSegments(
+          translated
+        );
+
+      const id =
+        crypto.randomUUID();
+
+      const work =
+        path.join(
+          TMP,
+          id
+        );
+
+      await fs.mkdir(
+        work,
+        {
+          recursive: true
         }
-      }
+      );
+
+      await fs.writeFile(
+        path.join(
+          work,
+          'myanmar.srt'
+        ),
+        makeSrt(
+          subtitleSegments
+        ),
+        'utf8'
+      );
+
+      await fs.writeFile(
+        path.join(
+          work,
+          'original.json'
+        ),
+        JSON.stringify(
+          {
+            duration,
+            segments:
+              original
+          },
+          null,
+          2
+        ),
+        'utf8'
+      );
+
+      res.json({
+
+        ok: true,
+
+        duration,
+
+        segments:
+          subtitleSegments,
+
+        files: {
+
+          srt:
+            `/api/download/${id}/myanmar.srt`,
+
+          transcript:
+            `/api/download/${id}/original.json`
+
+        }
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        'PROCESS ERROR:',
+        error
+      );
+
+      res.status(400).json({
+
+        ok: false,
+
+        error:
+          error?.message ||
+          String(error)
+
+      });
+
+    } finally {
+
+      cleanup(file);
+
     }
 
-
-    return parts.join("");
   }
+);
 
+/* =========================================================
+   DOWNLOAD
+========================================================= */
 
-  /*
-    Compatibility with
-    candidate-style responses.
-  */
+app.get(
+  '/api/download/:id/:file',
+  async (
+    req,
+    res
+  ) => {
 
-  if (
-    Array.isArray(
-      data.candidates
-    )
-  ) {
+    const allowed =
+      new Set([
+        'myanmar.srt',
+        'original.json'
+      ]);
 
-    const parts = [];
-
-
-    for (
-      const candidate of
-      data.candidates
+    if (
+      !allowed.has(
+        req.params.file
+      )
     ) {
 
-      const content =
-        candidate?.content;
+      return res
+        .status(404)
+        .end();
 
-
-      if (
-        typeof content?.text ===
-        "string"
-      ) {
-
-        parts.push(
-          content.text
-        );
-      }
-
-
-      if (
-        Array.isArray(
-          content?.parts
-        )
-      ) {
-
-        for (
-          const part of
-          content.parts
-        ) {
-
-          if (
-            typeof part?.text ===
-            "string"
-          ) {
-
-            parts.push(
-              part.text
-            );
-          }
-        }
-      }
     }
 
+    const file =
+      path.join(
+        TMP,
+        req.params.id,
+        req.params.file
+      );
 
-    return parts.join("");
+    try {
+
+      await fs.access(
+        file
+      );
+
+      res.download(
+        file
+      );
+
+    } catch {
+
+      res.status(404).json({
+
+        error:
+          'File not found or expired.'
+
+      });
+
+    }
+
   }
-
-
-  return "";
-}
-
+);
 
 /* =========================================================
    MOVIE RECAP DISABLED
 ========================================================= */
 
-app.all(
-  "/api/movie-auto",
-  (req, res) => {
+for (
+  const route of [
 
-    res
-      .status(410)
-      .json({
+    '/api/movie-auto',
+
+    '/api/movie-recap',
+
+    '/api/movie-voice',
+
+    '/api/movie-render',
+
+    '/api/recap/one-click',
+
+    '/api/recap/analyze',
+
+    '/api/recap/tts',
+
+    '/api/recap/voice-sync',
+
+    '/api/render'
+
+  ]
+) {
+
+  app.all(
+    route,
+    (
+      req,
+      res
+    ) => {
+
+      res.status(410).json({
+
+        ok: false,
+
         error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
+          'Movie Recap / MP4 Render ကို SRT-only version မှာ ပိတ်ထားပါတယ်'
+
       });
-  }
-);
 
+    }
+  );
 
-app.all(
-  "/api/movie-recap",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/movie-voice",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/movie-render",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/recap/one-click",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/recap/analyze",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/recap/tts",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/recap/voice-sync",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "Movie Recap feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
-
-app.all(
-  "/api/render",
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-        error:
-          "MP4 Render feature ကို SRT-only version မှာ ပိတ်ထားပါတယ်"
-      });
-  }
-);
-
+}
 
 /* =========================================================
    API 404
 ========================================================= */
 
 app.use(
-  "/api",
-  (req, res) => {
-
+  '/api',
+  (
+    req,
     res
-      .status(404)
-      .json({
-        error:
-          "API endpoint မတွေ့ပါ"
-      });
+  ) => {
+
+    res.status(404).json({
+
+      ok: false,
+
+      error:
+        'API endpoint မတွေ့ပါ'
+
+    });
+
   }
 );
-
 
 /* =========================================================
    ERROR HANDLER
@@ -1837,37 +1591,40 @@ app.use(
   ) => {
 
     console.error(
-      "SERVER ERROR:",
+      'SERVER ERROR:',
       error
     );
-
 
     if (
       res.headersSent
     ) {
+
       return next(
         error
       );
+
     }
 
+    res.status(500).json({
 
-    res
-      .status(500)
-      .json({
-        error:
-          error.message ||
-          "Server Error"
-      });
+      ok: false,
+
+      error:
+        error?.message ||
+        'Server Error'
+
+    });
+
   }
 );
 
-
 /* =========================================================
-   START SERVER
+   START
 ========================================================= */
 
 app.listen(
   PORT,
+  '0.0.0.0',
   () => {
 
     console.log(
@@ -1875,35 +1632,36 @@ app.listen(
     );
 
     console.log(
-      "SRT ONLY MODE: ENABLED"
+      'SRT ONLY MODE: ENABLED'
     );
 
     console.log(
-      "Groq model: whisper-large-v3-turbo"
+      'Groq: whisper-large-v3-turbo'
     );
 
     console.log(
-      "Groq timestamps: WORD + SEGMENT"
+      'Gemini: gemini-3.8-flash'
     );
 
     console.log(
-      "Subtitle split: ENABLED"
+      'Groq API Key: TRANSCRIPTION'
     );
 
     console.log(
-      "Gemini model: gemini-3.8-flash"
+      'Gemini API Key: MYANMAR TRANSLATION'
     );
 
     console.log(
-      "Gemini auto-retry: DISABLED"
+      'Gemini request batching: 1 request normally / 2 max'
     );
 
     console.log(
-      "Movie Recap: DISABLED"
+      'Movie Recap: DISABLED'
     );
 
     console.log(
-      "MP4 Render: DISABLED"
+      'MP4 Render: DISABLED'
     );
+
   }
 );
