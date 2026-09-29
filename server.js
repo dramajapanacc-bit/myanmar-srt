@@ -7,6 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
+
 import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
 import ffprobeStatic from 'ffprobe-static';
@@ -26,7 +27,22 @@ await fs.mkdir(TMP, { recursive: true });
 
 
 // ============================================================
-// ALLOWED VIDEO / AUDIO EXTENSIONS
+// MODELS
+// ============================================================
+
+const GROQ_MODEL =
+  'whisper-large-v3-turbo';
+
+const GEMINI_MODEL =
+  'gemini-3.8-flash';
+
+// OpenRouter FREE model
+const OPENROUTER_MODEL =
+  'google/gemma-4-26b-a4b-it:free';
+
+
+// ============================================================
+// ALLOWED FILE TYPES
 // ============================================================
 
 const allowedExt = new Set([
@@ -44,9 +60,7 @@ const allowedExt = new Set([
 
 
 // ============================================================
-// MULTER UPLOAD
-// IMPORTANT:
-// Keep original extension because Groq checks file extension.
+// MULTER
 // ============================================================
 
 const upload = multer({
@@ -56,13 +70,15 @@ const upload = multer({
     },
 
     filename: (_req, file, cb) => {
-      const originalExt = path
-        .extname(file.originalname || '')
-        .toLowerCase();
+      const originalExt =
+        path
+          .extname(file.originalname || '')
+          .toLowerCase();
 
-      const ext = allowedExt.has(originalExt)
-        ? originalExt
-        : '.mp4';
+      const ext =
+        allowedExt.has(originalExt)
+          ? originalExt
+          : '.mp4';
 
       cb(
         null,
@@ -77,14 +93,15 @@ const upload = multer({
   },
 
   fileFilter: (_req, file, cb) => {
-    const ext = path
-      .extname(file.originalname || '')
-      .toLowerCase();
+    const ext =
+      path
+        .extname(file.originalname || '')
+        .toLowerCase();
 
     if (!allowedExt.has(ext)) {
       return cb(
         new Error(
-          'MP4 သို့မဟုတ် WEBM video ကိုသုံးပါ။ Groq မထောက်ပံ့တဲ့ format ဖြစ်ပါတယ်။'
+          'MP4 သို့မဟုတ် WEBM video ကိုသုံးပါ။'
         )
       );
     }
@@ -117,7 +134,7 @@ app.use(
 
 
 // ============================================================
-// API KEY HELPER
+// API KEY
 // ============================================================
 
 function getKey(
@@ -135,7 +152,9 @@ function getKey(
   ).trim();
 
   if (!key) {
-    throw new Error(`${label} မရှိပါ`);
+    throw new Error(
+      `${label} မရှိပါ`
+    );
   }
 
   return key;
@@ -143,7 +162,7 @@ function getKey(
 
 
 // ============================================================
-// TEXT CLEAN
+// CLEAN TEXT
 // ============================================================
 
 function cleanText(text) {
@@ -169,76 +188,77 @@ function cleanText(text) {
 
 
 // ============================================================
-// FFMPEG / FFPROBE VIDEO CHECK
+// FFPROBE
 // ============================================================
 
 async function probeVideo(file) {
-  const result = await new Promise(
-    (resolve, reject) => {
-      const child = spawn(
-        ffprobeStatic.path,
-        [
-          '-v',
-          'error',
-          '-show_entries',
-          'format=duration,size',
-          '-show_streams',
-          '-of',
-          'json',
-          file
-        ]
-      );
+  const result =
+    await new Promise(
+      (resolve, reject) => {
+        const child = spawn(
+          ffprobeStatic.path,
+          [
+            '-v',
+            'error',
+            '-show_entries',
+            'format=duration,size',
+            '-show_streams',
+            '-of',
+            'json',
+            file
+          ]
+        );
 
-      let stdout = '';
-      let stderr = '';
+        let stdout = '';
+        let stderr = '';
 
-      child.stdout.on(
-        'data',
-        d => {
-          stdout += d.toString();
-        }
-      );
-
-      child.stderr.on(
-        'data',
-        d => {
-          stderr += d.toString();
-        }
-      );
-
-      child.on(
-        'error',
-        reject
-      );
-
-      child.on(
-        'close',
-        code => {
-          if (code === 0) {
-            resolve({
-              stdout,
-              stderr
-            });
-          } else {
-            reject(
-              new Error(
-                stderr ||
-                `ffprobe exited with code ${code}`
-              )
-            );
+        child.stdout.on(
+          'data',
+          d => {
+            stdout += d.toString();
           }
-        }
-      );
-    }
-  );
+        );
 
-  const data = JSON.parse(
-    result.stdout
-  );
+        child.stderr.on(
+          'data',
+          d => {
+            stderr += d.toString();
+          }
+        );
 
-  const duration = Number(
-    data?.format?.duration || 0
-  );
+        child.on(
+          'error',
+          reject
+        );
+
+        child.on(
+          'close',
+          code => {
+            if (code === 0) {
+              resolve({
+                stdout,
+                stderr
+              });
+            } else {
+              reject(
+                new Error(
+                  stderr ||
+                  `ffprobe exited with code ${code}`
+                )
+              );
+            }
+          }
+        );
+      }
+    );
+
+  const data =
+    JSON.parse(result.stdout);
+
+  const duration =
+    Number(
+      data?.format?.duration || 0
+    );
 
   if (
     !Number.isFinite(duration) ||
@@ -263,15 +283,15 @@ async function transcribeGroq(
   file,
   apiKey
 ) {
-  const groq = new Groq({
-    apiKey
-  });
+  const groq =
+    new Groq({
+      apiKey
+    });
 
   return groq.audio.transcriptions.create({
     file: createReadStream(file),
 
-    model:
-      'whisper-large-v3-turbo',
+    model: GROQ_MODEL,
 
     response_format:
       'verbose_json',
@@ -287,7 +307,7 @@ async function transcribeGroq(
 
 
 // ============================================================
-// BUILD TRANSCRIPT SEGMENTS
+// BUILD TRANSCRIPT
 // ============================================================
 
 function buildSegments(
@@ -301,24 +321,26 @@ function buildSegments(
 
   const output =
     segments
-      .map((s, i) => ({
-        id: i + 1,
+      .map(
+        (s, i) => ({
+          id: i + 1,
 
-        start:
-          Math.max(
-            0,
-            Number(s.start) || 0
-          ),
+          start:
+            Math.max(
+              0,
+              Number(s.start) || 0
+            ),
 
-        end:
-          Math.max(
-            0,
-            Number(s.end) || 0
-          ),
+          end:
+            Math.max(
+              0,
+              Number(s.end) || 0
+            ),
 
-        text:
-          cleanText(s.text)
-      }))
+          text:
+            cleanText(s.text)
+        })
+      )
       .filter(
         s =>
           s.text &&
@@ -352,49 +374,67 @@ function buildSegments(
 // ============================================================
 
 function extractJson(text) {
-  const raw =
+  let raw =
     String(text || '').trim();
 
-  const tries = [
-    raw,
+  // Remove markdown fences
+  raw = raw
+    .replace(
+      /^```json\s*/i,
+      ''
+    )
+    .replace(
+      /^```\s*/i,
+      ''
+    )
+    .replace(
+      /```\s*$/i,
+      ''
+    )
+    .trim();
 
-    raw
-      .replace(
-        /^```json\s*/i,
-        ''
-      )
-      .replace(
-        /^```\s*/i,
-        ''
-      )
-      .replace(
-        /```\s*$/i,
-        ''
-      )
-      .trim()
-  ];
+  // Direct JSON
+  try {
+    return JSON.parse(raw);
+  } catch {}
 
-  for (const value of tries) {
-    try {
-      return JSON.parse(value);
-    } catch {}
-  }
+  // Try object
+  const objectStart =
+    raw.indexOf('{');
 
-  const a =
-    raw.indexOf('[');
-
-  const b =
-    raw.lastIndexOf(']');
+  const objectEnd =
+    raw.lastIndexOf('}');
 
   if (
-    a >= 0 &&
-    b > a
+    objectStart >= 0 &&
+    objectEnd > objectStart
   ) {
     try {
       return JSON.parse(
         raw.slice(
-          a,
-          b + 1
+          objectStart,
+          objectEnd + 1
+        )
+      );
+    } catch {}
+  }
+
+  // Try array
+  const arrayStart =
+    raw.indexOf('[');
+
+  const arrayEnd =
+    raw.lastIndexOf(']');
+
+  if (
+    arrayStart >= 0 &&
+    arrayEnd > arrayStart
+  ) {
+    try {
+      return JSON.parse(
+        raw.slice(
+          arrayStart,
+          arrayEnd + 1
         )
       );
     } catch {}
@@ -405,7 +445,104 @@ function extractJson(text) {
 
 
 // ============================================================
-// CHECK IF GEMINI ERROR SHOULD FALLBACK
+// NORMALIZE TRANSLATION RESULT
+// ============================================================
+
+function normalizeTranslationResult(
+  parsed,
+  segments
+) {
+  let list = [];
+
+  // Format 1:
+  // [
+  //   { id, translation }
+  // ]
+
+  if (Array.isArray(parsed)) {
+    list = parsed;
+  }
+
+  // Format 2:
+  // {
+  //   translations: [...]
+  // }
+
+  if (
+    !list.length &&
+    Array.isArray(
+      parsed?.translations
+    )
+  ) {
+    list =
+      parsed.translations;
+  }
+
+  // Format 3:
+  // {
+  //   result: [...]
+  // }
+
+  if (
+    !list.length &&
+    Array.isArray(
+      parsed?.result
+    )
+  ) {
+    list =
+      parsed.result;
+  }
+
+  if (!list.length) {
+    return null;
+  }
+
+  const byId =
+    new Map();
+
+  for (
+    const item of list
+  ) {
+    const id =
+      Number(item?.id);
+
+    const translation =
+      String(
+        item?.translation ||
+        item?.text ||
+        item?.myanmar ||
+        ''
+      ).trim();
+
+    if (
+      Number.isFinite(id) &&
+      translation
+    ) {
+      byId.set(
+        id,
+        translation
+      );
+    }
+  }
+
+  if (!byId.size) {
+    return null;
+  }
+
+  return segments.map(
+    s => ({
+      ...s,
+
+      translation:
+        byId.get(s.id) ||
+        s.text
+    })
+  );
+}
+
+
+// ============================================================
+// GEMINI FALLBACK ERROR CHECK
 // ============================================================
 
 function shouldFallbackToOpenRouter(
@@ -428,7 +565,8 @@ function shouldFallbackToOpenRouter(
     /rate.?limit/.test(message) ||
     /unavailable/.test(message) ||
     /overloaded/.test(message) ||
-    /high demand/.test(message)
+    /high demand/.test(message) ||
+    /internal error/.test(message)
   );
 }
 
@@ -439,8 +577,7 @@ function shouldFallbackToOpenRouter(
 
 async function translateWithGemini(
   segments,
-  apiKey,
-  model
+  apiKey
 ) {
   const ai =
     new GoogleGenAI({
@@ -448,39 +585,50 @@ async function translateWithGemini(
     });
 
   const input =
-    segments.map(s => ({
-      id: s.id,
-      text: s.text
-    }));
+    segments.map(
+      s => ({
+        id: s.id,
+        text: s.text
+      })
+    );
 
   const prompt = `
 You are a professional Myanmar subtitle translator.
 
 Translate EVERY source dialogue line into natural,
-concise Myanmar Unicode.
+clear and concise Myanmar Unicode.
 
 The source language may be:
 English, Chinese, Japanese, Korean,
 or any other spoken language.
 
-Return ONLY a JSON array.
+Return ONLY valid JSON.
 
-Each item must contain exactly:
-id
-translation
+Required format:
+
+{
+  "translations": [
+    {
+      "id": 1,
+      "translation": "မြန်မာဘာသာပြန်"
+    }
+  ]
+}
 
 Rules:
-- Keep the same id.
+- Keep every id exactly the same.
 - Do not remove lines.
 - Do not merge lines.
 - Do not reorder lines.
-- Do not invent lines.
+- Do not invent dialogue.
 - Translate only spoken dialogue.
-- Do not add explanations.
-- Do not add translator notes.
+- No explanation.
+- No markdown.
+- No comments.
 - Keep names naturally.
-- Keep Myanmar subtitles short and easy to read.
+- Keep subtitles short.
 - Prefer under 42 characters when possible.
+- Preserve meaning and emotion.
 
 INPUT:
 ${JSON.stringify(input)}
@@ -489,9 +637,11 @@ ${JSON.stringify(input)}
   try {
     const response =
       await ai.models.generateContent({
-        model,
+        model:
+          GEMINI_MODEL,
 
-        contents: prompt,
+        contents:
+          prompt,
 
         config: {
           temperature: 0.2,
@@ -506,51 +656,19 @@ ${JSON.stringify(input)}
         response?.text || ''
       );
 
-    const list =
-      Array.isArray(parsed)
-        ? parsed
-        : [];
+    const translated =
+      normalizeTranslationResult(
+        parsed,
+        segments
+      );
 
-    if (!list.length) {
+    if (!translated) {
       throw new Error(
-        'Gemini က valid translation JSON မပြန်ပါ'
+        'Gemini valid translation JSON မပြန်ပါ'
       );
     }
 
-    const byId =
-      new Map();
-
-    for (
-      const item of list
-    ) {
-      const id =
-        Number(item?.id);
-
-      const translation =
-        String(
-          item?.translation || ''
-        ).trim();
-
-      if (
-        Number.isFinite(id) &&
-        translation
-      ) {
-        byId.set(
-          id,
-          translation
-        );
-      }
-    }
-
-    return segments.map(
-      s => ({
-        ...s,
-
-        translation:
-          byId.get(s.id) ||
-          s.text
-      })
-    );
+    return translated;
 
   } catch (error) {
 
@@ -559,25 +677,13 @@ ${JSON.stringify(input)}
       error
     );
 
-    if (
-      shouldFallbackToOpenRouter(
-        error
-      )
-    ) {
-      throw new Error(
-        `OPENROUTER_FALLBACK_REQUIRED: ${
-          error?.message || error
-        }`
-      );
-    }
-
     throw error;
   }
 }
 
 
 // ============================================================
-// OPENROUTER FREE TRANSLATION
+// OPENROUTER GEMMA FREE
 // ============================================================
 
 async function translateWithOpenRouter(
@@ -591,45 +697,52 @@ async function translateWithOpenRouter(
   }
 
   const input =
-    segments.map(s => ({
-      id: s.id,
-      text: s.text
-    }));
+    segments.map(
+      s => ({
+        id: s.id,
+        text: s.text
+      })
+    );
 
   const prompt = `
 You are a professional Myanmar subtitle translator.
 
-Translate EVERY source dialogue line into natural,
-clear, concise Myanmar Unicode.
+Translate every source dialogue line into
+natural, clear and concise Myanmar Unicode.
 
-The source language may be:
-English, Chinese, Japanese, Korean,
-or any other language.
+Source language can be English, Chinese,
+Japanese, Korean, or any other language.
 
-Return ONLY valid JSON.
+IMPORTANT:
+Return ONLY one JSON object.
 
-Required format:
-[
-  {
-    "id": 1,
-    "translation": "မြန်မာဘာသာပြန်"
-  }
-]
+Required exact structure:
+
+{
+  "translations": [
+    {
+      "id": 1,
+      "translation": "မြန်မာဘာသာပြန်"
+    }
+  ]
+}
 
 Rules:
-- Keep every id exactly the same.
-- Do not remove any line.
-- Do not merge lines.
-- Do not reorder lines.
-- Do not invent dialogue.
-- Translate only the dialogue.
+- Every input line must have exactly one output item.
+- Keep id exactly unchanged.
+- Never remove a line.
+- Never merge lines.
+- Never reorder lines.
+- Never invent dialogue.
+- Translate only spoken dialogue.
 - No explanation.
 - No markdown.
+- No code fences.
 - No comments.
 - Keep names naturally.
-- Make subtitles easy to read.
-- Prefer short Myanmar subtitles.
-- Preserve the meaning and emotion of the original dialogue.
+- Keep subtitles short and natural.
+- Prefer under 42 characters when possible.
+- Preserve the original meaning and emotion.
 
 INPUT:
 ${JSON.stringify(input)}
@@ -639,7 +752,8 @@ ${JSON.stringify(input)}
     await fetch(
       'https://openrouter.ai/api/v1/chat/completions',
       {
-        method: 'POST',
+        method:
+          'POST',
 
         headers: {
           'Authorization':
@@ -655,26 +769,42 @@ ${JSON.stringify(input)}
             'Myanmar SRT'
         },
 
-        body: JSON.stringify({
-          model:
-            'openrouter/free',
+        body:
+          JSON.stringify({
+            model:
+              OPENROUTER_MODEL,
 
-          messages: [
-            {
-              role: 'user',
-              content: prompt
+            messages: [
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+
+            temperature: 0.2,
+
+            response_format: {
+              type:
+                'json_object'
             }
-          ],
-
-          temperature: 0.2
-        })
+          })
       }
     );
 
   const raw =
     await response.text();
 
+  console.log(
+    'OPENROUTER STATUS:',
+    response.status
+  );
+
   if (!response.ok) {
+    console.error(
+      'OPENROUTER RAW ERROR:',
+      raw
+    );
+
     throw new Error(
       `OpenRouter Error ${response.status}: ${raw}`
     );
@@ -687,99 +817,93 @@ ${JSON.stringify(input)}
       JSON.parse(raw);
   } catch {
     throw new Error(
-      'OpenRouter response JSON မဖတ်နိုင်ပါ'
+      'OpenRouter API response JSON မဖတ်နိုင်ပါ'
     );
   }
 
   const content =
-    data?.choices?.[0]?.message?.content;
+    data
+      ?.choices?.[0]
+      ?.message
+      ?.content;
 
   if (!content) {
+    console.error(
+      'OPENROUTER RESPONSE:',
+      raw
+    );
+
     throw new Error(
-      'OpenRouter က translation မပြန်ပါ'
+      'OpenRouter က empty response ပြန်ပါသည်'
     );
   }
+
+  console.log(
+    'OPENROUTER CONTENT:',
+    content.slice(0, 1000)
+  );
 
   const parsed =
     extractJson(content);
 
-  const list =
-    Array.isArray(parsed)
-      ? parsed
-      : [];
+  const translated =
+    normalizeTranslationResult(
+      parsed,
+      segments
+    );
 
-  if (!list.length) {
+  if (!translated) {
+
+    console.error(
+      'OPENROUTER PARSED JSON:',
+      parsed
+    );
+
     throw new Error(
-      'OpenRouter က valid translation JSON မပြန်ပါ'
+      'OpenRouter valid translation JSON မပြန်ပါ'
     );
   }
 
-  const byId =
-    new Map();
-
-  for (
-    const item of list
-  ) {
-    const id =
-      Number(item?.id);
-
-    const translation =
-      String(
-        item?.translation || ''
-      ).trim();
-
-    if (
-      Number.isFinite(id) &&
-      translation
-    ) {
-      byId.set(
-        id,
-        translation
-      );
-    }
-  }
-
-  return segments.map(
-    s => ({
-      ...s,
-
-      translation:
-        byId.get(s.id) ||
-        s.text
-    })
-  );
+  return translated;
 }
 
 
 // ============================================================
 // TRANSLATE CHUNK
 // GEMINI FIRST
-// OPENROUTER FALLBACK
+// OPENROUTER SECOND
 // ============================================================
 
 async function translateChunk(
   segments,
   geminiKey,
-  geminiModel,
   openRouterKey
 ) {
 
   // ----------------------------------------------------------
-  // 1. TRY GEMINI
+  // GEMINI
   // ----------------------------------------------------------
 
   try {
 
+    console.log(
+      '🟢 Trying Gemini...'
+    );
+
     const translated =
       await translateWithGemini(
         segments,
-        geminiKey,
-        geminiModel
+        geminiKey
       );
+
+    console.log(
+      '🟢 Gemini translation successful'
+    );
 
     return {
       translated,
-      provider: 'gemini'
+      provider:
+        'gemini'
     };
 
   } catch (geminiError) {
@@ -793,65 +917,44 @@ async function translateChunk(
       geminiError
     );
 
-
-    // --------------------------------------------------------
-    // 2. TRY OPENROUTER
-    // --------------------------------------------------------
-
     if (
-      shouldFallbackToOpenRouter(
+      !shouldFallbackToOpenRouter(
         geminiError
-      ) ||
-      String(
-        geminiError?.message || ''
-      ).includes(
-        'OPENROUTER_FALLBACK_REQUIRED'
       )
     ) {
-
-      if (!openRouterKey) {
-
-        throw new Error(
-          'Gemini မရပါ။ OpenRouter API Key လည်း မရှိပါ။'
-        );
-
-      }
-
-      console.log(
-        '🔵 Falling back to OpenRouter Free...'
-      );
-
-      try {
-
-        const translated =
-          await translateWithOpenRouter(
-            segments,
-            openRouterKey
-          );
-
-        return {
-          translated,
-          provider:
-            'openrouter'
-        };
-
-      } catch (openRouterError) {
-
-        console.error(
-          'OPENROUTER ERROR:',
-          openRouterError
-        );
-
-        throw new Error(
-          `Gemini မရပါ။ OpenRouter လည်း မအောင်မြင်ပါ။ ${
-            openRouterError?.message ||
-            openRouterError
-          }`
-        );
-      }
+      throw geminiError;
     }
 
-    throw geminiError;
+    // --------------------------------------------------------
+    // OPENROUTER
+    // --------------------------------------------------------
+
+    if (!openRouterKey) {
+      throw new Error(
+        'Gemini မရပါ။ OPENROUTER_API_KEY မရှိပါ'
+      );
+    }
+
+    console.log(
+      '🔵 Falling back to OpenRouter Gemma FREE...'
+    );
+
+    const translated =
+      await translateWithOpenRouter(
+        segments,
+        openRouterKey
+      );
+
+    console.log(
+      '🔵 OpenRouter translation successful'
+    );
+
+    return {
+      translated,
+
+      provider:
+        'openrouter-gemma-free'
+    };
   }
 }
 
@@ -863,45 +966,32 @@ async function translateChunk(
 async function translateAll(
   segments,
   geminiKey,
-  geminiModel =
-    'gemini-3.8-flash',
   openRouterKey
 ) {
+  // Keep each request reasonably small.
+  const max = 40;
 
-  // Keep requests small.
-  // This also makes fallback safer.
+  const results = [];
 
-  const max = 60;
-
-  const chunks = [];
+  let provider =
+    'gemini';
 
   for (
     let i = 0;
     i < segments.length;
     i += max
   ) {
-    chunks.push(
+
+    const chunk =
       segments.slice(
         i,
         i + max
-      )
-    );
-  }
-
-  const results = [];
-
-  let usedProvider =
-    'gemini';
-
-  for (
-    const chunk of chunks
-  ) {
+      );
 
     const result =
       await translateChunk(
         chunk,
         geminiKey,
-        geminiModel,
         openRouterKey
       );
 
@@ -910,18 +1000,17 @@ async function translateAll(
     );
 
     if (
-      result.provider ===
-      'openrouter'
+      result.provider !==
+      'gemini'
     ) {
-      usedProvider =
-        'openrouter';
+      provider =
+        result.provider;
     }
   }
 
   return {
     segments: results,
-    provider:
-      usedProvider
+    provider
   };
 }
 
@@ -944,7 +1033,8 @@ function splitSubtitle(
 
   if (
     value.length <= maxChars &&
-    value.split(/\s+/).length <= maxWords
+    value.split(/\s+/).length <=
+      maxWords
   ) {
     return [value];
   }
@@ -980,12 +1070,13 @@ function splitSubtitle(
         current.trim()
       );
 
-      current = word;
+      current =
+        word;
 
     } else {
 
-      current = next;
-
+      current =
+        next;
     }
   }
 
@@ -1056,10 +1147,17 @@ function splitTranslatedSegments(
 
       output.push({
         id: id++,
-        start: s.start,
-        end: s.end,
+
+        start:
+          s.start,
+
+        end:
+          s.end,
+
         text,
-        translation: text
+
+        translation:
+          text
       });
 
       continue;
@@ -1067,11 +1165,11 @@ function splitTranslatedSegments(
 
     const total =
       parts.reduce(
-        (sum, p) =>
+        (sum, part) =>
           sum +
           Math.max(
             1,
-            p.length
+            part.length
           ),
         0
       );
@@ -1116,7 +1214,8 @@ function splitTranslatedSegments(
               s.end
             ),
 
-          text: part,
+          text:
+            part,
 
           translation:
             part
@@ -1203,9 +1302,7 @@ function makeSrt(
 // CLEAN TEMP FILE
 // ============================================================
 
-function cleanup(
-  file
-) {
+function cleanup(file) {
   if (file) {
     fs.rm(
       file,
@@ -1220,7 +1317,7 @@ function cleanup(
 
 
 // ============================================================
-// HEALTH CHECK
+// HEALTH
 // ============================================================
 
 app.get(
@@ -1233,11 +1330,14 @@ app.get(
       service:
         'myanmar-srt',
 
-      srtOnly: true,
+      srtOnly:
+        true,
 
-      movieRecap: false,
+      movieRecap:
+        false,
 
-      render: false,
+      render:
+        false,
 
       groqConfigured:
         Boolean(
@@ -1255,20 +1355,20 @@ app.get(
         ),
 
       groqModel:
-        'whisper-large-v3-turbo',
+        GROQ_MODEL,
 
       geminiModel:
-        'gemini-3.8-flash',
+        GEMINI_MODEL,
 
       openRouterModel:
-        'openrouter/free'
+        OPENROUTER_MODEL
     });
   }
 );
 
 
 // ============================================================
-// TRANSCRIBE API
+// TRANSCRIBE
 // ============================================================
 
 app.post(
@@ -1310,7 +1410,6 @@ app.post(
         duration >
         MAX_SECONDS
       ) {
-
         throw new Error(
           'Video က 5 မိနစ်ထက်ကျော်နေပါတယ်'
         );
@@ -1331,7 +1430,6 @@ app.post(
       if (
         !transcript.length
       ) {
-
         throw new Error(
           'Groq က စာတန်းမထုတ်ပေးနိုင်ပါ'
         );
@@ -1382,7 +1480,7 @@ app.post(
 
 
 // ============================================================
-// TRANSLATE API
+// TRANSLATE
 // ============================================================
 
 app.post(
@@ -1421,7 +1519,6 @@ app.post(
           : [];
 
       if (!input.length) {
-
         throw new Error(
           'Transcript မရှိပါ'
         );
@@ -1458,23 +1555,15 @@ app.post(
       if (
         !normalized.length
       ) {
-
         throw new Error(
           'ဘာသာပြန်ရန် Transcript data မမှန်ပါ'
         );
       }
 
-      const model =
-        String(
-          req.body?.geminiModel ||
-          'gemini-3.8-flash'
-        ).trim();
-
       const result =
         await translateAll(
           normalized,
           geminiKey,
-          model,
           openRouterKey
         );
 
@@ -1519,7 +1608,6 @@ app.post(
 
 // ============================================================
 // OLD PROCESS API
-// KEPT FOR COMPATIBILITY
 // ============================================================
 
 app.post(
@@ -1580,7 +1668,6 @@ app.post(
         duration >
         MAX_SECONDS
       ) {
-
         throw new Error(
           'Video က 5 မိနစ်ထက်ကျော်နေပါတယ်'
         );
@@ -1598,17 +1685,10 @@ app.post(
           duration
         );
 
-      const model =
-        String(
-          req.body?.geminiModel ||
-          'gemini-3.8-flash'
-        ).trim();
-
       const translated =
         await translateAll(
           original,
           geminiKey,
-          model,
           openRouterKey
         );
 
@@ -1658,7 +1738,7 @@ app.post(
 
 
 // ============================================================
-// DISABLED MOVIE RECAP / RENDER ROUTES
+// DISABLED MOVIE RECAP / RENDER
 // ============================================================
 
 for (
@@ -1739,7 +1819,7 @@ app.use(
 
 
 // ============================================================
-// START SERVER
+// START
 // ============================================================
 
 app.listen(
@@ -1756,31 +1836,19 @@ app.listen(
     );
 
     console.log(
-      'Groq: whisper-large-v3-turbo'
+      `Groq: ${GROQ_MODEL}`
     );
 
     console.log(
-      'Gemini: gemini-3.8-flash'
+      `Gemini: ${GEMINI_MODEL}`
     );
 
     console.log(
-      'OpenRouter: openrouter/free'
+      `OpenRouter FREE: ${OPENROUTER_MODEL}`
     );
 
     console.log(
-      'Groq API Key: TRANSCRIPTION'
-    );
-
-    console.log(
-      'Gemini API Key: MYANMAR TRANSLATION'
-    );
-
-    console.log(
-      'OpenRouter API Key: FALLBACK TRANSLATION'
-    );
-
-    console.log(
-      'Translation fallback: GEMINI -> OPENROUTER'
+      'Translation fallback: GEMINI -> OPENROUTER GEMMA FREE'
     );
 
     console.log(
