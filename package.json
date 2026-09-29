@@ -1,17 +1,18 @@
 {
   "name": "myanmar-srt",
   "version": "1.0.0",
-  "description": "Groq + Gemini Myanmar subtitle backend",
-  "main": "server.js",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
-  },
-  "engines": {
-    "node": ">=20"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
+    "@google/genai": "latest",
+    "dotenv": "latest",
     "express": "^5.1.0",
+    "ffprobe-static": "latest",
+    "groq-sdk": "latest",
     "multer": "^2.0.2"
   }
 }
