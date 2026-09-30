@@ -11,6 +11,7 @@
     "@google/genai": "latest",
     "dotenv": "latest",
     "express": "^5.1.0",
+    "ffmpeg-static": "latest",
     "ffprobe-static": "latest",
     "groq-sdk": "latest",
     "multer": "^2.0.2"
