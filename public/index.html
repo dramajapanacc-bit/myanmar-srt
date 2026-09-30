@@ -25,16 +25,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.status{padding:12px;border-radius:12px;background:#071321;border:1px solid var(--line);color:#b9c9db;font-size:13px}
 .previewBox{position:relative;background:#000;border-radius:18px;overflow:hidden;border:1px solid #1e3550}
 #video{display:block;width:100%;max-height:68vh;object-fit:contain;background:#000}
-.subtitlePreview{position:absolute;left:5%;right:5%;bottom:6%;text-align:center;font-weight:700;font-size:25px;line-height:1.35;color:#fff;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;pointer-events:none;display:none}
-.blurLayer{position:absolute;inset:0;pointer-events:none}.blurRect{position:absolute;border:2px dashed #22d3ee;background:#22d3ee26;border-radius:8px;display:none}
+.subtitlePreview{position:absolute;left:50%;top:90%;transform:translate(-50%,-50%);width:90%;text-align:center;font-weight:700;font-size:25px;line-height:1.35;color:#fff;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;pointer-events:none;display:none;z-index:5;user-select:none;touch-action:none}
+.subtitlePreview.moveMode{pointer-events:auto;cursor:move;outline:2px solid #22d3ee;outline-offset:4px;background:#22d3ee16;border-radius:10px;padding:3px 6px}
+.blurLayer{position:absolute;inset:0;pointer-events:none;z-index:4}.blurRect{position:absolute;border:2px solid #7dd3fc;background:rgba(20,30,45,.18);backdrop-filter:blur(11px) saturate(.55);-webkit-backdrop-filter:blur(11px) saturate(.55);box-shadow:0 0 0 9999px rgba(0,0,0,.02),inset 0 0 18px rgba(255,255,255,.08);border-radius:8px;display:none}
 .hint{padding:10px 12px;border-radius:12px;background:#0a1a2c;color:#9fb0c5;font-size:12px;margin-top:10px}
 .badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#153455;color:#8fdcff;font-size:11px;margin-bottom:8px}
 .check{display:flex;gap:10px;align-items:center;margin-top:10px}.check input{width:auto}.check span{font-size:13px}
+.keyCard summary{list-style:none;cursor:pointer;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:space-between;padding:2px 0}.keyCard summary::-webkit-details-marker{display:none}.keyCard summary::after{content:'＋';font-size:22px;color:#8fdcff}.keyCard[open] summary::after{content:'−'}.keyBody{margin-top:12px}
+.styleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.styleBox{padding:12px;border:1px solid #213f61;border-radius:14px;background:#081625}.styleTop{display:flex;align-items:center;justify-content:space-between;gap:8px}.styleValue{padding:4px 9px;border-radius:999px;background:#102f50;color:#8fdcff;font-size:11px;white-space:nowrap}.stepper{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;margin-top:8px}.stepper button{margin:0;padding:8px;font-size:18px}.stepper input{margin:0;text-align:center;padding:8px}.posGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}.posBtn{margin:0;padding:9px 4px;font-size:11px;background:#101f33;border:1px solid #29415f;box-shadow:none}.posBtn.active{background:linear-gradient(135deg,#326fe7,#22a9e6);border-color:#7dd3fc}.moveBtn{margin-top:10px}.finalDownload{display:none;background:linear-gradient(135deg,#10a97d,#34d399);font-size:15px;padding:15px}@media(max-width:520px){.styleGrid{grid-template-columns:1fr}}
 .file{padding:13px;background:#071321;border:1px dashed #35506f;border-radius:13px}
 .footer{text-align:center;color:#71849c;font-size:11px;margin-top:18px}
-
-/* Compact mobile-friendly Subtitle Style UI */
-.stylePanel{display:grid;grid-template-columns:1fr 1fr;gap:10px}.styleItem{background:#091728;border:1px solid #203754;border-radius:14px;padding:11px}.styleHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.styleName{font-size:12px;color:#c8d5e5;font-weight:600}.styleValue{font-size:11px;color:#8fdcff;background:#102c49;border:1px solid #254969;border-radius:999px;padding:3px 8px;white-space:nowrap}.styleRange{width:100%;padding:0;margin:2px 0 0;border:0;background:transparent;accent-color:#4f8cff}.colorRow{display:flex;align-items:center;gap:9px}.colorSwatch{width:38px;height:38px;padding:3px;border-radius:10px;flex:none}.colorCode{flex:1;min-width:0;padding:9px 10px;border-radius:10px;background:#071321;border:1px solid #29415f;color:#dbe8f6;font-size:12px}.positionBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.positionBtn{margin:0;padding:9px 4px;border-radius:10px;background:#101f33;border:1px solid #29415f;box-shadow:none;font-size:11px}.positionBtn.active{background:linear-gradient(135deg,#326fe7,#22a9e6);border-color:#4f8cff}.finalDownload{display:none;margin-top:10px;background:linear-gradient(135deg,#10a97d,#22c997);font-weight:700}@media(max-width:520px){.stylePanel{grid-template-columns:1fr}}
 @media(max-width:520px){.wrap{padding:10px 9px 35px}.hero{border-radius:20px}h1{font-size:21px}.row{grid-template-columns:1fr}.subtitlePreview{font-size:19px}}
 </style>
 </head>
@@ -50,15 +50,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </section>
 
-  <section class="card">
-    <div class="title">🔑 API Key</div>
-    <label>Groq API Key</label>
-    <input id="groqKey" type="password" placeholder="Groq API Key">
-    <label>Gemini API Key</label>
-    <input id="geminiKey" type="password" placeholder="Gemini API Key">
-    <button class="dark" onclick="saveKeys()">💾 API Key သိမ်းမယ်</button>
-    <div class="small">Key တွေကို ဒီ browser ရဲ့ localStorage ထဲမှာသာ သိမ်းထားပါတယ်။</div>
-  </section>
+  <details class="card keyCard">
+    <summary>🔑 Key Settings</summary>
+    <div class="keyBody">
+      <label>Groq API Key</label>
+      <input id="groqKey" type="password" placeholder="Groq API Key">
+      <label>Gemini API Key</label>
+      <input id="geminiKey" type="password" placeholder="Gemini API Key">
+      <button class="dark" onclick="saveKeys()">💾 API Key သိမ်းမယ်</button>
+      <div class="small">Key တွေကို ဒီ browser ရဲ့ localStorage ထဲမှာသာ သိမ်းထားပါတယ်။</div>
+    </div>
+  </details>
 
   <section class="card">
     <div class="title">🎬 Video</div>
@@ -92,13 +94,28 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <section class="card">
     <div class="title">🎨 Subtitle Style</div>
-    <div class="stylePanel">
-      <div class="styleItem"><div class="styleHead"><span class="styleName">စာလုံးအရွယ်</span><span class="styleValue" id="fontSizeValue">42 px</span></div><input id="fontSize" class="styleRange" type="range" min="22" max="80" value="42"></div>
-      <div class="styleItem"><div class="styleHead"><span class="styleName">Outline</span><span class="styleValue" id="outlineValue">3 px</span></div><input id="outline" class="styleRange" type="range" min="0" max="8" value="3"></div>
-      <div class="styleItem"><div class="styleHead"><span class="styleName">စာလုံးအရောင်</span><span class="styleValue" id="colorCode">#FFFFFF</span></div><div class="colorRow"><input id="color" class="colorSwatch" type="color" value="#ffffff"><div class="colorCode">စာတန်းအရောင် ရွေးပါ</div></div></div>
-      <div class="styleItem"><div class="styleHead"><span class="styleName">စာတန်းနေရာ</span><span class="styleValue" id="positionValue">အောက်</span></div><input id="position" type="hidden" value="bottom"><div class="positionBtns"><button type="button" class="positionBtn" data-pos="top" onclick="setPosition('top')">အပေါ်</button><button type="button" class="positionBtn" data-pos="middle" onclick="setPosition('middle')">အလယ်</button><button type="button" class="positionBtn active" data-pos="bottom" onclick="setPosition('bottom')">အောက်</button></div></div>
+    <div class="styleGrid">
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာလုံးအရွယ်</label><span class="styleValue" id="fontSizeValue">42 px</span></div>
+        <div class="stepper"><button type="button" class="dark" onclick="stepStyle('fontSize',-1)">−</button><input id="fontSize" type="number" min="22" max="80" step="1" value="42"><button type="button" class="dark" onclick="stepStyle('fontSize',1)">＋</button></div>
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">Outline</label><span class="styleValue" id="outlineValue">3 px</span></div>
+        <div class="stepper"><button type="button" class="dark" onclick="stepStyle('outline',-1)">−</button><input id="outline" type="number" min="0" max="8" step="1" value="3"><button type="button" class="dark" onclick="stepStyle('outline',1)">＋</button></div>
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာလုံးအရောင်</label><span class="styleValue" id="colorCode">#FFFFFF</span></div>
+        <input id="color" type="color" value="#ffffff" style="height:46px;margin-top:8px;padding:4px">
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာတန်းနေရာ</label><span class="styleValue" id="positionValue">အောက်</span></div>
+        <input id="position" type="hidden" value="bottom">
+        <div class="posGrid"><button type="button" class="posBtn" data-pos="top" onclick="setPosition('top')">အပေါ်</button><button type="button" class="posBtn" data-pos="middle" onclick="setPosition('middle')">အလယ်</button><button type="button" class="posBtn active" data-pos="bottom" onclick="setPosition('bottom')">အောက်</button></div>
+      </div>
     </div>
-    <div class="hint">Preview မှာ မြန်မာစာတန်းကို video ပေါ်မှာ ချက်ချင်းကြည့်နိုင်ပါတယ်။</div>
+    <button type="button" class="dark moveBtn" id="subtitleMoveBtn" onclick="toggleSubtitleMove()">🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်</button>
+    <button type="button" class="dark" onclick="resetSubtitlePosition()">↺ Subtitle နေရာ Reset</button>
+    <div class="hint">Video ပေါ်က မြန်မာစာတန်းကို လက်နဲ့ ဆွဲပြီး ကိုယ်လိုချင်တဲ့နေရာမှာ ထားနိုင်ပါတယ်။</div>
   </section>
 
   <section class="card">
@@ -107,14 +124,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <input id="blurToggle" type="checkbox">
       <span>မူရင်းစာတန်းနေရာကို Blur လုပ်မယ်</span>
     </div>
-    <button class="pink" onclick="startBlur()" id="blurBtn">🖌️ Blur နေရာရွေးမယ်</button>
+    <button class="pink" onclick="startBlur()" id="blurBtn">🖌️ Blur နေရာကို လက်နဲ့ရွေးမယ်</button>
     <button class="dark" onclick="clearBlur()">✖️ Blur နေရာဖျက်မယ်</button>
-    <div class="hint">Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာရှိတဲ့နေရာကို ရွေးပါ။ အများဆုံး ၃ နေရာရွေးနိုင်ပါတယ်။</div>
+    <div class="hint">Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာရှိတဲ့နေရာကို ရွေးပါ။ ရွေးထားတဲ့နေရာကို Preview မှာ ဝါးဝါးလေး အုပ်ပြထားပါမယ်။ အများဆုံး ၃ နေရာရွေးနိုင်ပါတယ်။</div>
   </section>
 
   <section class="card">
     <div class="title">🎥 Final Video</div>
-    <div class="hint">Myanmar Subtitle ကို video ထဲ တိုက်ရိုက်ထည့်ပြီး Original စာကို Blur လုပ်ထားတဲ့ MP4 ထုတ်ပေးပါမယ်။</div>
+    <div class="hint">Myanmar Subtitle + Blur + Style ကို Video ထဲ တိုက်ရိုက်ထည့်ပြီး MP4 ထုတ်ပေးပါမယ်။</div>
     <button onclick="renderVideo()" id="renderBtn" disabled>🔥 Burn Myanmar Subtitle + Blur</button>
     <a id="finalDownload" class="download finalDownload" href="#" download="Burmese-YNT-SRT.mp4">⬇️ Final Video Download</a>
   </section>
@@ -217,28 +234,91 @@ function currentSubtitle(){
   const t=$('video').currentTime;
   return myanmarTranscript.find(s=>t>=Number(s.start)&&t<=Number(s.end));
 }
+
+let subtitleMoveMode=false;
+let subtitleDrag=null;
+let subtitlePosition={x:0.5,y:0.90};
+
+function clamp01(v){ return Math.max(0,Math.min(1,Number(v)||0)); }
+function setPreviewSubtitlePosition(){
+  const p=$('subtitlePreview');
+  p.style.left=(subtitlePosition.x*100)+'%';
+  p.style.top=(subtitlePosition.y*100)+'%';
+  p.style.bottom='auto';
+  p.style.transform='translate(-50%,-50%)';
+}
+function updateStylePreview(){
+  $('fontSizeValue').textContent=(Number($('fontSize').value)||42)+' px';
+  $('outlineValue').textContent=(Number($('outline').value)||0)+' px';
+  $('colorCode').textContent=$('color').value.toUpperCase();
+  const labels={top:'အပေါ်',middle:'အလယ်',bottom:'အောက်'};
+  $('positionValue').textContent=labels[$('position').value]||'အောက်';
+  document.querySelectorAll('.posBtn').forEach(btn=>btn.classList.toggle('active',btn.dataset.pos===$('position').value));
+  $('video').dispatchEvent(new Event('timeupdate'));
+}
+function stepStyle(id,delta){
+  const el=$(id); const min=Number(el.min), max=Number(el.max);
+  el.value=Math.max(min,Math.min(max,(Number(el.value)||min)+delta));
+  updateStylePreview();
+}
+function setPosition(pos){
+  $('position').value=pos;
+  const preset={top:{x:0.5,y:0.10},middle:{x:0.5,y:0.50},bottom:{x:0.5,y:0.90}};
+  subtitlePosition=preset[pos]||preset.bottom;
+  setPreviewSubtitlePosition();
+  updateStylePreview();
+}
+function resetSubtitlePosition(){
+  setPosition($('position').value||'bottom');
+  subtitleMoveMode=false;
+  $('subtitlePreview').classList.remove('moveMode');
+  $('subtitleMoveBtn').textContent='🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်';
+  status('↺ Subtitle နေရာ Reset လုပ်ပြီးပါပြီ');
+}
+function toggleSubtitleMove(){
+  subtitleMoveMode=!subtitleMoveMode;
+  $('subtitlePreview').classList.toggle('moveMode',subtitleMoveMode);
+  $('subtitleMoveBtn').textContent=subtitleMoveMode?'✅ Subtitle နေရာရွှေ့နေပါပြီ — Video ပေါ်မှာ ဆွဲပါ':'🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်';
+  status(subtitleMoveMode?'🖐️ မြန်မာ Subtitle ကို Video ပေါ်မှာ လက်နဲ့ ဆွဲရွှေ့ပါ':'✅ Subtitle နေရာ သိမ်းထားပါပြီ');
+}
 $('video').addEventListener('timeupdate',()=>{
   const s=currentSubtitle(), p=$('subtitlePreview');
   if(s){p.textContent=s.text;p.style.display='block';}
   else p.style.display='none';
-  const pos=$('position').value;
-  p.style.top=pos==='top'?'6%':pos==='middle'?'45%':'auto';
-  p.style.bottom=pos==='bottom'?'6%':'auto';
-  p.style.transform=pos==='middle'?'translateY(-50%)':'none';
   p.style.fontSize=(Number($('fontSize').value)||42)+'px';
   p.style.color=$('color').value;
+  setPreviewSubtitlePosition();
 });
-['fontSize','outline','color','position'].forEach(id=>$(id).addEventListener('input',updateStylePreview));
+['fontSize','outline','color'].forEach(id=>$(id).addEventListener('input',updateStylePreview));
 
-function videoPoint(ev){
+function contentPoint(ev){
   const box=$('video').getBoundingClientRect();
-  return {
-    x:Math.max(0,Math.min(1,(ev.clientX-box.left)/box.width)),
-    y:Math.max(0,Math.min(1,(ev.clientY-box.top)/box.height))
-  };
+  return {x:clamp01((ev.clientX-box.left)/box.width),y:clamp01((ev.clientY-box.top)/box.height)};
 }
+function videoPoint(ev){ return contentPoint(ev); }
+
+$('subtitlePreview').addEventListener('pointerdown',e=>{
+  if(!subtitleMoveMode) return;
+  e.preventDefault(); e.stopPropagation();
+  $('subtitlePreview').setPointerCapture?.(e.pointerId);
+  const p=contentPoint(e);
+  subtitleDrag={dx:subtitlePosition.x-p.x,dy:subtitlePosition.y-p.y};
+});
+$('subtitlePreview').addEventListener('pointermove',e=>{
+  if(!subtitleMoveMode||!subtitleDrag) return;
+  e.preventDefault();
+  const p=contentPoint(e);
+  subtitlePosition={x:clamp01(p.x+subtitleDrag.dx),y:clamp01(p.y+subtitleDrag.dy)};
+  setPreviewSubtitlePosition();
+});
+$('subtitlePreview').addEventListener('pointerup',e=>{
+  if(!subtitleMoveMode) return;
+  subtitleDrag=null;
+  status(`✅ Subtitle နေရာ သိမ်းပြီးပါပြီ — X ${Math.round(subtitlePosition.x*100)}% / Y ${Math.round(subtitlePosition.y*100)}%`);
+});
+
 function renderBlurRects(){
-  const box=$('video').getBoundingClientRect(), layer=document.querySelector('.blurLayer');
+  const layer=document.querySelector('.blurLayer');
   layer.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());
   blurRegions.forEach(r=>{
     const el=document.createElement('div'); el.className='blurRect dynamic'; el.style.display='block';
@@ -250,12 +330,15 @@ function startBlur(){
   if(!$('blurToggle').checked) $('blurToggle').checked=true;
   if(!$('video').src) return status('❌ Video မရှိပါ');
   if(blurRegions.length>=3) return status('ℹ️ Blur နေရာ ၃ ခုအထိ ရပါပြီ');
-  blurDrawing=true; status('🖌️ Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး Blur နေရာရွေးပါ');
+  blurDrawing=true; status('🖌️ Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာနေရာကို ရွေးပါ');
 }
 $('video').addEventListener('pointerdown',e=>{
   if(!blurDrawing) return;
   e.preventDefault(); $('video').setPointerCapture?.(e.pointerId);
   blurStart=videoPoint(e);
+});
+$('video').addEventListener('pointermove',e=>{
+  if(!blurDrawing||!blurStart) return;
 });
 $('video').addEventListener('pointerup',e=>{
   if(!blurDrawing||!blurStart) return;
@@ -266,51 +349,37 @@ $('video').addEventListener('pointerup',e=>{
   blurRegions.push({x,y,w,h}); renderBlurRects();
   status(`✅ Blur နေရာ ${blurRegions.length} ခု ရွေးပြီးပါပြီ`);
 });
-function clearBlur(){blurRegions=[];document.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());blurStart=null;blurDrawing=false}
-
-function updateStylePreview(){
-  $('fontSizeValue').textContent=(Number($('fontSize').value)||42)+' px';
-  $('outlineValue').textContent=(Number($('outline').value)||0)+' px';
-  $('colorCode').textContent=$('color').value.toUpperCase();
-  const labels={top:'အပေါ်',middle:'အလယ်',bottom:'အောက်'};
-  $('positionValue').textContent=labels[$('position').value]||'အောက်';
-  document.querySelectorAll('.positionBtn').forEach(btn=>btn.classList.toggle('active',btn.dataset.pos===$('position').value));
-  $('video').dispatchEvent(new Event('timeupdate'));
-}
-function setPosition(pos){ $('position').value=pos; updateStylePreview(); }
+function clearBlur(){blurRegions=[];document.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());blurStart=null;blurDrawing=false;status('🧹 Blur နေရာတွေ ဖျက်ပြီးပါပြီ');}
 
 async function renderVideo(){
   if(!selectedVideo) return status('❌ Video မရှိပါ');
   if(!myanmarTranscript.length) return status('❌ Myanmar Subtitle အရင်လုပ်ပါ');
   if($('blurToggle').checked && !blurRegions.length) return status('⚠️ Blur ON ဖြစ်နေပါတယ်။ Video ပေါ်မှာ Blur နေရာရွေးပါ');
   $('renderBtn').disabled=true; $('finalDownload').style.display='none';
-  status('⏳ Video ထဲကို မြန်မာစာတန်းထိုး + Blur လုပ်နေပါတယ်... အချိန်ယူနိုင်ပါတယ်');
+  status('⏳ Final Video Render လုပ်နေပါတယ်...');
   const fd=new FormData(); fd.append('video',selectedVideo);
   fd.append('segments',JSON.stringify(myanmarTranscript));
   fd.append('blurRegions',JSON.stringify($('blurToggle').checked?blurRegions:[]));
   fd.append('fontSize',$('fontSize').value); fd.append('outline',$('outline').value);
   fd.append('color',$('color').value); fd.append('position',$('position').value);
+  fd.append('subtitlePosition',JSON.stringify(subtitlePosition));
   try{
     const r=await fetch('/api/render',{method:'POST',body:fd});
-    if(!r.ok){ const d=await r.json().catch(()=>({error:'Render Error'})); throw new Error(d.error||'Render Error'); }
-    const type=(r.headers.get('content-type')||'').toLowerCase();
-    if(type.includes('video/')){
-      const blob=await r.blob(); if(!blob.size) throw new Error('MP4 ဖိုင်အလွတ်ဖြစ်နေပါတယ်');
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download='Burmese-YNT-SRT.mp4'; a.style.display='none'; document.body.appendChild(a); a.click();
-      $('finalDownload').href=url; $('finalDownload').download='Burmese-YNT-SRT.mp4'; $('finalDownload').style.display='block';
-      setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},10000);
-      status('✅ Final Video ရပါပြီ — Download စတင်ပါပြီ။ မစရင် အောက်က Final Video Download ကိုနှိပ်ပါ။'); return;
-    }
-    const d=await r.json();
-    if(d.downloadUrl){ $('finalDownload').href=d.downloadUrl; $('finalDownload').download=d.filename||'Burmese-YNT-SRT.mp4'; $('finalDownload').style.display='block'; status('✅ Final Video ရပါပြီ — အောက်က Final Video Download ကိုနှိပ်ပါ။'); return; }
-    throw new Error('Final Video Download Link မရပါ');
+    const d=await r.json().catch(()=>null);
+    if(!r.ok) throw new Error(d?.error||'Render Error');
+    if(!d?.downloadUrl) throw new Error('Final Video Download Link မရပါ');
+    $('finalDownload').href=d.downloadUrl;
+    $('finalDownload').download=d.filename||'Burmese-YNT-SRT.mp4';
+    $('finalDownload').style.display='block';
+    status('✅ Final Video ရပါပြီ — အောက်က Final Video Download ကိုနှိပ်ပါ။');
+    $('finalDownload').scrollIntoView({behavior:'smooth',block:'center'});
   }catch(e){status('❌ Video Render Error: '+e.message)}
   finally{$('renderBtn').disabled=false}
 }
 
 loadKeys();
 updateStylePreview();
+setPosition('bottom');
 </script>
 </body>
 </html>
