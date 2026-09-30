@@ -7,353 +7,254 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
-
 import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
 import ffprobeStatic from 'ffprobe-static';
 
-
 const app = express();
 
-const PORT =
-  Number(process.env.PORT || 10000);
+const PORT = Number(process.env.PORT || 10000);
 
-const MAX_BYTES =
-  300 * 1024 * 1024;
+const MAX_BYTES = 300 * 1024 * 1024;
+const MAX_SECONDS = 5 * 60;
 
-const MAX_SECONDS =
-  5 * 60;
+const ROOT = process.cwd();
+const PUBLIC = path.join(ROOT, 'public');
+const TMP = path.join(os.tmpdir(), 'myanmar-srt');
 
-const ROOT =
-  process.cwd();
+await fs.mkdir(TMP, { recursive: true });
 
-const PUBLIC =
-  path.join(ROOT, 'public');
+const GROQ_MODEL = 'whisper-large-v3-turbo';
 
-const TMP =
-  path.join(
-    os.tmpdir(),
-    'myanmar-srt'
-  );
+// Gemini model
+const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
+const ALLOWED_EXTENSIONS = new Set([
+  '.mp4',
+  '.mov',
+  '.mkv',
+  '.webm',
+  '.avi',
+  '.m4v',
+  '.flv',
+  '.wmv',
+  '.mpeg',
+  '.mpg'
+]);
 
-await fs.mkdir(
-  TMP,
-  { recursive: true }
-);
-
-
-// ============================================================
-// MODELS
-// ============================================================
-
-const GROQ_MODEL =
-  'whisper-large-v3-turbo';
-
-const GEMINI_MODEL =
-  'gemini-3.8-flash';
-
-
-// ============================================================
-// ALLOWED FILE TYPES
-// ============================================================
-
-const allowedExt =
-  new Set([
-    '.flac',
-    '.mp3',
-    '.mp4',
-    '.mpeg',
-    '.mpga',
-    '.m4a',
-    '.ogg',
-    '.opus',
-    '.wav',
-    '.webm'
-  ]);
+app.use(express.json({ limit: '2mb' }));
+app.use(express.static(PUBLIC));
 
 
 // ============================================================
 // MULTER
 // ============================================================
 
-const upload =
-  multer({
+const storage = multer.diskStorage({
+  destination: TMP,
 
-    storage:
-      multer.diskStorage({
+  filename: (req, file, cb) => {
+    const originalExt = path.extname(file.originalname || '').toLowerCase();
 
-        destination:
-          (_req, _file, cb) => {
-            cb(
-              null,
-              TMP
-            );
-          },
+    const ext = ALLOWED_EXTENSIONS.has(originalExt)
+      ? originalExt
+      : '.mp4';
 
-        filename:
-          (_req, file, cb) => {
+    const filename =
+      `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
 
-            const originalExt =
-              path
-                .extname(
-                  file.originalname || ''
-                )
-                .toLowerCase();
+    cb(null, filename);
+  }
+});
 
-            const ext =
-              allowedExt.has(
-                originalExt
-              )
-                ? originalExt
-                : '.mp4';
+const upload = multer({
+  storage,
 
-            cb(
-              null,
-              `${crypto.randomUUID()}${ext}`
-            );
-          }
-      }),
+  limits: {
+    fileSize: MAX_BYTES
+  },
 
-    limits: {
-      fileSize:
-        MAX_BYTES,
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
 
-      files:
-        1
-    },
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return cb(
+        new Error(
+          'Unsupported video format. Please upload MP4, MOV, MKV, WEBM, AVI or another supported video file.'
+        )
+      );
+    }
 
-    fileFilter:
-      (_req, file, cb) => {
-
-        const ext =
-          path
-            .extname(
-              file.originalname || ''
-            )
-            .toLowerCase();
-
-        if (
-          !allowedExt.has(ext)
-        ) {
-
-          return cb(
-            new Error(
-              'MP4 သို့မဟုတ် WEBM video ကိုသုံးပါ။'
-            )
-          );
-        }
-
-        cb(
-          null,
-          true
-        );
-      }
-  });
+    cb(null, true);
+  }
+});
 
 
 // ============================================================
-// EXPRESS
+// HELPERS
 // ============================================================
 
-app.use(
-  express.json({
-    limit: '10mb'
-  })
-);
+function getKey(req, headerName, envName) {
+  const headerValue = req.get(headerName);
 
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: '10mb'
-  })
-);
-
-app.use(
-  express.static(
-    PUBLIC
-  )
-);
-
-
-// ============================================================
-// API KEY
-// ============================================================
-
-function getKey(
-  req,
-  headerName,
-  bodyName,
-  envName,
-  label
-) {
-
-  const key =
-    String(
-      req.headers[headerName] ||
-      req.body?.[bodyName] ||
-      process.env[envName] ||
-      ''
-    ).trim();
-
-  if (!key) {
-
-    throw new Error(
-      `${label} မရှိပါ`
-    );
+  if (headerValue && headerValue.trim()) {
+    return headerValue.trim();
   }
 
-  return key;
+  const envValue = process.env[envName];
+
+  if (envValue && envValue.trim()) {
+    return envValue.trim();
+  }
+
+  return '';
 }
 
 
-// ============================================================
-// CLEAN TEXT
-// ============================================================
-
-function cleanText(text) {
-
-  return String(
-    text || ''
-  )
-    .replace(
-      /Return accurate segment[.!]?/gi,
-      ''
-    )
-    .replace(
-      /Return accurate transcript[.!]?/gi,
-      ''
-    )
-    .replace(
-      /Return the spoken word[.!]?/gi,
-      ''
-    )
-    .replace(
-      /\s{2,}/g,
-      ' '
-    )
+function cleanText(value) {
+  return String(value ?? '')
+    .replace(/\r/g, ' ')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
 
-// ============================================================
-// PROBE VIDEO
-// ============================================================
-
-async function probeVideo(
-  file
-) {
-
-  const result =
-    await new Promise(
-      (
-        resolve,
-        reject
-      ) => {
-
-        const child =
-          spawn(
-            ffprobeStatic.path,
-            [
-              '-v',
-              'error',
-
-              '-show_entries',
-              'format=duration,size',
-
-              '-show_streams',
-
-              '-of',
-              'json',
-
-              file
-            ]
-          );
-
-        let stdout =
-          '';
-
-        let stderr =
-          '';
-
-        child.stdout.on(
-          'data',
-          d => {
-            stdout +=
-              d.toString();
-          }
-        );
-
-        child.stderr.on(
-          'data',
-          d => {
-            stderr +=
-              d.toString();
-          }
-        );
-
-        child.on(
-          'error',
-          reject
-        );
-
-        child.on(
-          'close',
-          code => {
-
-            if (
-              code === 0
-            ) {
-
-              resolve({
-                stdout,
-                stderr
-              });
-
-            } else {
-
-              reject(
-                new Error(
-                  stderr ||
-                  `ffprobe exited with code ${code}`
-                )
-              );
-            }
-          }
-        );
-      }
-    );
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 
-  const data =
-    JSON.parse(
-      result.stdout
-    );
+function isRetryableGeminiError(error) {
+  const message = String(
+    error?.message ||
+    error?.error?.message ||
+    error ||
+    ''
+  ).toLowerCase();
 
-
-  const duration =
-    Number(
-      data?.format?.duration ||
-      0
-    );
-
+  const status =
+    error?.status ||
+    error?.code ||
+    error?.error?.status ||
+    error?.error?.code;
 
   if (
-    !Number.isFinite(
-      duration
-    ) ||
-    duration <= 0
+    Number(status) === 429 ||
+    Number(status) === 408 ||
+    Number(status) === 500 ||
+    Number(status) === 502 ||
+    Number(status) === 503 ||
+    Number(status) === 504
   ) {
-
-    throw new Error(
-      'Video duration မဖတ်နိုင်ပါ'
-    );
+    return true;
   }
 
+  return (
+    message.includes('429') ||
+    message.includes('resource_exhausted') ||
+    message.includes('rate limit') ||
+    message.includes('rate_limit') ||
+    message.includes('quota') ||
+    message.includes('503') ||
+    message.includes('unavailable') ||
+    message.includes('high demand') ||
+    message.includes('temporarily unavailable') ||
+    message.includes('500') ||
+    message.includes('502') ||
+    message.includes('504') ||
+    message.includes('timeout')
+  );
+}
 
-  return {
-    duration
-  };
+
+function isQuotaError(error) {
+  const message = String(
+    error?.message ||
+    error?.error?.message ||
+    error ||
+    ''
+  ).toLowerCase();
+
+  const status =
+    error?.status ||
+    error?.code ||
+    error?.error?.status ||
+    error?.error?.code;
+
+  return (
+    Number(status) === 429 ||
+    message.includes('resource_exhausted') ||
+    message.includes('quota exceeded') ||
+    message.includes('rate limit') ||
+    message.includes('rate_limit')
+  );
+}
+
+
+// ============================================================
+// FFPROBE
+// ============================================================
+
+function runProcess(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args);
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', chunk => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr.on('data', chunk => {
+      stderr += chunk.toString();
+    });
+
+    child.on('error', reject);
+
+    child.on('close', code => {
+      if (code === 0) {
+        resolve({
+          stdout,
+          stderr
+        });
+      } else {
+        reject(
+          new Error(
+            stderr ||
+            `Process exited with code ${code}`
+          )
+        );
+      }
+    });
+  });
+}
+
+
+async function probeVideo(filePath) {
+  const result = await runProcess(
+    ffprobeStatic.path,
+    [
+      '-v',
+      'error',
+      '-show_entries',
+      'format=duration',
+      '-of',
+      'default=noprint_wrappers=1:nokey=1',
+      filePath
+    ]
+  );
+
+  const duration = Number(
+    String(result.stdout).trim()
+  );
+
+  if (!Number.isFinite(duration)) {
+    throw new Error('Could not determine video duration.');
+  }
+
+  return duration;
 }
 
 
@@ -361,243 +262,134 @@ async function probeVideo(
 // GROQ TRANSCRIPTION
 // ============================================================
 
-async function transcribeGroq(
-  file,
-  apiKey
-) {
+async function transcribeGroq(filePath, apiKey) {
+  if (!apiKey) {
+    throw new Error('Groq API Key မထည့်ရသေးပါ။');
+  }
 
-  const groq =
-    new Groq({
-      apiKey
-    });
+  const groq = new Groq({
+    apiKey
+  });
 
+  const fileStream = createReadStream(filePath);
 
-  return groq
-    .audio
-    .transcriptions
-    .create({
+  const result = await groq.audio.transcriptions.create({
+    file: fileStream,
 
-      file:
-        createReadStream(
-          file
-        ),
+    model: GROQ_MODEL,
 
-      model:
-        GROQ_MODEL,
+    response_format: 'verbose_json',
 
-      response_format:
-        'verbose_json',
+    timestamp_granularities: [
+      'segment'
+    ]
+  });
 
-      timestamp_granularities:
-        [
-          'word',
-          'segment'
-        ],
-
-      temperature:
-        0
-    });
+  return result;
 }
 
 
 // ============================================================
-// BUILD TRANSCRIPT SEGMENTS
+// SEGMENTS
 // ============================================================
 
-function buildSegments(
-  result,
-  duration
-) {
-
-  const segments =
-    Array.isArray(
-      result?.segments
-    )
-      ? result.segments
+function buildSegments(transcript) {
+  const sourceSegments =
+    Array.isArray(transcript?.segments)
+      ? transcript.segments
       : [];
 
+  return sourceSegments
+    .map((segment, index) => {
+      const start = Number(segment.start);
+      const end = Number(segment.end);
 
-  const output =
-    segments
+      const text = cleanText(segment.text);
 
-      .map(
-        (
-          s,
-          i
-        ) => ({
+      return {
+        id: index + 1,
 
-          id:
-            i + 1,
+        start: Number.isFinite(start)
+          ? start
+          : 0,
 
-          start:
-            Math.max(
+        end: Number.isFinite(end)
+          ? end
+          : Math.max(
               0,
-              Number(
-                s.start
-              ) || 0
+              Number.isFinite(start)
+                ? start + 2
+                : 2
             ),
 
-          end:
-            Math.max(
-              0,
-              Number(
-                s.end
-              ) || 0
-            ),
-
-          text:
-            cleanText(
-              s.text
-            )
-        })
-      )
-
-      .filter(
-        s =>
-          s.text &&
-          s.end > s.start
-      );
-
-
-  if (
-    output.length
-  ) {
-
-    return output;
-  }
-
-
-  const fullText =
-    cleanText(
-      result?.text
-    );
-
-
-  if (
-    fullText
-  ) {
-
-    return [
-      {
-        id:
-          1,
-
-        start:
-          0,
-
-        end:
-          duration,
-
-        text:
-          fullText
-      }
-    ];
-  }
-
-
-  return [];
+        text
+      };
+    })
+    .filter(item => item.text);
 }
 
 
 // ============================================================
-// EXTRACT JSON
+// JSON PARSER
 // ============================================================
 
-function extractJson(
-  text
-) {
+function extractJson(text) {
+  const raw = String(text || '').trim();
 
-  let raw =
-    String(
-      text || ''
-    ).trim();
+  if (!raw) {
+    throw new Error('Gemini က empty response ပြန်ပေးပါတယ်။');
+  }
 
-
-  raw =
-    raw
-      .replace(
-        /^```json\s*/i,
-        ''
-      )
-      .replace(
-        /^```\s*/i,
-        ''
-      )
-      .replace(
-        /```\s*$/i,
-        ''
-      )
-      .trim();
-
+  // Remove markdown code fence
+  const cleaned = raw
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
 
   try {
-
-    return JSON.parse(
-      raw
-    );
-
+    return JSON.parse(cleaned);
   } catch {}
 
-
-  const objectStart =
-    raw.indexOf(
-      '{'
-    );
-
-  const objectEnd =
-    raw.lastIndexOf(
-      '}'
-    );
-
+  // Find JSON object
+  const objectStart = cleaned.indexOf('{');
+  const objectEnd = cleaned.lastIndexOf('}');
 
   if (
     objectStart >= 0 &&
     objectEnd > objectStart
   ) {
+    const objectText = cleaned.slice(
+      objectStart,
+      objectEnd + 1
+    );
 
     try {
-
-      return JSON.parse(
-        raw.slice(
-          objectStart,
-          objectEnd + 1
-        )
-      );
-
+      return JSON.parse(objectText);
     } catch {}
   }
 
-
-  const arrayStart =
-    raw.indexOf(
-      '['
-    );
-
-  const arrayEnd =
-    raw.lastIndexOf(
-      ']'
-    );
-
+  // Find JSON array
+  const arrayStart = cleaned.indexOf('[');
+  const arrayEnd = cleaned.lastIndexOf(']');
 
   if (
     arrayStart >= 0 &&
     arrayEnd > arrayStart
   ) {
+    const arrayText = cleaned.slice(
+      arrayStart,
+      arrayEnd + 1
+    );
 
     try {
-
-      return JSON.parse(
-        raw.slice(
-          arrayStart,
-          arrayEnd + 1
-        )
-      );
-
+      return JSON.parse(arrayText);
     } catch {}
   }
 
-
-  return null;
+  throw new Error(
+    'Gemini က valid JSON မပြန်ပါ။'
+  );
 }
 
 
@@ -605,263 +397,229 @@ function extractJson(
 // GEMINI TRANSLATION
 // ============================================================
 
-async function translateChunkGemini(
-  segments,
-  apiKey
+async function generateGeminiWithRetry(
+  ai,
+  prompt
 ) {
+  const MAX_RETRIES = 4;
 
-  const ai =
-    new GoogleGenAI({
-      apiKey
-    });
-
-
-  const input =
-    segments.map(
-      s => ({
-
-        id:
-          s.id,
-
-        text:
-          s.text
-      })
-    );
-
-
-  const prompt = `
-You are a professional Myanmar subtitle translator.
-
-Translate EVERY source dialogue line into natural,
-clear and concise Myanmar Unicode.
-
-The source language may be:
-English, Chinese, Japanese, Korean,
-or any other spoken language.
-
-Return ONLY valid JSON.
-
-Required format:
-
-{
-  "translations": [
-    {
-      "id": 1,
-      "translation": "မြန်မာဘာသာပြန်"
-    }
-  ]
-}
-
-Rules:
-
-- Keep every id exactly the same.
-- Do not remove lines.
-- Do not merge lines.
-- Do not reorder lines.
-- Do not invent dialogue.
-- Translate only spoken dialogue.
-- No explanation.
-- No markdown.
-- No comments.
-- Keep names naturally.
-- Keep subtitles short.
-- Prefer under 42 characters when possible.
-- Preserve meaning and emotion.
-
-INPUT:
-
-${JSON.stringify(input)}
-`;
-
-
-  let response;
-
-
-  try {
-
-    response =
-      await ai.models.generateContent({
-
-        model:
-          GEMINI_MODEL,
-
-        contents:
-          prompt,
-
-        config: {
-
-          temperature:
-            0.2,
-
-          responseMimeType:
-            'application/json'
-        }
-      });
-
-  } catch (error) {
-
-    const message =
-      String(
-        error?.message ||
-        error
-      );
-
-
-    if (
-      /429|rate.?limit|quota|resource.?exhausted/i
-        .test(message)
-    ) {
-
-      throw new Error(
-        'Gemini Free Tier quota ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး နောက်မှ Translate ပြန်နှိပ်ပါ။'
-      );
-    }
-
-
-    throw error;
-  }
-
-
-  const parsed =
-    extractJson(
-      response?.text ||
-      ''
-    );
-
-
-  let list = [];
-
-
-  if (
-    Array.isArray(
-      parsed
-    )
-  ) {
-
-    list =
-      parsed;
-  }
-
-
-  if (
-    !list.length &&
-    Array.isArray(
-      parsed?.translations
-    )
-  ) {
-
-    list =
-      parsed.translations;
-  }
-
-
-  if (
-    !list.length
-  ) {
-
-    throw new Error(
-      'Gemini က valid translation JSON မပြန်ပါ'
-    );
-  }
-
-
-  const byId =
-    new Map();
-
+  let lastError = null;
 
   for (
-    const item of list
+    let attempt = 0;
+    attempt <= MAX_RETRIES;
+    attempt++
   ) {
-
-    const id =
-      Number(
-        item?.id
+    try {
+      console.log(
+        `Gemini request attempt ${attempt + 1}/${MAX_RETRIES + 1}`
       );
 
+      const response =
+        await ai.models.generateContent({
+          model: GEMINI_MODEL,
 
-    const translation =
-      String(
-        item?.translation ||
-        item?.text ||
-        item?.myanmar ||
-        ''
-      ).trim();
+          contents: prompt,
+
+          config: {
+            temperature: 0.2,
+
+            responseMimeType:
+              'application/json',
+
+            maxOutputTokens: 8192
+          }
+        });
+
+      return response;
+
+    } catch (error) {
+      lastError = error;
+
+      const retryable =
+        isRetryableGeminiError(error);
+
+      if (
+        !retryable ||
+        attempt >= MAX_RETRIES
+      ) {
+        throw error;
+      }
+
+      // Exponential backoff:
+      // ~1.5s → ~3s → ~6s → ~12s
+      const baseDelay =
+        1200 * Math.pow(2, attempt);
+
+      const jitter =
+        Math.floor(Math.random() * 500);
+
+      const delay =
+        Math.min(
+          baseDelay + jitter,
+          15000
+        );
+
+      console.log(
+        `Gemini temporary error. Retry ${
+          attempt + 1
+        }/${MAX_RETRIES} after ${delay}ms`
+      );
+
+      await sleep(delay);
+    }
+  }
+
+  throw lastError;
+}
 
 
-    if (
-      Number.isFinite(
-        id
-      ) &&
-      translation
+async function translateChunkGemini(
+  chunk,
+  apiKey
+) {
+  if (!apiKey) {
+    throw new Error(
+      'Gemini API Key မထည့်ရသေးပါ။'
+    );
+  }
+
+  const ai = new GoogleGenAI({
+    apiKey
+  });
+
+  const input = chunk.map(item => ({
+    id: item.id,
+    text: item.text
+  }));
+
+  const prompt = `
+You are a professional subtitle translator.
+
+Translate the following video subtitle segments into natural Myanmar Burmese.
+
+Rules:
+1. Translate ONLY the subtitle text.
+2. Keep the exact id unchanged.
+3. Do not add explanations.
+4. Do not summarize.
+5. Keep each subtitle concise and natural.
+6. Preserve names, places, numbers and important terms.
+7. Return valid JSON only.
+8. Return an array with objects containing:
+   id
+   text
+
+Source subtitles:
+${JSON.stringify(input, null, 2)}
+`;
+
+  try {
+    const response =
+      await generateGeminiWithRetry(
+        ai,
+        prompt
+      );
+
+    const text =
+      response?.text ??
+      response?.candidates?.[0]?.content?.parts
+        ?.map(part => part.text || '')
+        .join('') ??
+      '';
+
+    const parsed = extractJson(text);
+
+    let items = [];
+
+    if (Array.isArray(parsed)) {
+      items = parsed;
+    } else if (
+      Array.isArray(parsed?.translations)
     ) {
+      items = parsed.translations;
+    } else if (
+      Array.isArray(parsed?.results)
+    ) {
+      items = parsed.results;
+    } else {
+      throw new Error(
+        'Gemini response format မမှန်ပါ။'
+      );
+    }
+
+    const byId = new Map();
+
+    for (const item of items) {
+      const id = Number(item?.id);
+
+      if (!Number.isFinite(id)) {
+        continue;
+      }
 
       byId.set(
         id,
-        translation
+        cleanText(item?.text)
       );
     }
-  }
 
+    return chunk.map(item => ({
+      ...item,
 
-  if (
-    !byId.size
-  ) {
+      text:
+        byId.get(item.id) ||
+        item.text
+    }));
+
+  } catch (error) {
+    if (isQuotaError(error)) {
+      throw new Error(
+        'Gemini Free Tier quota/rate limit ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး နောက်မှ Translate ပြန်နှိပ်ပါ။'
+      );
+    }
+
+    const message =
+      error?.message ||
+      String(error);
 
     throw new Error(
-      'Gemini translation data မမှန်ပါ'
+      `Gemini Error: ${message}`
     );
   }
-
-
-  return segments.map(
-    s => ({
-
-      ...s,
-
-      translation:
-        byId.get(
-          s.id
-        ) ||
-        s.text
-    })
-  );
 }
 
 
 // ============================================================
-// TRANSLATE ALL WITH GEMINI ONLY
+// TRANSLATE ALL
 // ============================================================
 
 async function translateAllGemini(
   segments,
   apiKey
 ) {
+  const result = [];
 
-  // Smaller chunks reduce Gemini request size.
-  const max =
-    40;
-
-  const results =
-    [];
-
+  // Smaller chunks reduce request size
+  // and help avoid temporary overload.
+  const CHUNK_SIZE = 30;
 
   for (
     let i = 0;
     i < segments.length;
-    i += max
+    i += CHUNK_SIZE
   ) {
-
     const chunk =
       segments.slice(
         i,
-        i + max
+        i + CHUNK_SIZE
       );
 
-
     console.log(
-      `Gemini translation chunk ${Math.floor(i / max) + 1}`
+      `Gemini translating ${i + 1}-${Math.min(
+        i + CHUNK_SIZE,
+        segments.length
+      )} / ${segments.length}`
     );
-
 
     const translated =
       await translateChunkGemini(
@@ -869,380 +627,169 @@ async function translateAllGemini(
         apiKey
       );
 
+    result.push(...translated);
 
-    results.push(
-      ...translated
-    );
+    // Small pause between chunks
+    if (
+      i + CHUNK_SIZE <
+      segments.length
+    ) {
+      await sleep(300);
+    }
   }
 
-
-  return results;
+  return result;
 }
 
 
 // ============================================================
-// SPLIT SUBTITLE
+// SUBTITLE TEXT SPLIT
 // ============================================================
 
-function splitSubtitle(
+function splitSubtitleText(
   text,
-  maxChars = 42,
-  maxWords = 10
+  maxChars = 42
 ) {
+  const clean = cleanText(text);
 
-  const value =
-    String(
-      text || ''
-    ).trim();
-
-
-  if (!value) {
-
+  if (!clean) {
     return [];
   }
 
-
-  if (
-    value.length <=
-      maxChars &&
-    value.split(
-      /\s+/
-    ).length <=
-      maxWords
-  ) {
-
-    return [
-      value
-    ];
+  if (clean.length <= maxChars) {
+    return [clean];
   }
 
+  const words = clean.split(' ');
 
-  const words =
-    value
-      .split(
-        /\s+/
-      )
-      .filter(Boolean);
+  const lines = [];
+  let current = '';
 
-
-  const parts =
-    [];
-
-  let current =
-    '';
-
-
-  for (
-    const word of words
-  ) {
-
-    const next =
+  for (const word of words) {
+    const candidate =
       current
         ? `${current} ${word}`
         : word;
 
-
     if (
-      current &&
-      (
-        next.length >
-          maxChars ||
-        next.split(
-          /\s+/
-        ).length >
-          maxWords
-      )
+      candidate.length <= maxChars
     ) {
-
-      parts.push(
-        current.trim()
-      );
-
-      current =
-        word;
-
+      current = candidate;
     } else {
-
-      current =
-        next;
-    }
-  }
-
-
-  if (
-    current
-  ) {
-
-    parts.push(
-      current.trim()
-    );
-  }
-
-
-  if (
-    parts.length === 1 &&
-    parts[0].length >
-      maxChars
-  ) {
-
-    const chunks =
-      [];
-
-
-    for (
-      let i = 0;
-      i < parts[0].length;
-      i += maxChars
-    ) {
-
-      chunks.push(
-        parts[0]
-          .slice(
-            i,
-            i + maxChars
-          )
-          .trim()
-      );
-    }
-
-
-    return chunks.filter(
-      Boolean
-    );
-  }
-
-
-  return parts;
-}
-
-
-// ============================================================
-// SPLIT TRANSLATED SEGMENTS
-// ============================================================
-
-function splitTranslatedSegments(
-  segments
-) {
-
-  const output =
-    [];
-
-  let id =
-    1;
-
-
-  for (
-    const s of segments
-  ) {
-
-    const text =
-      String(
-        s.translation ||
-        s.text ||
-        ''
-      ).trim();
-
-
-    const parts =
-      splitSubtitle(
-        text
-      );
-
-
-    if (
-      parts.length <= 1
-    ) {
-
-      output.push({
-
-        id:
-          id++,
-
-        start:
-          s.start,
-
-        end:
-          s.end,
-
-        text,
-
-        translation:
-          text
-      });
-
-
-      continue;
-    }
-
-
-    const total =
-      parts.reduce(
-        (
-          sum,
-          part
-        ) =>
-          sum +
-          Math.max(
-            1,
-            part.length
-          ),
-        0
-      );
-
-
-    const duration =
-      Math.max(
-        0.2,
-        s.end -
-          s.start
-      );
-
-
-    let cursor =
-      s.start;
-
-
-    parts.forEach(
-      (
-        part,
-        index
-      ) => {
-
-        const end =
-          index ===
-          parts.length - 1
-
-            ? s.end
-
-            : cursor +
-              duration *
-                (
-                  Math.max(
-                    1,
-                    part.length
-                  ) /
-                  total
-                );
-
-
-        output.push({
-
-          id:
-            id++,
-
-          start:
-            cursor,
-
-          end:
-            Math.min(
-              end,
-              s.end
-            ),
-
-          text:
-            part,
-
-          translation:
-            part
-        });
-
-
-        cursor =
-          Math.min(
-            end,
-            s.end
-          );
+      if (current) {
+        lines.push(current);
       }
-    );
+
+      current = word;
+    }
   }
 
+  if (current) {
+    lines.push(current);
+  }
 
-  return output;
+  return lines;
 }
 
 
 // ============================================================
-// SRT TIME
+// TIME FORMAT
 // ============================================================
 
-function srtTime(
-  seconds
-) {
-
-  const ms =
+function formatSrtTime(seconds) {
+  let totalMs =
     Math.max(
       0,
       Math.round(
-        Number(
-          seconds || 0
-        ) * 1000
+        Number(seconds || 0) * 1000
       )
     );
 
-
-  const h =
+  const hours =
     Math.floor(
-      ms /
-      3600000
+      totalMs / 3600000
     );
 
+  totalMs %= 3600000;
 
-  const m =
+  const minutes =
     Math.floor(
-      (
-        ms %
-        3600000
-      ) /
-      60000
+      totalMs / 60000
     );
 
+  totalMs %= 60000;
 
-  const s =
+  const secs =
     Math.floor(
-      (
-        ms %
-        60000
-      ) /
-      1000
+      totalMs / 1000
     );
 
-
-  const milli =
-    ms % 1000;
-
+  const ms =
+    totalMs % 1000;
 
   return (
-    `${String(h).padStart(2, '0')}:` +
-    `${String(m).padStart(2, '0')}:` +
-    `${String(s).padStart(2, '0')},` +
-    `${String(milli).padStart(3, '0')}`
+    String(hours).padStart(2, '0') +
+    ':' +
+    String(minutes).padStart(2, '0') +
+    ':' +
+    String(secs).padStart(2, '0') +
+    ',' +
+    String(ms).padStart(3, '0')
   );
 }
 
 
 // ============================================================
-// MAKE SRT
+// SRT
 // ============================================================
 
-function makeSrt(
-  segments
-) {
+function makeSrt(segments) {
+  const blocks = [];
 
-  return segments
-    .map(
-      (
-        s,
-        i
-      ) => (
+  let subtitleNumber = 1;
 
-        `${i + 1}\n` +
+  for (const segment of segments) {
+    const start =
+      Number(segment.start);
 
-        `${srtTime(s.start)} --> ${srtTime(s.end)}\n` +
+    const end =
+      Number(segment.end);
 
-        `${s.translation || s.text}\n`
-      )
-    )
-    .join('\n');
+    if (
+      !Number.isFinite(start) ||
+      !Number.isFinite(end)
+    ) {
+      continue;
+    }
+
+    const text =
+      cleanText(segment.text);
+
+    if (!text) {
+      continue;
+    }
+
+    const lines =
+      splitSubtitleText(text);
+
+    if (!lines.length) {
+      continue;
+    }
+
+    blocks.push(
+      [
+        String(subtitleNumber++),
+
+        `${formatSrtTime(start)} --> ${formatSrtTime(end)}`,
+
+        lines.join('\n'),
+
+        ''
+      ].join('\n')
+    );
+  }
+
+  return blocks.join('\n');
 }
 
 
@@ -1250,24 +797,14 @@ function makeSrt(
 // CLEANUP
 // ============================================================
 
-function cleanup(
-  file
-) {
-
-  if (
-    file
-  ) {
-
-    fs.rm(
-      file,
-      {
-        force:
-          true
-      }
-    ).catch(
-      () => {}
-    );
+async function cleanupFile(filePath) {
+  if (!filePath) {
+    return;
   }
+
+  try {
+    await fs.unlink(filePath);
+  } catch {}
 }
 
 
@@ -1275,587 +812,289 @@ function cleanup(
 // HEALTH
 // ============================================================
 
-app.get(
-  '/api/health',
-  (_req, res) => {
+app.get('/health', (req, res) => {
+  res.json({
+    ok: true,
+    service: 'myanmar-srt',
+    geminiModel: GEMINI_MODEL,
+    groqModel: GROQ_MODEL
+  });
+});
 
-    res.json({
 
-      ok:
-        true,
+// ============================================================
+// TRANSCRIBE
+// ============================================================
 
-      service:
-        'myanmar-srt',
+app.post(
+  '/api/transcribe',
+  upload.single('video'),
+  async (req, res) => {
+    let filePath = null;
 
-      srtOnly:
-        true,
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: 'Video file မတွေ့ပါ။'
+        });
+      }
 
-      movieRecap:
-        false,
+      filePath =
+        req.file.path;
 
-      render:
-        false,
+      const groqKey =
+        getKey(
+          req,
+          'x-groq-api-key',
+          'GROQ_API_KEY'
+        );
 
-      groqConfigured:
-        Boolean(
-          process.env.GROQ_API_KEY
-        ),
+      if (!groqKey) {
+        return res.status(400).json({
+          error:
+            'Groq API Key မထည့်ရသေးပါ။'
+        });
+      }
 
-      geminiConfigured:
-        Boolean(
-          process.env.GEMINI_API_KEY
-        ),
+      console.log(
+        `Uploaded video: ${req.file.originalname}`
+      );
 
-      groqModel:
-        GROQ_MODEL,
+      const duration =
+        await probeVideo(filePath);
 
-      geminiModel:
-        GEMINI_MODEL,
+      console.log(
+        `Video duration: ${duration}s`
+      );
 
-      translation:
-        'Gemini Only'
+      if (
+        duration > MAX_SECONDS
+      ) {
+        return res.status(400).json({
+          error:
+            'Video length က 5 မိနစ်ထက် မကျော်ရပါ။'
+        });
+      }
+
+      const transcript =
+        await transcribeGroq(
+          filePath,
+          groqKey
+        );
+
+      const segments =
+        buildSegments(transcript);
+
+      return res.json({
+        ok: true,
+
+        duration,
+
+        language:
+          transcript?.language ||
+          null,
+
+        text:
+          cleanText(
+            transcript?.text
+          ),
+
+        segments
+      });
+
+    } catch (error) {
+      console.error(
+        'TRANSCRIBE ERROR:',
+        error
+      );
+
+      return res.status(500).json({
+        error:
+          error?.message ||
+          'Groq transcription failed.'
+      });
+
+    } finally {
+      await cleanupFile(filePath);
+    }
+  }
+);
+
+
+// ============================================================
+// TRANSLATE
+// ============================================================
+
+app.post(
+  '/api/translate',
+  async (req, res) => {
+    try {
+      const geminiKey =
+        getKey(
+          req,
+          'x-gemini-api-key',
+          'GEMINI_API_KEY'
+        );
+
+      if (!geminiKey) {
+        return res.status(400).json({
+          error:
+            'Gemini API Key မထည့်ရသေးပါ။'
+        });
+      }
+
+      const segments =
+        Array.isArray(req.body?.segments)
+          ? req.body.segments
+          : [];
+
+      if (!segments.length) {
+        return res.status(400).json({
+          error:
+            'Translate လုပ်ရန် transcript မရှိပါ။'
+        });
+      }
+
+      const cleanedSegments =
+        segments
+          .map((item, index) => ({
+            id:
+              Number.isFinite(
+                Number(item?.id)
+              )
+                ? Number(item.id)
+                : index + 1,
+
+            start:
+              Number(item?.start) || 0,
+
+            end:
+              Number(item?.end) || 0,
+
+            text:
+              cleanText(item?.text)
+          }))
+          .filter(
+            item => item.text
+          );
+
+      console.log(
+        `Starting Gemini translation: ${cleanedSegments.length} segments`
+      );
+
+      const translated =
+        await translateAllGemini(
+          cleanedSegments,
+          geminiKey
+        );
+
+      return res.json({
+        ok: true,
+
+        segments: translated,
+
+        srt:
+          makeSrt(translated)
+      });
+
+    } catch (error) {
+      console.error(
+        'TRANSLATE ERROR:',
+        error
+      );
+
+      const message =
+        error?.message ||
+        String(error);
+
+      return res.status(500).json({
+        error: message
+      });
+    }
+  }
+);
+
+
+// ============================================================
+// OLD PROCESS ROUTE
+// ============================================================
+
+app.post(
+  '/api/process',
+  (req, res) => {
+    res.status(410).json({
+      error:
+        'Movie Recap / MP4 Render feature has been disabled. This app is SRT only.'
     });
   }
 );
 
 
 // ============================================================
-// GROQ TRANSCRIBE
+// DISABLED MOVIE ROUTES
 // ============================================================
 
 app.post(
-  '/api/transcribe',
+  '/api/render',
+  (req, res) => {
+    res.status(410).json({
+      error:
+        'MP4 rendering is disabled. This app is SRT only.'
+    });
+  }
+);
 
-  upload.single(
-    'video'
-  ),
-
-  async (
-    req,
-    res
-  ) => {
-
-    const file =
-      req.file?.path;
-
-
-    try {
-
-      if (
-        !file
-      ) {
-
-        throw new Error(
-          'Video file မရှိပါ'
-        );
-      }
-
-
-      const groqKey =
-        getKey(
-          req,
-          'x-groq-api-key',
-          'groqApiKey',
-          'GROQ_API_KEY',
-          'Groq API Key'
-        );
-
-
-      const {
-        duration
-      } =
-        await probeVideo(
-          file
-        );
-
-
-      if (
-        duration >
-        MAX_SECONDS
-      ) {
-
-        throw new Error(
-          'Video က 5 မိနစ်ထက်ကျော်နေပါတယ်'
-        );
-      }
-
-
-      const result =
-        await transcribeGroq(
-          file,
-          groqKey
-        );
-
-
-      const transcript =
-        buildSegments(
-          result,
-          duration
-        );
-
-
-      if (
-        !transcript.length
-      ) {
-
-        throw new Error(
-          'Groq က စာတန်းမထုတ်ပေးနိုင်ပါ'
-        );
-      }
-
-
-      res.json({
-
-        ok:
-          true,
-
-        duration,
-
-        language:
-          result?.language ||
-          'auto',
-
-        text:
-          result?.text ||
-          transcript
-            .map(
-              x =>
-                x.text
-            )
-            .join(' '),
-
-        transcript
-      });
-
-
-    } catch (
-      error
-    ) {
-
-      console.error(
-        'TRANSCRIBE ERROR:',
-        error
-      );
-
-
-      res.status(
-        400
-      ).json({
-
-        ok:
-          false,
-
-        error:
-          error?.message ||
-          'Groq Transcript Error'
-      });
-
-
-    } finally {
-
-      cleanup(
-        file
-      );
-    }
+app.post(
+  '/api/recap',
+  (req, res) => {
+    res.status(410).json({
+      error:
+        'Movie Recap is disabled. This app is SRT only.'
+    });
   }
 );
 
 
 // ============================================================
-// GEMINI TRANSLATE
-// ============================================================
-
-app.post(
-  '/api/translate',
-
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      const geminiKey =
-        getKey(
-          req,
-          'x-gemini-api-key',
-          'geminiApiKey',
-          'GEMINI_API_KEY',
-          'Gemini API Key'
-        );
-
-
-      const input =
-        Array.isArray(
-          req.body?.transcript
-        )
-          ? req.body.transcript
-          : [];
-
-
-      if (
-        !input.length
-      ) {
-
-        throw new Error(
-          'Transcript မရှိပါ'
-        );
-      }
-
-
-      const normalized =
-        input
-
-          .map(
-            (
-              s,
-              i
-            ) => ({
-
-              id:
-                i + 1,
-
-              start:
-                Number(
-                  s.start
-                ) || 0,
-
-              end:
-                Number(
-                  s.end
-                ) || 0,
-
-              text:
-                cleanText(
-                  s.text
-                )
-            })
-          )
-
-          .filter(
-            s =>
-              s.text &&
-              s.end >
-                s.start
-          );
-
-
-      if (
-        !normalized.length
-      ) {
-
-        throw new Error(
-          'ဘာသာပြန်ရန် Transcript data မမှန်ပါ'
-        );
-      }
-
-
-      const translated =
-        await translateAllGemini(
-          normalized,
-          geminiKey
-        );
-
-
-      const subtitleSegments =
-        splitTranslatedSegments(
-          translated
-        );
-
-
-      res.json({
-
-        ok:
-          true,
-
-        provider:
-          'gemini',
-
-        transcript:
-          subtitleSegments,
-
-        srt:
-          makeSrt(
-            subtitleSegments
-          )
-      });
-
-
-    } catch (
-      error
-    ) {
-
-      console.error(
-        'TRANSLATE ERROR:',
-        error
-      );
-
-
-      res.status(
-        400
-      ).json({
-
-        ok:
-          false,
-
-        error:
-          error?.message ||
-          'Gemini Myanmar Translation Error'
-      });
-    }
-  }
-);
-
-
-// ============================================================
-// OLD PROCESS API
-// ============================================================
-
-app.post(
-  '/api/process',
-
-  upload.single(
-    'video'
-  ),
-
-  async (
-    req,
-    res
-  ) => {
-
-    const file =
-      req.file?.path;
-
-
-    try {
-
-      if (
-        !file
-      ) {
-
-        throw new Error(
-          'Video file မရှိပါ'
-        );
-      }
-
-
-      const groqKey =
-        getKey(
-          req,
-          'x-groq-api-key',
-          'groqKey',
-          'GROQ_API_KEY',
-          'Groq API Key'
-        );
-
-
-      const geminiKey =
-        getKey(
-          req,
-          'x-gemini-api-key',
-          'geminiKey',
-          'GEMINI_API_KEY',
-          'Gemini API Key'
-        );
-
-
-      const {
-        duration
-      } =
-        await probeVideo(
-          file
-        );
-
-
-      if (
-        duration >
-        MAX_SECONDS
-      ) {
-
-        throw new Error(
-          'Video က 5 မိနစ်ထက်ကျော်နေပါတယ်'
-        );
-      }
-
-
-      const result =
-        await transcribeGroq(
-          file,
-          groqKey
-        );
-
-
-      const original =
-        buildSegments(
-          result,
-          duration
-        );
-
-
-      const translated =
-        await translateAllGemini(
-          original,
-          geminiKey
-        );
-
-
-      const segments =
-        splitTranslatedSegments(
-          translated
-        );
-
-
-      res.json({
-
-        ok:
-          true,
-
-        duration,
-
-        provider:
-          'gemini',
-
-        segments,
-
-        srt:
-          makeSrt(
-            segments
-          )
-      });
-
-
-    } catch (
-      error
-    ) {
-
-      console.error(
-        'PROCESS ERROR:',
-        error
-      );
-
-
-      res.status(
-        400
-      ).json({
-
-        ok:
-          false,
-
-        error:
-          error?.message ||
-          String(error)
-      });
-
-
-    } finally {
-
-      cleanup(
-        file
-      );
-    }
-  }
-);
-
-
-// ============================================================
-// DISABLED MOVIE RECAP / RENDER
-// ============================================================
-
-for (
-  const route of [
-    '/api/movie-auto',
-    '/api/movie-recap',
-    '/api/movie-voice',
-    '/api/movie-render',
-    '/api/recap/one-click',
-    '/api/recap/analyze',
-    '/api/recap/tts',
-    '/api/recap/voice-sync',
-    '/api/render'
-  ]
-) {
-
-  app.all(
-    route,
-    (
-      _req,
-      res
-    ) =>
-      res.status(
-        410
-      ).json({
-
-        ok:
-          false,
-
-        error:
-          'Movie Recap / MP4 Render ကို SRT-only version မှာ ပိတ်ထားပါတယ်'
-      })
-  );
-}
-
-
-// ============================================================
-// UNKNOWN API
+// 404 API
 // ============================================================
 
 app.use(
   '/api',
-  (
-    _req,
-    res
-  ) =>
-    res.status(
-      404
-    ).json({
-
-      ok:
-        false,
-
+  (req, res) => {
+    res.status(404).json({
       error:
-        'API endpoint မတွေ့ပါ'
-    })
+        'API endpoint not found.'
+    });
+  }
 );
 
 
 // ============================================================
-// SERVER ERROR
+// GLOBAL ERROR
 // ============================================================
 
 app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
-
+  (error, req, res, next) => {
     console.error(
       'SERVER ERROR:',
       error
     );
 
-
     if (
-      res.headersSent
+      error?.code ===
+      'LIMIT_FILE_SIZE'
     ) {
-
-      return next(
-        error
-      );
+      return res.status(413).json({
+        error:
+          'Video file size က 300MB ထက် မကျော်ရပါ။'
+      });
     }
 
-
-    res.status(
-      500
-    ).json({
-
-      ok:
-        false,
-
+    return res.status(500).json({
       error:
         error?.message ||
-        'Server Error'
+        'Server error.'
     });
   }
 );
@@ -1869,37 +1108,16 @@ app.listen(
   PORT,
   '0.0.0.0',
   () => {
-
     console.log(
       `Myanmar SRT server running on port ${PORT}`
     );
 
     console.log(
-      'SRT ONLY MODE: ENABLED'
+      `Gemini model: ${GEMINI_MODEL}`
     );
 
     console.log(
-      `Groq: ${GROQ_MODEL}`
-    );
-
-    console.log(
-      `Gemini: ${GEMINI_MODEL}`
-    );
-
-    console.log(
-      'Translation: GEMINI ONLY'
-    );
-
-    console.log(
-      'OpenRouter: DISABLED'
-    );
-
-    console.log(
-      'Movie Recap: DISABLED'
-    );
-
-    console.log(
-      'MP4 Render: DISABLED'
+      `Groq model: ${GROQ_MODEL}`
     );
   }
 );
