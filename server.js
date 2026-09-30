@@ -19,20 +19,14 @@ import ffmpegStatic from 'ffmpeg-static';
 import ffprobeStatic from 'ffprobe-static';
 
 
-// ============================================================
-// APP
-// ============================================================
+/* =========================================================
+   APP
+========================================================= */
 
 const app = express();
 
 const PORT =
   Number(process.env.PORT || 10000);
-
-const MAX_BYTES =
-  300 * 1024 * 1024;
-
-const MAX_SECONDS =
-  5 * 60;
 
 const ROOT =
   process.cwd();
@@ -46,34 +40,38 @@ const TMP =
     'myanmar-srt'
   );
 
+const MAX_BYTES =
+  300 * 1024 * 1024;
+
+const MAX_SECONDS =
+  5 * 60;
+
 await fs.mkdir(
   TMP,
   {
-    recursive: true
+    recursive:true
   }
 );
 
 
-// ============================================================
-// MODELS
-// ============================================================
+/* =========================================================
+   MODELS
+========================================================= */
 
-// Accuracy-first Whisper model
 const GROQ_MODEL =
   'whisper-large-v3';
 
-// Gemini translation model
 const GEMINI_MODEL =
   'gemini-3.5-flash-lite';
 
 
-// ============================================================
-// EXPRESS
-// ============================================================
+/* =========================================================
+   EXPRESS
+========================================================= */
 
 app.use(
   express.json({
-    limit: '2mb'
+    limit:'5mb'
   })
 );
 
@@ -82,9 +80,9 @@ app.use(
 );
 
 
-// ============================================================
-// ALLOWED VIDEO TYPES
-// ============================================================
+/* =========================================================
+   ALLOWED VIDEO
+========================================================= */
 
 const ALLOWED_EXTENSIONS =
   new Set([
@@ -101,9 +99,9 @@ const ALLOWED_EXTENSIONS =
   ]);
 
 
-// ============================================================
-// MULTER
-// ============================================================
+/* =========================================================
+   MULTER
+========================================================= */
 
 const storage =
   multer.diskStorage({
@@ -112,12 +110,14 @@ const storage =
       TMP,
 
     filename:
-      (req, file, cb) => {
+      (req,file,cb)=>{
 
         const originalExt =
-          path.extname(
-            file.originalname || ''
-          ).toLowerCase();
+          path
+            .extname(
+              file.originalname || ''
+            )
+            .toLowerCase();
 
         const ext =
           ALLOWED_EXTENSIONS.has(
@@ -127,12 +127,15 @@ const storage =
             : '.mp4';
 
         const filename =
-          `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+          `${Date.now()}-` +
+          `${crypto.randomBytes(8).toString('hex')}` +
+          `${ext}`;
 
         cb(
           null,
           filename
         );
+
       }
 
   });
@@ -143,107 +146,96 @@ const upload =
 
     storage,
 
-    limits: {
+    limits:{
       fileSize:
         MAX_BYTES
     },
 
     fileFilter:
-      (req, file, cb) => {
+      (req,file,cb)=>{
 
         const ext =
-          path.extname(
-            file.originalname || ''
-          ).toLowerCase();
+          path
+            .extname(
+              file.originalname || ''
+            )
+            .toLowerCase();
 
-        if (
-          !ALLOWED_EXTENSIONS.has(
-            ext
-          )
-        ) {
+        if(
+          !ALLOWED_EXTENSIONS.has(ext)
+        ){
 
           return cb(
             new Error(
               'Unsupported video format.'
             )
           );
+
         }
 
         cb(
           null,
           true
         );
+
       }
 
   });
 
 
-// ============================================================
-// HELPERS
-// ============================================================
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function getKey(
   req,
   headerName,
   envName
-) {
+){
 
   const headerValue =
-    req.get(
-      headerName
-    );
+    req.get(headerName);
 
-  if (
+  if(
     headerValue &&
     headerValue.trim()
-  ) {
+  ){
 
     return headerValue.trim();
+
   }
 
   const envValue =
-    process.env[
-      envName
-    ];
+    process.env[envName];
 
-  if (
+  if(
     envValue &&
     envValue.trim()
-  ) {
+  ){
 
     return envValue.trim();
+
   }
 
   return '';
+
 }
 
 
-function cleanText(
-  value
-) {
+function cleanText(value){
 
   return String(
     value ?? ''
   )
-    .replace(
-      /\r/g,
-      ' '
-    )
-    .replace(
-      /\n+/g,
-      ' '
-    )
-    .replace(
-      /\s+/g,
-      ' '
-    )
+    .replace(/\r/g,' ')
+    .replace(/\n+/g,' ')
+    .replace(/\s+/g,' ')
     .trim();
+
 }
 
 
-function sleep(
-  ms
-) {
+function sleep(ms){
 
   return new Promise(
     resolve =>
@@ -252,23 +244,36 @@ function sleep(
         ms
       )
   );
+
 }
 
 
-// ============================================================
-// RUN PROCESS
-// ============================================================
+function safeNumber(
+  value,
+  fallback = 0
+){
+
+  const n =
+    Number(value);
+
+  return Number.isFinite(n)
+    ? n
+    : fallback;
+
+}
+
+
+/* =========================================================
+   PROCESS
+========================================================= */
 
 function runProcess(
   command,
   args
-) {
+){
 
   return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
+    (resolve,reject)=>{
 
       const child =
         spawn(
@@ -276,29 +281,22 @@ function runProcess(
           args
         );
 
-      let stdout =
-        '';
-
-      let stderr =
-        '';
+      let stdout = '';
+      let stderr = '';
 
       child.stdout.on(
         'data',
-        chunk => {
-
+        chunk=>{
           stdout +=
             chunk.toString();
-
         }
       );
 
       child.stderr.on(
         'data',
-        chunk => {
-
+        chunk=>{
           stderr +=
             chunk.toString();
-
         }
       );
 
@@ -309,18 +307,18 @@ function runProcess(
 
       child.on(
         'close',
-        code => {
+        code=>{
 
-          if (
+          if(
             code === 0
-          ) {
+          ){
 
             resolve({
               stdout,
               stderr
             });
 
-          } else {
+          }else{
 
             reject(
               new Error(
@@ -328,6 +326,7 @@ function runProcess(
                 `Process exited with code ${code}`
               )
             );
+
           }
 
         }
@@ -335,16 +334,17 @@ function runProcess(
 
     }
   );
+
 }
 
 
-// ============================================================
-// VIDEO DURATION
-// ============================================================
+/* =========================================================
+   VIDEO PROBE
+========================================================= */
 
 async function probeVideo(
   filePath
-) {
+){
 
   const result =
     await runProcess(
@@ -370,43 +370,34 @@ async function probeVideo(
       ).trim()
     );
 
-  if (
-    !Number.isFinite(
-      duration
-    )
-  ) {
+  if(
+    !Number.isFinite(duration)
+  ){
 
     throw new Error(
       'Video duration ကို မဖတ်နိုင်ပါ။'
     );
+
   }
 
   return duration;
+
 }
 
 
-// ============================================================
-// EXTRACT AUDIO
-//
-// Video
-//   ↓
-// WAV
-//   ↓
-// 16kHz
-// Mono
-// PCM
-//
-// WAV is used to preserve speech quality.
-// ============================================================
+/* =========================================================
+   EXTRACT AUDIO
+========================================================= */
 
 async function extractAudio(
   videoPath
-) {
+){
 
   const audioPath =
     path.join(
       TMP,
-      `${Date.now()}-${crypto.randomBytes(8).toString('hex')}.wav`
+      `${Date.now()}-` +
+      `${crypto.randomBytes(8).toString('hex')}.wav`
     );
 
   console.log(
@@ -421,18 +412,15 @@ async function extractAudio(
       '-i',
       videoPath,
 
-      // First audio track
       '-map',
       '0:a:0',
 
-      // Speech-friendly format
       '-ar',
       '16000',
 
       '-ac',
       '1',
 
-      // PCM WAV
       '-c:a',
       'pcm_s16le',
 
@@ -445,36 +433,25 @@ async function extractAudio(
   );
 
   return audioPath;
+
 }
 
 
-// ============================================================
-// GROQ TRANSCRIPTION
-//
-// IMPORTANT:
-// We request BOTH:
-//
-//   word
-//   segment
-//
-// Word timestamps are then used to create
-// subtitle timelines.
-//
-// This means subtitle timing is based on
-// actual spoken words rather than guessed
-// fixed durations.
-// ============================================================
+/* =========================================================
+   GROQ WHISPER
+========================================================= */
 
 async function transcribeGroq(
   audioPath,
   apiKey
-) {
+){
 
-  if (!apiKey) {
+  if(!apiKey){
 
     throw new Error(
       'Groq API Key မထည့်ရသေးပါ။'
     );
+
   }
 
   const groq =
@@ -523,9 +500,7 @@ async function transcribeGroq(
 
   console.log(
     `Whisper raw segments: ${
-      Array.isArray(
-        result?.segments
-      )
+      Array.isArray(result?.segments)
         ? result.segments.length
         : 0
     }`
@@ -533,27 +508,26 @@ async function transcribeGroq(
 
   console.log(
     `Whisper raw words: ${
-      Array.isArray(
-        result?.words
-      )
+      Array.isArray(result?.words)
         ? result.words.length
         : 0
     }`
   );
 
   return result;
+
 }
 
 
-// ============================================================
-// NORMALIZE WORD
-// ============================================================
+/* =========================================================
+   WORD NORMALIZE
+========================================================= */
 
 function normalizeWord(
   item
-) {
+){
 
-  if (!item) {
+  if(!item){
     return null;
   }
 
@@ -572,74 +546,167 @@ function normalizeWord(
       item.end
     );
 
-  if (
+  if(
     !word ||
-    !Number.isFinite(
-      start
-    ) ||
-    !Number.isFinite(
-      end
-    )
-  ) {
+    !Number.isFinite(start) ||
+    !Number.isFinite(end)
+  ){
 
     return null;
+
+  }
+
+  if(
+    end <= start
+  ){
+
+    return null;
+
   }
 
   return {
-
     word,
-
     start,
-
     end
-
   };
+
 }
 
 
-// ============================================================
-// CHECK SENTENCE END
-// ============================================================
+/* =========================================================
+   SENTENCE
+========================================================= */
 
 function endsSentence(
   text
-) {
+){
 
   const value =
     String(
       text || ''
     ).trim();
 
-  if (!value) {
+  if(!value){
     return false;
   }
 
-  return /[.!?。！？！？…]+$/.test(
+  return /[.!?。！？…]+$/.test(
     value
   );
+
 }
 
 
-// ============================================================
-// BUILD PRECISE SUBTITLE SEGMENTS
-//
-// Uses word timestamps.
-//
-// A subtitle ends when:
-//
-// 1. Sentence punctuation appears
-// 2. There is a natural speech pause
-// 3. Cue becomes too long
-// 4. Cue becomes too long in time
-// 5. Too many words are inside one cue
-//
-// Start/end timestamps ALWAYS come from
-// the actual first/last spoken words.
-// ============================================================
+/* =========================================================
+   CLEAN DUPLICATE TEXT
+========================================================= */
+
+function normalizeCompare(
+  text
+){
+
+  return cleanText(
+    text
+  )
+    .toLowerCase()
+    .replace(
+      /[.,!?;:'"“”‘’၊။！？]/g,
+      ''
+    )
+    .replace(
+      /\s+/g,
+      ' '
+    )
+    .trim();
+
+}
+
+
+function isDuplicateCue(
+  previous,
+  current
+){
+
+  if(
+    !previous ||
+    !current
+  ){
+
+    return false;
+
+  }
+
+  const a =
+    normalizeCompare(
+      previous.text
+    );
+
+  const b =
+    normalizeCompare(
+      current.text
+    );
+
+  if(
+    !a ||
+    !b
+  ){
+
+    return false;
+
+  }
+
+  if(
+    a === b
+  ){
+
+    return true;
+
+  }
+
+  if(
+    a.length > 10 &&
+    b.length > 10
+  ){
+
+    if(
+      a.includes(b) ||
+      b.includes(a)
+    ){
+
+      const ratio =
+        Math.min(
+          a.length,
+          b.length
+        ) /
+        Math.max(
+          a.length,
+          b.length
+        );
+
+      if(
+        ratio >= 0.82
+      ){
+
+        return true;
+
+      }
+
+    }
+
+  }
+
+  return false;
+
+}
+
+
+/* =========================================================
+   PRECISE SUBTITLE SEGMENTS
+========================================================= */
 
 function buildPreciseSegments(
   transcript
-) {
+){
 
   const rawWords =
     Array.isArray(
@@ -655,14 +722,7 @@ function buildPreciseSegments(
       )
       .filter(Boolean);
 
-
-  // ----------------------------------------------------------
-  // WORD TIMESTAMPS AVAILABLE
-  // ----------------------------------------------------------
-
-  if (
-    words.length
-  ) {
+  if(words.length){
 
     const result = [];
 
@@ -675,12 +735,14 @@ function buildPreciseSegments(
       null;
 
 
-    function flush() {
+    function flush(){
 
-      if (
+      if(
         !currentWords.length
-      ) {
+      ){
+
         return;
+
       }
 
       const text =
@@ -691,17 +753,18 @@ function buildPreciseSegments(
           )
           .join(' ')
           .replace(
-            /\s+([,.!?;:，。！？；：])/g,
+            /\s+([,.!?;:၊။！？；：])/g,
             '$1'
           )
           .trim();
 
-      if (
-        text
-      ) {
+      if(
+        text &&
+        currentStart !== null &&
+        currentEnd !== null
+      ){
 
-        result.push({
-
+        const cue = {
           id:
             result.length + 1,
 
@@ -712,26 +775,39 @@ function buildPreciseSegments(
             currentEnd,
 
           text
+        };
 
-        });
+        if(
+          !isDuplicateCue(
+            result[result.length - 1],
+            cue
+          )
+        ){
+
+          result.push(
+            cue
+          );
+
+        }
+
       }
 
-      currentWords =
-        [];
+      currentWords = [];
 
       currentStart =
         null;
 
       currentEnd =
         null;
+
     }
 
 
-    for (
+    for(
       let i = 0;
       i < words.length;
       i++
-    ) {
+    ){
 
       const word =
         words[i];
@@ -749,13 +825,9 @@ function buildPreciseSegments(
           : 0;
 
 
-      // ------------------------------------------------------
-      // Start new cue
-      // ------------------------------------------------------
-
-      if (
+      if(
         !currentWords.length
-      ) {
+      ){
 
         currentStart =
           word.start;
@@ -768,6 +840,7 @@ function buildPreciseSegments(
         );
 
         continue;
+
       }
 
 
@@ -779,7 +852,7 @@ function buildPreciseSegments(
           )
           .join(' ')
           .replace(
-            /\s+([,.!?;:，。！？；：])/g,
+            /\s+([,.!?;:၊။！？；：])/g,
             '$1'
           )
           .trim();
@@ -788,7 +861,7 @@ function buildPreciseSegments(
       const candidateText =
         `${currentText} ${word.word}`
           .replace(
-            /\s+([,.!?;:，。！？；：])/g,
+            /\s+([,.!?;:၊။！？；：])/g,
             '$1'
           )
           .trim();
@@ -799,12 +872,8 @@ function buildPreciseSegments(
         currentStart;
 
 
-      // ------------------------------------------------------
-      // Split conditions
-      // ------------------------------------------------------
-
       const naturalPause =
-        gap >= 0.65;
+        gap >= 0.55;
 
       const sentenceFinished =
         endsSentence(
@@ -821,13 +890,13 @@ function buildPreciseSegments(
         currentWords.length >= 12;
 
 
-      if (
+      if(
         naturalPause ||
         sentenceFinished ||
         tooLong ||
         tooManyChars ||
         tooManyWords
-      ) {
+      ){
 
         flush();
 
@@ -841,7 +910,7 @@ function buildPreciseSegments(
           word
         );
 
-      } else {
+      }else{
 
         currentWords.push(
           word
@@ -849,25 +918,96 @@ function buildPreciseSegments(
 
         currentEnd =
           word.end;
+
+      }
+
+    }
+
+    flush();
+
+
+    /*
+      အနီးကပ် cue တွေကို အလွန်တိုလွန်းရင်
+      မလိုအပ်ဘဲ မခွဲစေရန် ထပ်မံစစ်ဆေးခြင်း
+    */
+
+    const merged = [];
+
+    for(
+      const cue of result
+    ){
+
+      const previous =
+        merged[
+          merged.length - 1
+        ];
+
+      if(
+        previous &&
+        cue.start -
+        previous.end < 0.20 &&
+        previous.text.length < 28 &&
+        cue.text.length < 28
+      ){
+
+        previous.end =
+          cue.end;
+
+        previous.text =
+          `${previous.text} ${cue.text}`
+            .replace(
+              /\s+([,.!?;:၊။！？；：])/g,
+              '$1'
+            )
+            .trim();
+
+      }else{
+
+        merged.push({
+          ...cue
+        });
+
       }
 
     }
 
 
-    flush();
+    const finalResult =
+      merged.map(
+        (item,index)=>({
+          id:
+            index + 1,
+
+          start:
+            Number(
+              item.start.toFixed(3)
+            ),
+
+          end:
+            Number(
+              item.end.toFixed(3)
+            ),
+
+          text:
+            cleanText(
+              item.text
+            )
+        })
+      );
 
 
     console.log(
-      `Precise subtitle cues created: ${result.length}`
+      `Precise subtitle cues created: ${finalResult.length}`
     );
 
-    return result;
+    return finalResult;
+
   }
 
 
-  // ----------------------------------------------------------
-  // FALLBACK TO SEGMENT TIMESTAMPS
-  // ----------------------------------------------------------
+  /* =====================================================
+     FALLBACK SEGMENTS
+  ===================================================== */
 
   const rawSegments =
     Array.isArray(
@@ -880,10 +1020,7 @@ function buildPreciseSegments(
   const fallback =
     rawSegments
       .map(
-        (
-          segment,
-          index
-        ) => {
+        (segment,index)=>{
 
           const start =
             Number(
@@ -900,21 +1037,17 @@ function buildPreciseSegments(
               segment.text
             );
 
-          if (
+          if(
             !text ||
-            !Number.isFinite(
-              start
-            ) ||
-            !Number.isFinite(
-              end
-            )
-          ) {
+            !Number.isFinite(start) ||
+            !Number.isFinite(end)
+          ){
 
             return null;
+
           }
 
           return {
-
             id:
               index + 1,
 
@@ -923,7 +1056,6 @@ function buildPreciseSegments(
             end,
 
             text
-
           };
 
         }
@@ -936,16 +1068,17 @@ function buildPreciseSegments(
   );
 
   return fallback;
+
 }
 
 
-// ============================================================
-// GEMINI ERROR CHECK
-// ============================================================
+/* =========================================================
+   GEMINI ERROR
+========================================================= */
 
 function isRetryableGeminiError(
   error
-) {
+){
 
   const message =
     String(
@@ -962,73 +1095,45 @@ function isRetryableGeminiError(
     error?.error?.code;
 
 
-  if (
-    Number(status) === 408 ||
-    Number(status) === 429 ||
-    Number(status) === 500 ||
-    Number(status) === 502 ||
-    Number(status) === 503 ||
-    Number(status) === 504
-  ) {
+  if(
+    [
+      408,
+      429,
+      500,
+      502,
+      503,
+      504
+    ].includes(
+      Number(status)
+    )
+  ){
 
     return true;
+
   }
 
 
   return (
-
     message.includes('429') ||
-
-    message.includes(
-      'resource_exhausted'
-    ) ||
-
-    message.includes(
-      'rate limit'
-    ) ||
-
-    message.includes(
-      'rate_limit'
-    ) ||
-
-    message.includes(
-      '503'
-    ) ||
-
-    message.includes(
-      'unavailable'
-    ) ||
-
-    message.includes(
-      'high demand'
-    ) ||
-
-    message.includes(
-      'temporarily unavailable'
-    ) ||
-
-    message.includes(
-      '500'
-    ) ||
-
-    message.includes(
-      '502'
-    ) ||
-
-    message.includes(
-      '504'
-    ) ||
-
-    message.includes(
-      'timeout'
-    )
+    message.includes('resource_exhausted') ||
+    message.includes('rate limit') ||
+    message.includes('rate_limit') ||
+    message.includes('503') ||
+    message.includes('unavailable') ||
+    message.includes('high demand') ||
+    message.includes('temporarily unavailable') ||
+    message.includes('500') ||
+    message.includes('502') ||
+    message.includes('504') ||
+    message.includes('timeout')
   );
+
 }
 
 
 function isQuotaError(
   error
-) {
+){
 
   const message =
     String(
@@ -1046,36 +1151,32 @@ function isQuotaError(
 
 
   return (
-
     Number(status) === 429 ||
-
     message.includes(
       'resource_exhausted'
     ) ||
-
     message.includes(
       'quota exceeded'
     ) ||
-
     message.includes(
       'rate limit'
     ) ||
-
     message.includes(
       'rate_limit'
     )
   );
+
 }
 
 
-// ============================================================
-// GEMINI REQUEST WITH RETRY
-// ============================================================
+/* =========================================================
+   GEMINI RETRY
+========================================================= */
 
 async function generateGeminiWithRetry(
   ai,
   prompt
-) {
+){
 
   const MAX_RETRIES =
     4;
@@ -1084,13 +1185,13 @@ async function generateGeminiWithRetry(
     null;
 
 
-  for (
+  for(
     let attempt = 0;
     attempt <= MAX_RETRIES;
     attempt++
-  ) {
+  ){
 
-    try {
+    try{
 
       console.log(
         `Gemini attempt ${
@@ -1108,17 +1209,15 @@ async function generateGeminiWithRetry(
           contents:
             prompt,
 
-          config: {
-
+          config:{
             temperature:
-              0.2,
+              0.1,
 
             responseMimeType:
               'application/json',
 
             maxOutputTokens:
               8192
-
           }
 
         });
@@ -1126,23 +1225,22 @@ async function generateGeminiWithRetry(
 
       return response;
 
-    } catch (
-      error
-    ) {
+
+    }catch(error){
 
       lastError =
         error;
 
 
-      if (
+      if(
         !isRetryableGeminiError(
           error
         ) ||
-        attempt >=
-          MAX_RETRIES
-      ) {
+        attempt >= MAX_RETRIES
+      ){
 
         throw error;
+
       }
 
 
@@ -1161,8 +1259,7 @@ async function generateGeminiWithRetry(
 
       const delay =
         Math.min(
-          baseDelay +
-          jitter,
+          baseDelay + jitter,
           15000
         );
 
@@ -1175,38 +1272,33 @@ async function generateGeminiWithRetry(
       await sleep(
         delay
       );
+
     }
+
   }
 
 
   throw lastError;
+
 }
 
 
-// ============================================================
-// JSON PARSER
-// ============================================================
+/* =========================================================
+   EXTRACT JSON
+========================================================= */
 
 function extractJson(
   text
-) {
+){
 
-  const raw =
+  let value =
     String(
       text || ''
     ).trim();
 
 
-  if (!raw) {
-
-    throw new Error(
-      'Gemini က empty response ပြန်ပေးပါတယ်။'
-    );
-  }
-
-
-  const cleaned =
-    raw
+  value =
+    value
       .replace(
         /^```json\s*/i,
         ''
@@ -1222,95 +1314,95 @@ function extractJson(
       .trim();
 
 
-  try {
+  try{
 
     return JSON.parse(
-      cleaned
+      value
     );
 
-  } catch {}
+  }catch(_){}
 
 
-  const objectStart =
-    cleaned.indexOf(
-      '{'
-    );
+  const start =
+    value.indexOf('[');
 
-  const objectEnd =
-    cleaned.lastIndexOf(
-      '}'
-    );
+  const end =
+    value.lastIndexOf(']');
 
 
-  if (
-    objectStart >= 0 &&
-    objectEnd >
-      objectStart
-  ) {
+  if(
+    start >= 0 &&
+    end > start
+  ){
 
-    try {
-
-      return JSON.parse(
-        cleaned.slice(
-          objectStart,
-          objectEnd + 1
-        )
+    const jsonText =
+      value.slice(
+        start,
+        end + 1
       );
 
-    } catch {}
+    try{
+
+      return JSON.parse(
+        jsonText
+      );
+
+    }catch(_){}
+
   }
 
 
-  const arrayStart =
-    cleaned.indexOf(
-      '['
-    );
+  const objectStart =
+    value.indexOf('{');
 
-  const arrayEnd =
-    cleaned.lastIndexOf(
-      ']'
-    );
+  const objectEnd =
+    value.lastIndexOf('}');
 
 
-  if (
-    arrayStart >= 0 &&
-    arrayEnd >
-      arrayStart
-  ) {
+  if(
+    objectStart >= 0 &&
+    objectEnd > objectStart
+  ){
 
-    try {
-
-      return JSON.parse(
-        cleaned.slice(
-          arrayStart,
-          arrayEnd + 1
-        )
+    const jsonText =
+      value.slice(
+        objectStart,
+        objectEnd + 1
       );
 
-    } catch {}
+    try{
+
+      return JSON.parse(
+        jsonText
+      );
+
+    }catch(_){}
+
   }
 
 
   throw new Error(
     'Gemini က valid JSON မပြန်ပါ။'
   );
+
 }
 
 
-// ============================================================
-// GEMINI TRANSLATE ONE CHUNK
-// ============================================================
+/* =========================================================
+   GEMINI TRANSLATE CHUNK
+========================================================= */
 
 async function translateChunkGemini(
   chunk,
   apiKey
-) {
+){
 
-  if (!apiKey) {
+  if(!apiKey){
 
     throw new Error(
       'Gemini API Key မထည့်ရသေးပါ။'
     );
+
   }
 
 
@@ -1322,10 +1414,16 @@ async function translateChunkGemini(
 
   const input =
     chunk.map(
-      item => ({
+      item=>({
 
         id:
           item.id,
+
+        start:
+          item.start,
+
+        end:
+          item.end,
 
         text:
           item.text
@@ -1335,198 +1433,165 @@ async function translateChunkGemini(
 
 
   const prompt = `
-You are a professional subtitle translator.
+You are a professional Myanmar subtitle translator.
 
-Translate the following spoken dialogue into natural Myanmar Burmese.
+Translate the following subtitle dialogue into NATURAL, ACCURATE BURMESE (MYANMAR LANGUAGE).
 
-IMPORTANT RULES:
+STRICT RULES:
 
-1. Translate ONLY the spoken dialogue.
-2. Keep every id exactly unchanged.
-3. Do not remove any item.
-4. Do not merge items.
-5. Do not create new items.
-6. Do not summarize.
-7. Do not explain anything.
-8. Keep names, places and important terms.
-9. Make the Myanmar subtitle natural and easy to read.
-10. Return JSON only.
-11. Return an array.
-12. Every input id must appear exactly once.
-13. Each object must contain:
-    id
-    text
+1. Output Burmese/Myanmar language ONLY.
+2. Do NOT output Chinese characters.
+3. Do NOT output Korean characters.
+4. Do NOT output Japanese characters.
+5. Do NOT output English sentences.
+6. Do NOT copy the original dialogue.
+7. Do NOT add explanations.
+8. Do NOT add notes.
+9. Do NOT add translator comments.
+10. Preserve every subtitle ID exactly.
+11. Preserve start and end timestamps exactly.
+12. Translate every dialogue item.
+13. Keep the translation natural for subtitles.
+14. Do not merge different IDs.
+15. Do not create new IDs.
+16. Do not remove IDs.
+17. Proper names may remain unchanged only when absolutely necessary.
+18. Everything else must be Myanmar language.
+19. Return ONLY valid JSON.
+20. Return an array.
 
-SOURCE:
-${JSON.stringify(
-  input,
-  null,
-  2
-)}
+INPUT:
+${JSON.stringify(input)}
+
+OUTPUT FORMAT:
+[
+  {
+    "id": 1,
+    "start": 0,
+    "end": 2.5,
+    "text": "မြန်မာဘာသာပြန်စာ"
+  }
+]
 `;
 
 
-  try {
-
-    const response =
-      await generateGeminiWithRetry(
-        ai,
-        prompt
-      );
+  const response =
+    await generateGeminiWithRetry(
+      ai,
+      prompt
+    );
 
 
-    const text =
-      response?.text ??
-      response
-        ?.candidates?.[0]
-        ?.content?.parts
-        ?.map(
-          part =>
-            part.text || ''
-        )
-        .join('') ??
-      '';
-
-
-    const parsed =
-      extractJson(
-        text
-      );
-
-
-    let items = [];
-
-
-    if (
-      Array.isArray(
-        parsed
+  const rawText =
+    response?.text ||
+    response?.candidates?.[0]?.content?.parts
+      ?.map(
+        part =>
+          part.text || ''
       )
-    ) {
-
-      items =
-        parsed;
-
-    } else if (
-      Array.isArray(
-        parsed?.translations
-      )
-    ) {
-
-      items =
-        parsed.translations;
-
-    } else if (
-      Array.isArray(
-        parsed?.results
-      )
-    ) {
-
-      items =
-        parsed.results;
-
-    } else {
-
-      throw new Error(
-        'Gemini response format မမှန်ပါ။'
-      );
-    }
+      .join('') ||
+    '';
 
 
-    const byId =
-      new Map();
+  const parsed =
+    extractJson(
+      rawText
+    );
 
 
-    for (
-      const item of items
-    ) {
-
-      const id =
-        Number(
-          item?.id
+  const array =
+    Array.isArray(parsed)
+      ? parsed
+      : (
+          Array.isArray(
+            parsed?.segments
+          )
+            ? parsed.segments
+            : []
         );
 
 
-      if (
-        !Number.isFinite(
-          id
-        )
-      ) {
-
-        continue;
-      }
-
-
-      byId.set(
-        id,
-        cleanText(
-          item?.text
-        )
-      );
-    }
-
-
-    return chunk.map(
-      item => ({
-
-        ...item,
-
-        text:
-          byId.get(
-            item.id
-          ) ||
-          item.text
-
-      })
-    );
-
-
-  } catch (
-    error
-  ) {
-
-    if (
-      isQuotaError(
-        error
-      )
-    ) {
-
-      throw new Error(
-        'Gemini Free Tier quota/rate limit ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး နောက်မှ Translate ပြန်နှိပ်ပါ။'
-      );
-    }
-
+  if(
+    !array.length
+  ){
 
     throw new Error(
-      `Gemini Error: ${
-        error?.message ||
-        String(error)
-      }`
+      'Gemini ဘာသာပြန်ရလဒ် အလွတ်ဖြစ်နေပါတယ်။'
     );
+
   }
+
+
+  const result =
+    chunk.map(
+      original=>{
+
+        const found =
+          array.find(
+            item =>
+              Number(
+                item.id
+              ) ===
+              Number(
+                original.id
+              )
+          );
+
+
+        const translated =
+          cleanText(
+            found?.text ||
+            found?.translation ||
+            ''
+          );
+
+
+        return {
+
+          id:
+            original.id,
+
+          start:
+            original.start,
+
+          end:
+            original.end,
+
+          text:
+            translated ||
+            original.text
+
+        };
+
+      }
+    );
+
+
+  return result;
+
 }
 
 
-// ============================================================
-// TRANSLATE ALL
-// ============================================================
+/* =========================================================
+   TRANSLATE ALL
+========================================================= */
 
 async function translateAllGemini(
   segments,
   apiKey
-) {
-
-  const result =
-    [];
+){
 
   const CHUNK_SIZE =
     30;
 
+  const output = [];
 
-  for (
+
+  for(
     let i = 0;
     i < segments.length;
     i += CHUNK_SIZE
-  ) {
+  ){
 
     const chunk =
       segments.slice(
@@ -1536,16 +1601,15 @@ async function translateAllGemini(
 
 
     console.log(
-      `Gemini translating ${
-        i + 1
-      }-${
-        Math.min(
-          i +
-            CHUNK_SIZE,
-          segments.length
-        )
+      `Gemini translation chunk ${
+        Math.floor(
+          i / CHUNK_SIZE
+        ) + 1
       } / ${
-        segments.length
+        Math.ceil(
+          segments.length /
+          CHUNK_SIZE
+        )
       }`
     );
 
@@ -1557,43 +1621,61 @@ async function translateAllGemini(
       );
 
 
-    result.push(
+    output.push(
       ...translated
     );
 
 
-    if (
-      i +
-        CHUNK_SIZE <
+    if(
+      i + CHUNK_SIZE <
       segments.length
-    ) {
+    ){
 
       await sleep(
-        300
+        250
       );
+
     }
+
   }
 
 
-  return result;
+  return output.map(
+    (item,index)=>({
+
+      id:
+        index + 1,
+
+      start:
+        item.start,
+
+      end:
+        item.end,
+
+      text:
+        cleanText(
+          item.text
+        )
+
+    })
+  );
+
 }
 
 
-// ============================================================
-// SRT TIME
-// ============================================================
+/* =========================================================
+   SRT
+========================================================= */
 
 function formatSrtTime(
   seconds
-) {
+){
 
-  let totalMs =
+  const totalMs =
     Math.max(
       0,
       Math.round(
-        Number(
-          seconds || 0
-        ) *
+        Number(seconds || 0) *
         1000
       )
     );
@@ -1606,24 +1688,22 @@ function formatSrtTime(
     );
 
 
-  totalMs %=
-    3600000;
-
-
   const minutes =
     Math.floor(
-      totalMs /
+      (
+        totalMs %
+        3600000
+      ) /
       60000
     );
 
 
-  totalMs %=
-    60000;
-
-
   const secs =
     Math.floor(
-      totalMs /
+      (
+        totalMs %
+        60000
+      ) /
       1000
     );
 
@@ -1634,336 +1714,891 @@ function formatSrtTime(
 
 
   return (
-
-    String(hours)
-      .padStart(
-        2,
-        '0'
-      ) +
-
+    String(hours).padStart(2,'0') +
     ':' +
-
-    String(minutes)
-      .padStart(
-        2,
-        '0'
-      ) +
-
+    String(minutes).padStart(2,'0') +
     ':' +
-
-    String(secs)
-      .padStart(
-        2,
-        '0'
-      ) +
-
+    String(secs).padStart(2,'0') +
     ',' +
-
-    String(ms)
-      .padStart(
-        3,
-        '0'
-      )
-
+    String(ms).padStart(3,'0')
   );
+
 }
 
-
-// ============================================================
-// SPLIT SUBTITLE TEXT
-//
-// IMPORTANT:
-// Splitting text does NOT change the original
-// speech timing in the main segment.
-//
-// We keep one timing block per speech cue.
-// ============================================================
-
-function splitSubtitleText(
-  text,
-  maxChars = 48
-) {
-
-  const clean =
-    cleanText(
-      text
-    );
-
-
-  if (!clean) {
-    return [];
-  }
-
-
-  if (
-    clean.length <=
-    maxChars
-  ) {
-
-    return [
-      clean
-    ];
-  }
-
-
-  const words =
-    clean.split(
-      ' '
-    );
-
-
-  const lines =
-    [];
-
-  let current =
-    '';
-
-
-  for (
-    const word of words
-  ) {
-
-    const candidate =
-      current
-        ? `${current} ${word}`
-        : word;
-
-
-    if (
-      candidate.length <=
-      maxChars
-    ) {
-
-      current =
-        candidate;
-
-    } else {
-
-      if (
-        current
-      ) {
-
-        lines.push(
-          current
-        );
-      }
-
-
-      current =
-        word;
-    }
-  }
-
-
-  if (
-    current
-  ) {
-
-    lines.push(
-      current
-    );
-  }
-
-
-  return lines;
-}
-
-
-// ============================================================
-// MAKE SRT
-// ============================================================
 
 function makeSrt(
   segments
-) {
+){
 
-  const blocks =
-    [];
+  return segments
+    .map(
+      (item,index)=>{
 
-  let number =
-    1;
+        const text =
+          cleanText(
+            item.text
+          );
+
+        return (
+          `${index + 1}\n` +
+          `${formatSrtTime(item.start)} --> ` +
+          `${formatSrtTime(item.end)}\n` +
+          `${text}\n`
+        );
+
+      }
+    )
+    .join('\n');
+
+}
 
 
-  for (
-    const segment of segments
-  ) {
+/* =========================================================
+   ASS ESCAPE
+========================================================= */
 
-    const start =
-      Number(
-        segment.start
+function escapeAssText(
+  text
+){
+
+  return String(
+    text || ''
+  )
+    .replace(
+      /\\/g,
+      '\\\\'
+    )
+    .replace(
+      /\{/g,
+      '\\{'
+    )
+    .replace(
+      /\}/g,
+      '\\}'
+    )
+    .replace(
+      /\r?\n/g,
+      '\\N'
+    );
+
+}
+
+
+/* =========================================================
+   HEX -> ASS COLOR
+========================================================= */
+
+function hexToAss(
+  hex
+){
+
+  const value =
+    String(
+      hex || '#FFFFFF'
+    )
+      .replace(
+        '#',
+        ''
+      )
+      .trim();
+
+
+  if(
+    !/^[0-9a-fA-F]{6}$/.test(
+      value
+    )
+  ){
+
+    return '&H00FFFFFF';
+
+  }
+
+
+  const rr =
+    value.slice(0,2);
+
+  const gg =
+    value.slice(2,4);
+
+  const bb =
+    value.slice(4,6);
+
+
+  return (
+    '&H00' +
+    bb +
+    gg +
+    rr
+  );
+
+}
+
+
+/* =========================================================
+   ASS TIME
+========================================================= */
+
+function formatAssTime(
+  seconds
+){
+
+  const total =
+    Math.max(
+      0,
+      Number(seconds || 0)
+    );
+
+
+  const hours =
+    Math.floor(
+      total / 3600
+    );
+
+
+  const minutes =
+    Math.floor(
+      (
+        total % 3600
+      ) / 60
+    );
+
+
+  const secs =
+    Math.floor(
+      total % 60
+    );
+
+
+  const centis =
+    Math.floor(
+      (
+        total -
+        Math.floor(total)
+      ) * 100
+    );
+
+
+  return (
+    `${hours}:` +
+    `${String(minutes).padStart(2,'0')}:` +
+    `${String(secs).padStart(2,'0')}.` +
+    `${String(centis).padStart(2,'0')}`
+  );
+
+}
+
+
+/* =========================================================
+   FIND FONT
+========================================================= */
+
+async function findMyanmarFont(){
+
+  const possibleFonts = [
+
+    '/usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.ttf',
+
+    '/usr/share/fonts/opentype/noto/NotoSansMyanmar-Regular.ttf',
+
+    '/usr/share/fonts/truetype/noto/NotoSansMyanmar-Regular.otf',
+
+    '/usr/share/fonts/truetype/noto/NotoSansMyanmarUI-Regular.ttf',
+
+    '/usr/share/fonts/truetype/noto/NotoSansMyanmarUI-Regular.otf',
+
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+
+  ];
+
+
+  for(
+    const font of possibleFonts
+  ){
+
+    try{
+
+      await fs.access(
+        font
       );
 
-    const end =
-      Number(
-        segment.end
-      );
+      return font;
+
+    }catch(_){}
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =========================================================
+   CREATE ASS
+========================================================= */
+
+async function createAssFile(
+  segments,
+  options
+){
+
+  const assPath =
+    path.join(
+      TMP,
+      `${Date.now()}-` +
+      `${crypto.randomBytes(8).toString('hex')}.ass`
+    );
+
+
+  const width =
+    safeNumber(
+      options.videoWidth,
+      1080
+    );
+
+
+  const height =
+    safeNumber(
+      options.videoHeight,
+      1920
+    );
+
+
+  const fontSize =
+    Math.max(
+      20,
+      Math.min(
+        80,
+        safeNumber(
+          options.fontSize,
+          42
+        )
+      )
+    );
+
+
+  const outline =
+    Math.max(
+      0,
+      Math.min(
+        8,
+        safeNumber(
+          options.outline,
+          3
+        )
+      )
+    );
+
+
+  const color =
+    hexToAss(
+      options.color
+    );
+
+
+  let alignment = 2;
+
+  let marginV = 70;
+
+
+  if(
+    options.position === 'top'
+  ){
+
+    alignment = 8;
+    marginV = 55;
+
+  }else if(
+    options.position === 'middle'
+  ){
+
+    alignment = 5;
+    marginV = 0;
+
+  }else{
+
+    alignment = 2;
+    marginV = 65;
+
+  }
+
+
+  const fontFile =
+    await findMyanmarFont();
+
+
+  const fontName =
+    'Noto Sans Myanmar';
+
+
+  const lines = [];
+
+
+  lines.push(
+    '[Script Info]'
+  );
+
+  lines.push(
+    'ScriptType: v4.00+'
+  );
+
+  lines.push(
+    'PlayResX: ' + width
+  );
+
+  lines.push(
+    'PlayResY: ' + height
+  );
+
+  lines.push(
+    'ScaledBorderAndShadow: yes'
+  );
+
+  lines.push('');
+
+  lines.push(
+    '[V4+ Styles]'
+  );
+
+  lines.push(
+    'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding'
+  );
+
+  lines.push(
+    `Style: Default,${fontName},${fontSize},${color},${color},&H00000000,&H99000000,1,0,0,0,100,100,0,0,1,${outline},1,${alignment},45,45,${marginV},1`
+  );
+
+  lines.push('');
+
+  lines.push(
+    '[Events]'
+  );
+
+  lines.push(
+    'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text'
+  );
+
+
+  for(
+    const item of segments
+  ){
 
     const text =
-      cleanText(
-        segment.text
+      escapeAssText(
+        item.text
       );
 
 
-    if (
-      !Number.isFinite(
-        start
-      ) ||
-      !Number.isFinite(
-        end
-      ) ||
-      !text
-    ) {
-
+    if(!text){
       continue;
     }
 
 
-    const lines =
-      splitSubtitleText(
-        text
-      );
-
-
-    if (
-      !lines.length
-    ) {
-
-      continue;
-    }
-
-
-    blocks.push(
-
-      [
-
-        String(
-          number++
-        ),
-
-        `${formatSrtTime(
-          start
-        )} --> ${formatSrtTime(
-          end
-        )}`,
-
-        lines.join(
-          '\n'
-        ),
-
-        ''
-
-      ].join(
-        '\n'
-      )
-
+    lines.push(
+      `Dialogue: 0,${formatAssTime(item.start)},${formatAssTime(item.end)},Default,,0,0,0,,${text}`
     );
+
   }
 
 
-  return blocks.join(
-    '\n'
+  await fs.writeFile(
+    assPath,
+    lines.join('\n'),
+    'utf8'
   );
+
+
+  return {
+    assPath,
+    fontFile
+  };
+
 }
 
 
-// ============================================================
-// CLEAN FILE
-// ============================================================
+/* =========================================================
+   BUILD BLUR FILTER
+========================================================= */
 
-async function cleanupFile(
-  filePath
-) {
+function buildBlurFilter(
+  regions
+){
 
-  if (!filePath) {
-    return;
+  if(
+    !Array.isArray(regions) ||
+    !regions.length
+  ){
+
+    return null;
+
   }
 
 
-  try {
+  const safeRegions =
+    regions
+      .slice(0,3)
+      .map(
+        r=>({
+
+          x:
+            Math.max(
+              0,
+              Math.min(
+                1,
+                safeNumber(
+                  r.x
+                )
+              )
+            ),
+
+          y:
+            Math.max(
+              0,
+              Math.min(
+                1,
+                safeNumber(
+                  r.y
+                )
+              )
+            ),
+
+          w:
+            Math.max(
+              0,
+              Math.min(
+                1,
+                safeNumber(
+                  r.w
+                )
+              )
+            ),
+
+          h:
+            Math.max(
+              0,
+              Math.min(
+                1,
+                safeNumber(
+                  r.h
+                )
+              )
+            )
+
+        })
+      )
+      .filter(
+        r =>
+          r.w >= 0.01 &&
+          r.h >= 0.01
+      );
+
+
+  if(
+    !safeRegions.length
+  ){
+
+    return null;
+
+  }
+
+
+  const filters = [];
+
+
+  filters.push(
+    '[0:v]split=' +
+    (safeRegions.length + 1) +
+    '[base]' +
+    safeRegions
+      .map(
+        (_,i)=>
+          `[blur${i}]`
+      )
+      .join('')
+  );
+
+
+  /*
+    split output naming ကို ffmpeg
+    filter graph အတွက် ပြန်တည်ဆောက်ရန်
+  */
+
+  const splitLabels =
+    [
+      '[base]'
+    ];
+
+
+  for(
+    let i = 0;
+    i < safeRegions.length;
+    i++
+  ){
+
+    splitLabels.push(
+      `[blur${i}]`
+    );
+
+  }
+
+
+  filters[0] =
+    `[0:v]split=${safeRegions.length + 1}${splitLabels.join('')}`;
+
+
+  for(
+    let i = 0;
+    i < safeRegions.length;
+    i++
+  ){
+
+    const r =
+      safeRegions[i];
+
+
+    filters.push(
+      `[blur${i}]` +
+      `crop=` +
+      `iw*${r.w}:` +
+      `ih*${r.h}:` +
+      `iw*${r.x}:` +
+      `ih*${r.y},` +
+      `boxblur=12:2` +
+      `[b${i}]`
+    );
+
+  }
+
+
+  let current =
+    '[base]';
+
+
+  for(
+    let i = 0;
+    i < safeRegions.length;
+    i++
+  ){
+
+    const r =
+      safeRegions[i];
+
+
+    const next =
+      i === safeRegions.length - 1
+        ? '[blurred]'
+        : `[mix${i}]`;
+
+
+    filters.push(
+      `${current}[b${i}]` +
+      `overlay=` +
+      `x=W*${r.x}:` +
+      `y=H*${r.y}` +
+      `${next}`
+    );
+
+
+    current =
+      next;
+
+  }
+
+
+  return filters.join(';');
+
+}
+
+
+/* =========================================================
+   RENDER VIDEO
+========================================================= */
+
+async function renderVideo(
+  inputPath,
+  segments,
+  options,
+  blurRegions
+){
+
+  const duration =
+    await probeVideo(
+      inputPath
+    );
+
+
+  if(
+    duration > MAX_SECONDS + 2
+  ){
+
+    throw new Error(
+      'Video က 5 မိနစ်ထက်ရှည်နေပါတယ်။'
+    );
+
+  }
+
+
+  const outputPath =
+    path.join(
+      TMP,
+      `${Date.now()}-` +
+      `${crypto.randomBytes(8).toString('hex')}.mp4`
+    );
+
+
+  /*
+    Video size ကို ffprobe နဲ့ယူမယ်
+  */
+
+  const probe =
+    await runProcess(
+      ffprobeStatic.path,
+      [
+        '-v',
+        'error',
+
+        '-select_streams',
+        'v:0',
+
+        '-show_entries',
+        'stream=width,height',
+
+        '-of',
+        'csv=s=x:p=0',
+
+        inputPath
+      ]
+    );
+
+
+  const dimensions =
+    String(
+      probe.stdout || ''
+    ).trim();
+
+
+  let videoWidth =
+    1080;
+
+  let videoHeight =
+    1920;
+
+
+  if(
+    /^\d+x\d+$/.test(
+      dimensions
+    )
+  ){
+
+    const parts =
+      dimensions
+        .split('x')
+        .map(Number);
+
+    if(
+      Number.isFinite(parts[0]) &&
+      Number.isFinite(parts[1])
+    ){
+
+      videoWidth =
+        parts[0];
+
+      videoHeight =
+        parts[1];
+
+    }
+
+  }
+
+
+  /*
+    ASS
+  */
+
+  const ass =
+    await createAssFile(
+      segments,
+      {
+        ...options,
+        videoWidth,
+        videoHeight
+      }
+    );
+
+
+  /*
+    Filter
+  */
+
+  const blurFilter =
+    buildBlurFilter(
+      blurRegions
+    );
+
+
+  const filterParts = [];
+
+
+  if(
+    blurFilter
+  ){
+
+    filterParts.push(
+      blurFilter
+    );
+
+  }
+
+
+  /*
+    ASS subtitle filter
+
+    Windows path မဟုတ်တဲ့အတွက်
+    / path ကိုသုံးမယ်။
+  */
+
+  const escapedAss =
+    ass.assPath
+      .replace(
+        /\\/g,
+        '/'
+      )
+      .replace(
+        /:/g,
+        '\\:'
+      )
+      .replace(
+        /'/g,
+        "\\'"
+      );
+
+
+  if(
+    blurFilter
+  ){
+
+    filterParts.push(
+      `[blurred]subtitles='${escapedAss}'[vout]`
+    );
+
+  }else{
+
+    filterParts.push(
+      `[0:v]subtitles='${escapedAss}'[vout]`
+    );
+
+  }
+
+
+  /*
+    Blur filter က [blurred] output ဖြစ်ပြီး
+    မရှိရင် [0:v] ကို subtitle ထဲပို့တယ်။
+  */
+
+  const filterComplex =
+    filterParts.join(';');
+
+
+  console.log(
+    'Starting final MP4 render...'
+  );
+
+
+  await runProcess(
+    ffmpegStatic,
+    [
+
+      '-y',
+
+      '-i',
+      inputPath,
+
+      '-filter_complex',
+      filterComplex,
+
+      '-map',
+      '[vout]',
+
+      '-map',
+      '0:a?',
+
+      '-c:v',
+      'libx264',
+
+      '-preset',
+      'veryfast',
+
+      '-crf',
+      '20',
+
+      '-pix_fmt',
+      'yuv420p',
+
+      '-c:a',
+      'aac',
+
+      '-b:a',
+      '128k',
+
+      '-movflags',
+      '+faststart',
+
+      outputPath
+
+    ]
+  );
+
+
+  console.log(
+    `Final video created: ${outputPath}`
+  );
+
+
+  /*
+    temporary ASS ဖိုင်ဖျက်
+  */
+
+  try{
 
     await fs.unlink(
-      filePath
+      ass.assPath
     );
 
-  } catch {}
+  }catch(_){}
+
+
+  return outputPath;
+
 }
 
 
-// ============================================================
-// HEALTH
-// ============================================================
-
-app.get(
-  '/health',
-  (req, res) => {
-
-    res.json({
-
-      ok:
-        true,
-
-      service:
-        'myanmar-srt',
-
-      groqModel:
-        GROQ_MODEL,
-
-      geminiModel:
-        GEMINI_MODEL,
-
-      audioExtraction:
-        true,
-
-      preciseWordTimeline:
-        true
-
-    });
-  }
-);
-
-
-// ============================================================
-// TRANSCRIBE
-// ============================================================
+/* =========================================================
+   TRANSCRIBE ROUTE
+========================================================= */
 
 app.post(
   '/api/transcribe',
 
-  upload.single(
-    'video'
-  ),
+  upload.single('video'),
 
-  async (
-    req,
-    res
-  ) => {
-
-    let videoPath =
-      null;
+  async (req,res)=>{
 
     let audioPath =
       null;
 
 
-    try {
+    try{
 
-      if (
-        !req.file
-      ) {
+      if(!req.file){
 
         return res
           .status(400)
           .json({
-
             error:
               'Video file မတွေ့ပါ။'
-
           });
+
       }
-
-
-      videoPath =
-        req.file.path;
 
 
       const groqKey =
@@ -1974,72 +2609,66 @@ app.post(
         );
 
 
-      if (!groqKey) {
+      if(!groqKey){
 
         return res
           .status(400)
           .json({
-
             error:
               'Groq API Key မထည့်ရသေးပါ။'
-
           });
+
       }
 
-
-      console.log(
-        `Uploaded video: ${
-          req.file.originalname
-        }`
-      );
-
-
-      // ------------------------------------------------------
-      // VIDEO DURATION
-      // ------------------------------------------------------
 
       const duration =
         await probeVideo(
-          videoPath
+          req.file.path
         );
 
 
       console.log(
-        `Video duration: ${
-          duration
-        }s`
+        `Uploaded video: ${req.file.originalname}`
+      );
+
+      console.log(
+        `Video duration: ${duration}s`
       );
 
 
-      if (
-        duration >
-        MAX_SECONDS
-      ) {
+      if(
+        duration > MAX_SECONDS + 2
+      ){
 
         return res
           .status(400)
           .json({
-
             error:
-              'Video length က 5 မိနစ်ထက် မကျော်ရပါ။'
-
+              'Video က 5 မိနစ်ထက်ရှည်နေပါတယ်။'
           });
+
       }
 
 
-      // ------------------------------------------------------
-      // EXTRACT AUDIO
-      // ------------------------------------------------------
+      if(
+        duration <= 0
+      ){
+
+        return res
+          .status(400)
+          .json({
+            error:
+              'Video duration မမှန်ပါ။'
+          });
+
+      }
+
 
       audioPath =
         await extractAudio(
-          videoPath
+          req.file.path
         );
 
-
-      // ------------------------------------------------------
-      // WHISPER
-      // ------------------------------------------------------
 
       const transcript =
         await transcribeGroq(
@@ -2048,50 +2677,43 @@ app.post(
         );
 
 
-      // ------------------------------------------------------
-      // PRECISE WORD TIMELINE
-      // ------------------------------------------------------
-
       const segments =
         buildPreciseSegments(
           transcript
         );
 
 
-      if (
+      if(
         !segments.length
-      ) {
+      ){
 
         return res
-          .status(400)
+          .status(422)
           .json({
-
             error:
-              'Groq က စကားပြော Transcript မရပါ။'
-
+              'Video ထဲမှာ မှတ်သားနိုင်တဲ့ စကားပြောသံ မတွေ့ပါ။'
           });
+
       }
 
 
       console.log(
-        `Final subtitle segments: ${
-          segments.length
-        }`
+        `Final subtitle segments: ${segments.length}`
       );
 
 
-      // Print first few cues for debugging
-      console.log(
-        'First subtitle cues:',
-        JSON.stringify(
-          segments.slice(
-            0,
-            5
-          ),
-          null,
-          2
+      for(
+        const item of segments.slice(
+          0,
+          5
         )
-      );
+      ){
+
+        console.log(
+          `[${item.start} - ${item.end}] ${item.text}`
+        );
+
+      }
 
 
       return res.json({
@@ -2105,32 +2727,32 @@ app.post(
           transcript?.language ||
           null,
 
-        // Full original text
         text:
-          cleanText(
-            transcript?.text
-          ) ||
+          transcript?.text ||
           segments
             .map(
-              item =>
-                item.text
+              s => s.text
             )
-            .join(
-              ' '
-            ),
+            .join(' '),
 
-        // Precise speech timeline
-        segments
+        segments,
+
+        /*
+          HTML က transcript ကို
+          ဒီ key ကနေယူနိုင်အောင်
+          transcript alias ပါထည့်ထားတယ်
+        */
+
+        transcript:
+          segments
 
       });
 
 
-    } catch (
-      error
-    ) {
+    }catch(error){
 
       console.error(
-        'TRANSCRIBE ERROR:',
+        'Transcribe error:',
         error
       );
 
@@ -2138,43 +2760,56 @@ app.post(
       return res
         .status(500)
         .json({
-
           error:
             error?.message ||
-            'Transcription failed.'
-
+            'Transcription မအောင်မြင်ပါ။'
         });
 
 
-    } finally {
+    }finally{
 
-      await cleanupFile(
-        audioPath
-      );
+      if(audioPath){
 
-      await cleanupFile(
-        videoPath
-      );
+        try{
+
+          await fs.unlink(
+            audioPath
+          );
+
+        }catch(_){}
+
+      }
+
+
+      if(req.file?.path){
+
+        try{
+
+          await fs.unlink(
+            req.file.path
+          );
+
+        }catch(_){}
+
+      }
 
     }
 
   }
+
 );
 
 
-// ============================================================
-// TRANSLATE
-// ============================================================
+/* =========================================================
+   TRANSLATE ROUTE
+========================================================= */
 
 app.post(
   '/api/translate',
 
-  async (
-    req,
-    res
-  ) => {
+  async (req,res)=>{
 
-    try {
+    try{
 
       const geminiKey =
         getKey(
@@ -2184,110 +2819,115 @@ app.post(
         );
 
 
-      if (!geminiKey) {
+      if(!geminiKey){
 
         return res
           .status(400)
           .json({
-
             error:
               'Gemini API Key မထည့်ရသေးပါ။'
-
           });
+
       }
 
 
       const segments =
         Array.isArray(
-          req.body?.segments
+          req.body?.transcript
         )
-          ? req.body.segments
-          : [];
+          ? req.body.transcript
+          : (
+              Array.isArray(
+                req.body?.segments
+              )
+                ? req.body.segments
+                : []
+            );
 
 
-      if (
+      if(
         !segments.length
-      ) {
+      ){
 
         return res
           .status(400)
           .json({
-
             error:
-              'Translate လုပ်ရန် transcript မရှိပါ။'
-
+              'Transcript မတွေ့ပါ။'
           });
+
       }
 
 
-      const cleanedSegments =
+      const cleaned =
         segments
           .map(
-            (
-              item,
-              index
-            ) => ({
+            (item,index)=>({
 
               id:
-                Number.isFinite(
-                  Number(
-                    item?.id
-                  )
-                )
-                  ? Number(
-                      item.id
-                    )
-                  : index + 1,
+                Number(
+                  item.id ||
+                  index + 1
+                ),
 
               start:
                 Number(
-                  item?.start
-                ) || 0,
+                  item.start
+                ),
 
               end:
                 Number(
-                  item?.end
-                ) || 0,
+                  item.end
+                ),
 
               text:
                 cleanText(
-                  item?.text
+                  item.text
                 )
 
             })
           )
           .filter(
             item =>
-              item.text
+              item.text &&
+              Number.isFinite(
+                item.start
+              ) &&
+              Number.isFinite(
+                item.end
+              )
           );
 
 
-      if (
-        !cleanedSegments.length
-      ) {
+      if(
+        !cleaned.length
+      ){
 
         return res
           .status(400)
           .json({
-
             error:
-              'Transcript စာသား မရှိပါ။'
-
+              'မှန်ကန်တဲ့ Transcript မရှိပါ။'
           });
+
       }
 
 
       console.log(
-        `Starting Gemini translation: ${
-          cleanedSegments.length
-        } segments`
+        `Translating ${cleaned.length} subtitle cues...`
       );
 
 
       const translated =
         await translateAllGemini(
-          cleanedSegments,
+          cleaned,
           geminiKey
+        );
+
+
+      const srt =
+        makeSrt(
+          translated
         );
 
 
@@ -2296,25 +2936,308 @@ app.post(
         ok:
           true,
 
-        // Timing is preserved exactly
-        // from Groq.
         segments:
           translated,
 
-        srt:
-          makeSrt(
-            translated
-          )
+        transcript:
+          translated,
+
+        srt
 
       });
 
 
-    } catch (
-      error
-    ) {
+    }catch(error){
 
       console.error(
-        'TRANSLATE ERROR:',
+        'Translation error:',
+        error
+      );
+
+
+      if(
+        isQuotaError(
+          error
+        )
+      ){
+
+        return res
+          .status(429)
+          .json({
+            error:
+              'Gemini API quota / rate limit ပြည့်နေပါတယ်။ ခဏစောင့်ပြီး ပြန်စမ်းပါ။'
+          });
+
+      }
+
+
+      return res
+        .status(500)
+        .json({
+          error:
+            error?.message ||
+            'Gemini Translation မအောင်မြင်ပါ။'
+        });
+
+    }
+
+  }
+
+);
+
+
+/* =========================================================
+   RENDER ROUTE
+========================================================= */
+
+app.post(
+  '/api/render',
+
+  upload.single('video'),
+
+  async (req,res)=>{
+
+    let outputPath =
+      null;
+
+
+    try{
+
+      if(!req.file){
+
+        return res
+          .status(400)
+          .json({
+            error:
+              'Video file မတွေ့ပါ။'
+          });
+
+      }
+
+
+      const duration =
+        await probeVideo(
+          req.file.path
+        );
+
+
+      if(
+        duration > MAX_SECONDS + 2
+      ){
+
+        return res
+          .status(400)
+          .json({
+            error:
+              'Video က 5 မိနစ်ထက်ရှည်နေပါတယ်။'
+          });
+
+      }
+
+
+      let segments = [];
+
+
+      try{
+
+        segments =
+          JSON.parse(
+            req.body.segments ||
+            '[]'
+          );
+
+      }catch(_){
+
+        return res
+          .status(400)
+          .json({
+            error:
+              'Subtitle segments JSON မမှန်ပါ။'
+          });
+
+      }
+
+
+      if(
+        !Array.isArray(segments) ||
+        !segments.length
+      ){
+
+        return res
+          .status(400)
+          .json({
+            error:
+              'မြန်မာ Subtitle မရှိသေးပါ။'
+          });
+
+      }
+
+
+      let blurRegions = [];
+
+
+      try{
+
+        blurRegions =
+          JSON.parse(
+            req.body.blurRegions ||
+            '[]'
+          );
+
+      }catch(_){
+
+        blurRegions = [];
+
+      }
+
+
+      /*
+        Subtitle text ကို
+        Myanmar-only safe clean လုပ်
+      */
+
+      segments =
+        segments
+          .map(
+            (item,index)=>({
+
+              id:
+                index + 1,
+
+              start:
+                Math.max(
+                  0,
+                  Number(
+                    item.start
+                  )
+                ),
+
+              end:
+                Math.min(
+                  duration,
+                  Number(
+                    item.end
+                  )
+                ),
+
+              text:
+                cleanText(
+                  item.text ||
+                  item.translation ||
+                  ''
+                )
+
+            })
+          )
+          .filter(
+            item =>
+              item.text &&
+              item.end >
+              item.start
+          );
+
+
+      if(
+        !segments.length
+      ){
+
+        return res
+          .status(400)
+          .json({
+            error:
+              'Render လုပ်ရန် Subtitle မရှိပါ။'
+          });
+
+      }
+
+
+      const options = {
+
+        fontSize:
+          req.body.fontSize,
+
+        outline:
+          req.body.outline,
+
+        color:
+          req.body.color ||
+          '#FFFFFF',
+
+        position:
+          req.body.position ||
+          'bottom'
+
+      };
+
+
+      console.log(
+        `Rendering ${segments.length} subtitle cues`
+      );
+
+      console.log(
+        `Blur regions: ${blurRegions.length}`
+      );
+
+
+      outputPath =
+        await renderVideo(
+          req.file.path,
+          segments,
+          options,
+          blurRegions
+        );
+
+
+      const stat =
+        await fs.stat(
+          outputPath
+        );
+
+
+      if(
+        !stat.size
+      ){
+
+        throw new Error(
+          'Output Video အလွတ်ဖြစ်နေပါတယ်။'
+        );
+
+      }
+
+
+      res.setHeader(
+        'Content-Type',
+        'video/mp4'
+      );
+
+      res.setHeader(
+        'Content-Length',
+        String(
+          stat.size
+        )
+      );
+
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename="Burmese-YNT-SRT.mp4"'
+      );
+
+
+      const buffer =
+        await fs.readFile(
+          outputPath
+        );
+
+
+      return res.end(
+        buffer
+      );
+
+
+    }catch(error){
+
+      console.error(
+        'Render error:',
         error
       );
 
@@ -2322,147 +3245,165 @@ app.post(
       return res
         .status(500)
         .json({
-
           error:
             error?.message ||
-            String(error)
-
+            'Video Render မအောင်မြင်ပါ။'
         });
+
+
+    }finally{
+
+      if(req.file?.path){
+
+        try{
+
+          await fs.unlink(
+            req.file.path
+          );
+
+        }catch(_){}
+
+      }
+
+
+      if(outputPath){
+
+        try{
+
+          await fs.unlink(
+            outputPath
+          );
+
+        }catch(_){}
+
+      }
+
     }
+
+  }
+
+);
+
+
+/* =========================================================
+   HEALTH
+========================================================= */
+
+app.get(
+  '/api/health',
+  (req,res)=>{
+
+    res.json({
+
+      ok:
+        true,
+
+      service:
+        'Burmese YNT SRT',
+
+      groqModel:
+        GROQ_MODEL,
+
+      geminiModel:
+        GEMINI_MODEL,
+
+      videoRender:
+        true,
+
+      blur:
+        true,
+
+      subtitleBurn:
+        true
+
+    });
+
   }
 );
 
 
-// ============================================================
-// DISABLED OLD ROUTES
-// ============================================================
+/* =========================================================
+   ROOT
+========================================================= */
 
-app.post(
-  '/api/process',
-  (req, res) => {
+app.get(
+  '*',
+  (req,res,next)=>{
 
-    res
-      .status(410)
-      .json({
+    if(
+      req.path.startsWith('/api/')
+    ){
 
-        error:
-          'Movie Recap / MP4 Render feature has been disabled. This app is SRT only.'
+      return next();
 
-      });
+    }
+
+    res.sendFile(
+      path.join(
+        PUBLIC,
+        'index.html'
+      )
+    );
+
   }
 );
 
 
-app.post(
-  '/api/render',
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-
-        error:
-          'MP4 rendering is disabled. This app is SRT only.'
-
-      });
-  }
-);
-
-
-app.post(
-  '/api/recap',
-  (req, res) => {
-
-    res
-      .status(410)
-      .json({
-
-        error:
-          'Movie Recap is disabled. This app is SRT only.'
-
-      });
-  }
-);
-
-
-// ============================================================
-// API 404
-// ============================================================
+/* =========================================================
+   ERROR HANDLER
+========================================================= */
 
 app.use(
-  '/api',
-  (req, res) => {
-
-    res
-      .status(404)
-      .json({
-
-        error:
-          'API endpoint not found.'
-
-      });
-  }
-);
-
-
-// ============================================================
-// GLOBAL ERROR
-// ============================================================
-
-app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
+  (error,req,res,next)=>{
 
     console.error(
-      'SERVER ERROR:',
+      'Unhandled error:',
       error
     );
 
 
-    if (
-      error?.code ===
-      'LIMIT_FILE_SIZE'
-    ) {
+    if(
+      error instanceof multer.MulterError
+    ){
 
-      return res
-        .status(413)
-        .json({
+      if(
+        error.code ===
+        'LIMIT_FILE_SIZE'
+      ){
 
-          error:
-            'Video file size က 300MB ထက် မကျော်ရပါ။'
+        return res
+          .status(413)
+          .json({
+            error:
+              'Video က 300MB ထက်ကြီးနေပါတယ်။'
+          });
 
-        });
+      }
+
     }
 
 
     return res
       .status(500)
       .json({
-
         error:
           error?.message ||
-          'Server error.'
-
+          'Server error ဖြစ်သွားပါတယ်။'
       });
+
   }
 );
 
 
-// ============================================================
-// START
-// ============================================================
+/* =========================================================
+   START
+========================================================= */
 
 app.listen(
   PORT,
-  '0.0.0.0',
-  () => {
-
+  ()=>{
     console.log(
-      `Myanmar SRT server running on port ${PORT}`
+      `Burmese YNT SRT server running on port ${PORT}`
     );
 
     console.log(
@@ -2474,11 +3415,11 @@ app.listen(
     );
 
     console.log(
-      'Audio extraction: ENABLED'
+      'Video render: ENABLED'
     );
 
     console.log(
-      'Precise word timeline: ENABLED'
+      'Original subtitle blur: ENABLED'
     );
 
   }
