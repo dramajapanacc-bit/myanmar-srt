@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="my">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Burmese YNT SRT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap');
+:root{--bg:#07111f;--card:#0e1b2d;--card2:#12243a;--line:#213652;--text:#f4f7fb;--muted:#9fb0c5;--blue:#4f8cff;--cyan:#22d3ee;--green:#34d399;--pink:#f472b6;--danger:#fb7185}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 10% 0,#16375a 0,#07111f 36%,#050b14 100%);color:var(--text);font-family:"Noto Sans Myanmar",sans-serif}
+.wrap{max-width:760px;margin:auto;padding:18px 12px 48px}
+.hero{padding:22px 18px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,#112746,#0d1829);box-shadow:0 18px 50px #0006;margin-bottom:14px}
+.logo{display:flex;align-items:center;gap:12px}.logoIcon{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--cyan));font-size:25px;box-shadow:0 8px 22px #22d3ee44}
+h1{font-size:25px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:5px}
+.card{background:linear-gradient(180deg,#102037,#0b1727);border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 12px 35px #0004}
+.title{font-weight:700;font-size:16px;margin-bottom:12px}.small{color:var(--muted);font-size:12px;line-height:1.7}
+label{display:block;color:#c8d5e5;font-size:13px;margin:10px 0 6px}
+input,select,textarea{width:100%;border:1px solid #29415f;background:#071321;color:var(--text);border-radius:12px;padding:12px;font:inherit;outline:none}
+textarea{min-height:190px;resize:vertical;line-height:1.65}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #4f8cff22}
+button,.download{width:100%;border:0;border-radius:13px;padding:13px 15px;margin-top:10px;color:#fff;font:700 14px "Noto Sans Myanmar",sans-serif;cursor:pointer;background:linear-gradient(135deg,#326fe7,#22a9e6);box-shadow:0 8px 20px #0003;text-decoration:none;display:block;text-align:center}
+button.green{background:linear-gradient(135deg,#10a97d,#34d399)}button.pink{background:linear-gradient(135deg,#d946a6,#f472b6)}button.dark{background:#182a40;border:1px solid #29415f}button.danger{background:#7f2638}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.status{padding:12px;border-radius:12px;background:#071321;border:1px solid var(--line);color:#b9c9db;font-size:13px}
+.previewBox{position:relative;background:#000;border-radius:18px;overflow:hidden;border:1px solid #1e3550}
+#video{display:block;width:100%;max-height:68vh;object-fit:contain;background:#000}
+.subtitlePreview{position:absolute;left:50%;top:90%;transform:translate(-50%,-50%);width:90%;text-align:center;font-weight:700;font-size:25px;line-height:1.35;color:#fff;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;pointer-events:none;display:none;z-index:5;user-select:none;touch-action:none}
+.subtitlePreview.moveMode{pointer-events:auto;cursor:move;outline:2px solid #22d3ee;outline-offset:4px;background:#22d3ee16;border-radius:10px;padding:3px 6px}
+.blurLayer{position:absolute;inset:0;pointer-events:none;z-index:4}.blurRect{position:absolute;border:2px solid #7dd3fc;background:rgba(20,30,45,.18);backdrop-filter:blur(11px) saturate(.55);-webkit-backdrop-filter:blur(11px) saturate(.55);box-shadow:0 0 0 9999px rgba(0,0,0,.02),inset 0 0 18px rgba(255,255,255,.08);border-radius:8px;display:none}
+.hint{padding:10px 12px;border-radius:12px;background:#0a1a2c;color:#9fb0c5;font-size:12px;margin-top:10px}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#153455;color:#8fdcff;font-size:11px;margin-bottom:8px}
+.check{display:flex;gap:10px;align-items:center;margin-top:10px}.check input{width:auto}.check span{font-size:13px}
+.keyCard summary{list-style:none;cursor:pointer;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:space-between;padding:2px 0}.keyCard summary::-webkit-details-marker{display:none}.keyCard summary::after{content:'＋';font-size:22px;color:#8fdcff}.keyCard[open] summary::after{content:'−'}.keyBody{margin-top:12px}
+.styleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.styleBox{padding:12px;border:1px solid #213f61;border-radius:14px;background:#081625}.styleTop{display:flex;align-items:center;justify-content:space-between;gap:8px}.styleValue{padding:4px 9px;border-radius:999px;background:#102f50;color:#8fdcff;font-size:11px;white-space:nowrap}.stepper{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;margin-top:8px}.stepper button{margin:0;padding:8px;font-size:18px}.stepper input{margin:0;text-align:center;padding:8px}.posGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}.posBtn{margin:0;padding:9px 4px;font-size:11px;background:#101f33;border:1px solid #29415f;box-shadow:none}.posBtn.active{background:linear-gradient(135deg,#326fe7,#22a9e6);border-color:#7dd3fc}.moveBtn{margin-top:10px}.finalDownload{display:none;background:linear-gradient(135deg,#10a97d,#34d399);font-size:15px;padding:15px}@media(max-width:520px){.styleGrid{grid-template-columns:1fr}}
+.file{padding:13px;background:#071321;border:1px dashed #35506f;border-radius:13px}
+.footer{text-align:center;color:#71849c;font-size:11px;margin-top:18px}
+@media(max-width:520px){.wrap{padding:10px 9px 35px}.hero{border-radius:20px}h1{font-size:21px}.row{grid-template-columns:1fr}.subtitlePreview{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="logo">
+      <div class="logoIcon">🇲🇲</div>
+      <div>
+        <h1>Burmese YNT SRT</h1>
+        <div class="sub">မြန်မာစာတန်းထိုး • Transcript • Blur • Video Burn</div>
+      </div>
+    </div>
+  </section>
+
+  <details class="card keyCard">
+    <summary>🔑 Key Settings</summary>
+    <div class="keyBody">
+      <label>Groq API Key</label>
+      <input id="groqKey" type="password" placeholder="Groq API Key">
+      <label>Gemini API Key</label>
+      <input id="geminiKey" type="password" placeholder="Gemini API Key">
+      <button class="dark" onclick="saveKeys()">💾 API Key သိမ်းမယ်</button>
+      <div class="small">Key တွေကို ဒီ browser ရဲ့ localStorage ထဲမှာသာ သိမ်းထားပါတယ်။</div>
+    </div>
+  </details>
+
+  <section class="card">
+    <div class="title">🎬 Video</div>
+    <input id="videoFile" class="file" type="file" accept="video/*">
+    <div class="small">အများဆုံး 300MB • 5 မိနစ်</div>
+    <div class="previewBox" id="previewBox" style="display:none;margin-top:12px">
+      <video id="video" controls playsinline></video>
+      <div class="subtitlePreview" id="subtitlePreview"></div>
+      <div class="blurLayer"><div class="blurRect" id="blurRect"></div></div>
+    </div>
+    <button onclick="transcribe()" id="transcribeBtn">🎙️ Groq Transcript</button>
+    <button class="green" onclick="translateMyanmar()" id="translateBtn" disabled>🇲🇲 Myanmar Translation</button>
+  </section>
+
+  <section class="card">
+    <div class="title">📊 Status</div>
+    <div class="status" id="status">Video ရွေးပြီး စတင်နိုင်ပါတယ်။</div>
+  </section>
+
+  <section class="card">
+    <div class="title">📝 Original Transcript</div>
+    <textarea id="originalText" readonly placeholder="Groq Transcript ဒီမှာပေါ်ပါမယ်"></textarea>
+    <button class="dark" onclick="downloadOriginal()">⬇️ Download Original Transcript</button>
+  </section>
+
+  <section class="card">
+    <div class="title">🇲🇲 Myanmar Subtitle</div>
+    <textarea id="myanmarText" readonly placeholder="Myanmar Translation ဒီမှာပေါ်ပါမယ်"></textarea>
+    <button class="dark" onclick="downloadSrt()">⬇️ Download Myanmar SRT</button>
+  </section>
+
+  <section class="card">
+    <div class="title">🎨 Subtitle Style</div>
+    <div class="styleGrid">
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာလုံးအရွယ်</label><span class="styleValue" id="fontSizeValue">42 px</span></div>
+        <div class="stepper"><button type="button" class="dark" onclick="stepStyle('fontSize',-1)">−</button><input id="fontSize" type="number" min="22" max="80" step="1" value="42"><button type="button" class="dark" onclick="stepStyle('fontSize',1)">＋</button></div>
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">Outline</label><span class="styleValue" id="outlineValue">3 px</span></div>
+        <div class="stepper"><button type="button" class="dark" onclick="stepStyle('outline',-1)">−</button><input id="outline" type="number" min="0" max="8" step="1" value="3"><button type="button" class="dark" onclick="stepStyle('outline',1)">＋</button></div>
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာလုံးအရောင်</label><span class="styleValue" id="colorCode">#FFFFFF</span></div>
+        <input id="color" type="color" value="#ffffff" style="height:46px;margin-top:8px;padding:4px">
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာတန်းနေရာ</label><span class="styleValue" id="positionValue">အောက်</span></div>
+        <input id="position" type="hidden" value="bottom">
+        <div class="posGrid"><button type="button" class="posBtn" data-pos="top" onclick="setPosition('top')">အပေါ်</button><button type="button" class="posBtn" data-pos="middle" onclick="setPosition('middle')">အလယ်</button><button type="button" class="posBtn active" data-pos="bottom" onclick="setPosition('bottom')">အောက်</button></div>
+      </div>
+    </div>
+    <button type="button" class="dark moveBtn" id="subtitleMoveBtn" onclick="toggleSubtitleMove()">🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်</button>
+    <button type="button" class="dark" onclick="resetSubtitlePosition()">↺ Subtitle နေရာ Reset</button>
+    <div class="hint">Video ပေါ်က မြန်မာစာတန်းကို လက်နဲ့ ဆွဲပြီး ကိုယ်လိုချင်တဲ့နေရာမှာ ထားနိုင်ပါတယ်။</div>
+  </section>
+
+  <section class="card">
+    <div class="title">🟦 Original စာ Blur</div>
+    <div class="check">
+      <input id="blurToggle" type="checkbox">
+      <span>မူရင်းစာတန်းနေရာကို Blur လုပ်မယ်</span>
+    </div>
+    <button class="pink" onclick="startBlur()" id="blurBtn">🖌️ Blur နေရာကို လက်နဲ့ရွေးမယ်</button>
+    <button class="dark" onclick="clearBlur()">✖️ Blur နေရာဖျက်မယ်</button>
+    <div class="hint">Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာရှိတဲ့နေရာကို ရွေးပါ။ ရွေးထားတဲ့နေရာကို Preview မှာ ဝါးဝါးလေး အုပ်ပြထားပါမယ်။ အများဆုံး ၃ နေရာရွေးနိုင်ပါတယ်။</div>
+  </section>
+
+  <section class="card">
+    <div class="title">🎥 Final Video</div>
+    <div class="hint">Myanmar Subtitle + Blur + Style ကို Video ထဲ တိုက်ရိုက်ထည့်ပြီး MP4 ထုတ်ပေးပါမယ်။</div>
+    <button onclick="renderVideo()" id="renderBtn" disabled>🔥 Burn Myanmar Subtitle + Blur</button>
+    <a id="finalDownload" class="download finalDownload" href="#" download="Burmese-YNT-SRT.mp4">⬇️ Final Video Download</a>
+  </section>
+
+  <div class="footer">Burmese YNT SRT • Groq Whisper + Gemini</div>
+</div>
+
+<script>
+let selectedVideo = null;
+let originalTranscript = [];
+let myanmarTranscript = [];
+let blurRegions = [];
+let blurDrawing = false;
+let blurStart = null;
+let objectUrl = null;
+
+const $ = id => document.getElementById(id);
+
+function status(msg){ $('status').textContent = msg; }
+
+function saveKeys(){
+  localStorage.setItem('byn_groq', $('groqKey').value.trim());
+  localStorage.setItem('byn_gemini', $('geminiKey').value.trim());
+  status('✅ API Key သိမ်းပြီးပါပြီ');
+}
+function loadKeys(){
+  $('groqKey').value = localStorage.getItem('byn_groq') || '';
+  $('geminiKey').value = localStorage.getItem('byn_gemini') || '';
+}
+function getGroq(){ return $('groqKey').value.trim() || localStorage.getItem('byn_groq') || ''; }
+function getGemini(){ return $('geminiKey').value.trim() || localStorage.getItem('byn_gemini') || ''; }
+
+function fmt(sec){
+  const ms=Math.max(0,Math.round(Number(sec||0)*1000));
+  const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000), x=ms%1000;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(x).padStart(3,'0')}`;
+}
+function displaySrt(arr, useText=true){
+  return arr.map((s,i)=>`${i+1}\n${fmt(s.start)} --> ${fmt(s.end)}\n${useText?s.text:''}\n`).join('\n');
+}
+function downloadText(name,text,type='text/plain'){
+  const blob=new Blob([text],{type});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function downloadOriginal(){
+  if(!originalTranscript.length) return status('❌ Original Transcript မရှိသေးပါ');
+  downloadText('original-transcript.txt',originalTranscript.map(s=>`${fmt(s.start)} --> ${fmt(s.end)}\n${s.text}`).join('\n\n'));
+}
+function downloadSrt(){
+  if(!myanmarTranscript.length) return status('❌ Myanmar Subtitle မရှိသေးပါ');
+  downloadText('Burmese-YNT-SRT.srt',displaySrt(myanmarTranscript),'application/x-subrip');
+}
+
+$('videoFile').addEventListener('change',e=>{
+  selectedVideo=e.target.files[0]||null;
+  originalTranscript=[]; myanmarTranscript=[]; blurRegions=[]; clearBlur();
+  $('originalText').value=''; $('myanmarText').value='';
+  $('translateBtn').disabled=true; $('renderBtn').disabled=true;
+  if(!selectedVideo) return;
+  if(selectedVideo.size>300*1024*1024){ status('❌ Video က 300MB ထက်ကြီးနေပါတယ်'); return; }
+  if(objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(selectedVideo);
+  $('video').src=objectUrl; $('previewBox').style.display='block';
+  status('✅ Video ရွေးပြီးပါပြီ။ Groq Transcript ကိုနှိပ်ပါ။');
+});
+
+async function transcribe(){
+  if(!selectedVideo) return status('❌ Video ရွေးပေးပါ');
+  const key=getGroq(); if(!key) return status('❌ Groq API Key ထည့်ပေးပါ');
+  $('transcribeBtn').disabled=true; status('⏳ Groq က အသံကို စစ်ပြီး စကားပြောချိန်အတိုင်း Transcript လုပ်နေပါတယ်...');
+  const fd=new FormData(); fd.append('video',selectedVideo);
+  try{
+    const r=await fetch('/api/transcribe',{method:'POST',headers:{'x-groq-api-key':key},body:fd});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||'Groq Error');
+    originalTranscript=d.transcript||[];
+    $('originalText').value=displaySrt(originalTranscript);
+    $('translateBtn').disabled=false;
+    status(`✅ Transcript ပြီးပါပြီ — ${originalTranscript.length} subtitle cue`);
+  }catch(e){status('❌ Groq Error: '+e.message)}
+  finally{$('transcribeBtn').disabled=false}
+}
+
+async function translateMyanmar(){
+  if(!originalTranscript.length) return status('❌ အရင် Transcript လုပ်ပါ');
+  const key=getGemini(); if(!key) return status('❌ Gemini API Key ထည့်ပေးပါ');
+  $('translateBtn').disabled=true; status('⏳ Gemini က မြန်မာစာပဲဖြစ်အောင် ဘာသာပြန်နေပါတယ်...');
+  try{
+    const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json','x-gemini-api-key':key},body:JSON.stringify({transcript:originalTranscript})});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||'Gemini Error');
+    myanmarTranscript=d.transcript||[];
+    $('myanmarText').value=displaySrt(myanmarTranscript);
+    $('renderBtn').disabled=!myanmarTranscript.length;
+    status(`✅ မြန်မာစာတန်းထိုး ပြီးပါပြီ — ${myanmarTranscript.length} cue`);
+  }catch(e){status('❌ Gemini Error: '+e.message)}
+  finally{$('translateBtn').disabled=false}
+}
+
+function currentSubtitle(){
+  const t=$('video').currentTime;
+  return myanmarTranscript.find(s=>t>=Number(s.start)&&t<=Number(s.end));
+}
+
+let subtitleMoveMode=false;
+let subtitleDrag=null;
+let subtitlePosition={x:0.5,y:0.90};
+
+function clamp01(v){ return Math.max(0,Math.min(1,Number(v)||0)); }
+function setPreviewSubtitlePosition(){
+  const p=$('subtitlePreview');
+  p.style.left=(subtitlePosition.x*100)+'%';
+  p.style.top=(subtitlePosition.y*100)+'%';
+  p.style.bottom='auto';
+  p.style.transform='translate(-50%,-50%)';
+}
+function updateStylePreview(){
+  $('fontSizeValue').textContent=(Number($('fontSize').value)||42)+' px';
+  $('outlineValue').textContent=(Number($('outline').value)||0)+' px';
+  $('colorCode').textContent=$('color').value.toUpperCase();
+  const labels={top:'အပေါ်',middle:'အလယ်',bottom:'အောက်'};
+  $('positionValue').textContent=labels[$('position').value]||'အောက်';
+  document.querySelectorAll('.posBtn').forEach(btn=>btn.classList.toggle('active',btn.dataset.pos===$('position').value));
+  $('video').dispatchEvent(new Event('timeupdate'));
+}
+function stepStyle(id,delta){
+  const el=$(id); const min=Number(el.min), max=Number(el.max);
+  el.value=Math.max(min,Math.min(max,(Number(el.value)||min)+delta));
+  updateStylePreview();
+}
+function setPosition(pos){
+  $('position').value=pos;
+  const preset={top:{x:0.5,y:0.10},middle:{x:0.5,y:0.50},bottom:{x:0.5,y:0.90}};
+  subtitlePosition=preset[pos]||preset.bottom;
+  setPreviewSubtitlePosition();
+  updateStylePreview();
+}
+function resetSubtitlePosition(){
+  setPosition($('position').value||'bottom');
+  subtitleMoveMode=false;
+  $('subtitlePreview').classList.remove('moveMode');
+  $('subtitleMoveBtn').textContent='🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်';
+  status('↺ Subtitle နေရာ Reset လုပ်ပြီးပါပြီ');
+}
+function toggleSubtitleMove(){
+  subtitleMoveMode=!subtitleMoveMode;
+  $('subtitlePreview').classList.toggle('moveMode',subtitleMoveMode);
+  $('subtitleMoveBtn').textContent=subtitleMoveMode?'✅ Subtitle နေရာရွှေ့နေပါပြီ — Video ပေါ်မှာ ဆွဲပါ':'🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်';
+  status(subtitleMoveMode?'🖐️ မြန်မာ Subtitle ကို Video ပေါ်မှာ လက်နဲ့ ဆွဲရွှေ့ပါ':'✅ Subtitle နေရာ သိမ်းထားပါပြီ');
+}
+$('video').addEventListener('timeupdate',()=>{
+  const s=currentSubtitle(), p=$('subtitlePreview');
+  if(s){p.textContent=s.text;p.style.display='block';}
+  else p.style.display='none';
+  p.style.fontSize=(Number($('fontSize').value)||42)+'px';
+  p.style.color=$('color').value;
+  setPreviewSubtitlePosition();
+});
+['fontSize','outline','color'].forEach(id=>$(id).addEventListener('input',updateStylePreview));
+
+function contentPoint(ev){
+  const box=$('video').getBoundingClientRect();
+  return {x:clamp01((ev.clientX-box.left)/box.width),y:clamp01((ev.clientY-box.top)/box.height)};
+}
+function videoPoint(ev){ return contentPoint(ev); }
+
+$('subtitlePreview').addEventListener('pointerdown',e=>{
+  if(!subtitleMoveMode) return;
+  e.preventDefault(); e.stopPropagation();
+  $('subtitlePreview').setPointerCapture?.(e.pointerId);
+  const p=contentPoint(e);
+  subtitleDrag={dx:subtitlePosition.x-p.x,dy:subtitlePosition.y-p.y};
+});
+$('subtitlePreview').addEventListener('pointermove',e=>{
+  if(!subtitleMoveMode||!subtitleDrag) return;
+  e.preventDefault();
+  const p=contentPoint(e);
+  subtitlePosition={x:clamp01(p.x+subtitleDrag.dx),y:clamp01(p.y+subtitleDrag.dy)};
+  setPreviewSubtitlePosition();
+});
+$('subtitlePreview').addEventListener('pointerup',e=>{
+  if(!subtitleMoveMode) return;
+  subtitleDrag=null;
+  status(`✅ Subtitle နေရာ သိမ်းပြီးပါပြီ — X ${Math.round(subtitlePosition.x*100)}% / Y ${Math.round(subtitlePosition.y*100)}%`);
+});
+
+function renderBlurRects(){
+  const layer=document.querySelector('.blurLayer');
+  layer.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());
+  blurRegions.forEach(r=>{
+    const el=document.createElement('div'); el.className='blurRect dynamic'; el.style.display='block';
+    el.style.left=(r.x*100)+'%';el.style.top=(r.y*100)+'%';el.style.width=(r.w*100)+'%';el.style.height=(r.h*100)+'%';
+    layer.appendChild(el);
+  });
+}
+function startBlur(){
+  if(!$('blurToggle').checked) $('blurToggle').checked=true;
+  if(!$('video').src) return status('❌ Video မရှိပါ');
+  if(blurRegions.length>=3) return status('ℹ️ Blur နေရာ ၃ ခုအထိ ရပါပြီ');
+  blurDrawing=true; status('🖌️ Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာနေရာကို ရွေးပါ');
+}
+$('video').addEventListener('pointerdown',e=>{
+  if(!blurDrawing) return;
+  e.preventDefault(); $('video').setPointerCapture?.(e.pointerId);
+  blurStart=videoPoint(e);
+});
+$('video').addEventListener('pointermove',e=>{
+  if(!blurDrawing||!blurStart) return;
+});
+$('video').addEventListener('pointerup',e=>{
+  if(!blurDrawing||!blurStart) return;
+  const p=videoPoint(e);
+  const x=Math.min(blurStart.x,p.x), y=Math.min(blurStart.y,p.y), w=Math.abs(p.x-blurStart.x), h=Math.abs(p.y-blurStart.y);
+  blurStart=null; blurDrawing=false;
+  if(w<.03||h<.03) return status('⚠️ Blur box ကို နည်းနည်းပိုကြီးအောင် ဆွဲပါ');
+  blurRegions.push({x,y,w,h}); renderBlurRects();
+  status(`✅ Blur နေရာ ${blurRegions.length} ခု ရွေးပြီးပါပြီ`);
+});
+function clearBlur(){blurRegions=[];document.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());blurStart=null;blurDrawing=false;status('🧹 Blur နေရာတွေ ဖျက်ပြီးပါပြီ');}
+
+async function renderVideo(){
+  if(!selectedVideo) return status('❌ Video မရှိပါ');
+  if(!myanmarTranscript.length) return status('❌ Myanmar Subtitle အရင်လုပ်ပါ');
+  if($('blurToggle').checked && !blurRegions.length) return status('⚠️ Blur ON ဖြစ်နေပါတယ်။ Video ပေါ်မှာ Blur နေရာရွေးပါ');
+  $('renderBtn').disabled=true; $('finalDownload').style.display='none';
+  status('⏳ Final Video Render လုပ်နေပါတယ်...');
+  const fd=new FormData(); fd.append('video',selectedVideo);
+  fd.append('segments',JSON.stringify(myanmarTranscript));
+  fd.append('blurRegions',JSON.stringify($('blurToggle').checked?blurRegions:[]));
+  fd.append('fontSize',$('fontSize').value); fd.append('outline',$('outline').value);
+  fd.append('color',$('color').value); fd.append('position',$('position').value);
+  fd.append('subtitlePosition',JSON.stringify(subtitlePosition));
+  try{
+    const r=await fetch('/api/render',{method:'POST',body:fd});
+    const d=await r.json().catch(()=>null);
+    if(!r.ok) throw new Error(d?.error||'Render Error');
+    if(!d?.downloadUrl) throw new Error('Final Video Download Link မရပါ');
+    $('finalDownload').href=d.downloadUrl;
+    $('finalDownload').download=d.filename||'Burmese-YNT-SRT.mp4';
+    $('finalDownload').style.display='block';
+    status('✅ Final Video ရပါပြီ — အောက်က Final Video Download ကိုနှိပ်ပါ။');
+    $('finalDownload').scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){status('❌ Video Render Error: '+e.message)}
+  finally{$('renderBtn').disabled=false}
+}
+
+loadKeys();
+updateStylePreview();
+setPosition('bottom');
+</script>
+</body>
+</html>
