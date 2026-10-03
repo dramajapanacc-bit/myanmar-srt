@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="my">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Burmese YNT SRT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg:#050b14;
+  --bg2:#081322;
+  --card:#0b1728;
+  --card2:#0f2035;
+  --line:#1b3552;
+  --line2:#284968;
+  --text:#f7fbff;
+  --muted:#8fa6bf;
+  --blue:#5b8cff;
+  --cyan:#35d6ff;
+  --green:#35d399;
+  --pink:#f472b6;
+  --orange:#ffb454;
+  --danger:#fb7185;
+  --shadow:0 18px 55px rgba(0,0,0,.34);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:"Noto Sans Myanmar",sans-serif;
+  background:
+    radial-gradient(900px 500px at 8% -8%,#183d67 0%,transparent 62%),
+    radial-gradient(700px 420px at 100% 12%,#142d4d 0%,transparent 58%),
+    linear-gradient(180deg,#07111e 0%,#040911 100%);
+}
+
+button,input,select,textarea{font-family:inherit}
+button{transition:transform .16s ease,filter .16s ease,border-color .16s ease}
+button:active{transform:scale(.985)}
+a{transition:filter .16s ease}
+
+.wrap{max-width:820px;margin:auto;padding:14px 12px 56px}
+
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding:22px 18px 18px;
+  border:1px solid #234361;
+  border-radius:26px;
+  background:
+    linear-gradient(135deg,rgba(21,52,85,.96),rgba(8,20,35,.98)),
+    #0b1728;
+  box-shadow:var(--shadow);
+  margin-bottom:12px;
+}
+.hero:before{
+  content:"";
+  position:absolute;
+  width:230px;height:230px;
+  right:-90px;top:-120px;
+  border-radius:50%;
+  background:rgba(53,214,255,.14);
+  filter:blur(4px);
+}
+.logo{position:relative;display:flex;align-items:center;gap:13px}
+.logoIcon{
+  width:52px;height:52px;flex:none;
+  border-radius:17px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  font-size:27px;
+  box-shadow:0 10px 28px rgba(53,214,255,.20);
+}
+h1{font-size:24px;line-height:1.2;margin:0;font-weight:800}
+.sub{color:#a9bdd2;font-size:12px;margin-top:5px}
+.heroMeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
+.heroPill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 9px;border-radius:999px;
+  background:#091a2d;border:1px solid #23415f;
+  color:#b9d3e9;font-size:10px;
+}
+
+.workflow{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin:0 1px 12px;
+}
+.workflowStep{
+  min-width:0;
+  padding:9px 7px;
+  text-align:center;
+  border:1px solid #17334f;
+  border-radius:13px;
+  background:rgba(8,20,34,.82);
+  color:#7892ad;
+  font-size:10px;
+}
+.workflowStep b{
+  display:block;
+  color:#c9def0;
+  font-size:11px;
+  margin-bottom:2px;
+}
+.workflowStep.active{
+  border-color:#2e6ea2;
+  background:linear-gradient(180deg,#102b46,#0a1b2e);
+}
+.workflowStep.active b{color:#65d9ff}
+
+.card{
+  position:relative;
+  background:linear-gradient(180deg,rgba(15,32,53,.96),rgba(8,20,34,.98));
+  border:1px solid var(--line);
+  border-radius:21px;
+  padding:16px;
+  margin:11px 0;
+  box-shadow:0 12px 38px rgba(0,0,0,.25);
+}
+.title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:800;
+  font-size:16px;
+  margin-bottom:12px;
+}
+.title:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,#284866,transparent);
+  margin-left:5px;
+}
+.small{color:var(--muted);font-size:11px;line-height:1.7}
+label{display:block;color:#c9d8e8;font-size:12px;margin:10px 0 6px}
+
+input,select,textarea{
+  width:100%;
+  border:1px solid #27445f;
+  background:#061321;
+  color:var(--text);
+  border-radius:13px;
+  padding:12px;
+  font:inherit;
+  outline:none;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(91,140,255,.13);
+}
+textarea{min-height:190px;resize:vertical;line-height:1.65}
+
+button,.download{
+  width:100%;
+  border:1px solid transparent;
+  border-radius:13px;
+  padding:13px 15px;
+  margin-top:9px;
+  color:#fff;
+  font:700 13px "Noto Sans Myanmar",sans-serif;
+  cursor:pointer;
+  background:linear-gradient(135deg,#386fe0,#24b5e6);
+  box-shadow:0 8px 20px rgba(0,0,0,.22);
+  text-decoration:none;
+  display:block;
+  text-align:center;
+}
+button:hover,.download:hover{filter:brightness(1.08)}
+button.green{background:linear-gradient(135deg,#0da87b,#35d399)}
+button.pink{background:linear-gradient(135deg,#d13d9e,#f472b6)}
+button.dark{background:#101f33;border-color:#294761;box-shadow:none}
+button.danger{background:#7f2638}
+button:disabled{opacity:.48;cursor:not-allowed;filter:none}
+
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.status{
+  min-height:46px;
+  display:flex;align-items:center;
+  padding:11px 12px;
+  border-radius:13px;
+  background:#061321;
+  border:1px solid var(--line);
+  color:#bcd0e3;
+  font-size:12px;
+}
+
+.file{
+  padding:13px;
+  background:#061321;
+  border:1px dashed #355a79;
+  border-radius:13px;
+}
+.file::file-selector-button{
+  margin-right:9px;
+  border:0;
+  border-radius:9px;
+  padding:8px 10px;
+  background:#153655;
+  color:#dff4ff;
+  font-family:inherit;
+}
+
+.previewBox{
+  position:relative;
+  background:#000;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid #24425f;
+  box-shadow:0 12px 35px rgba(0,0,0,.32);
+}
+#video{
+  display:block;
+  width:100%;
+  max-height:68vh;
+  object-fit:contain;
+  background:#000;
+}
+.subtitlePreview{
+  position:absolute;
+  left:50%;top:90%;
+  transform:translate(-50%,-50%);
+  width:90%;
+  text-align:center;
+  font-weight:700;
+  font-size:25px;
+  line-height:1.35;
+  color:#fff;
+  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
+  pointer-events:none;
+  display:none;
+  z-index:5;
+  user-select:none;
+  touch-action:none;
+}
+.subtitlePreview.moveMode{
+  pointer-events:auto;
+  cursor:move;
+  outline:2px solid var(--cyan);
+  outline-offset:4px;
+  background:rgba(53,214,255,.10);
+  border-radius:10px;
+  padding:4px 7px;
+}
+.blurLayer{position:absolute;inset:0;pointer-events:none;z-index:4}
+.blurRect{
+  position:absolute;
+  border:2px solid #ffbf63;
+  background:rgba(20,30,45,.10);
+  backdrop-filter:blur(14px) saturate(.45);
+  -webkit-backdrop-filter:blur(14px) saturate(.45);
+  box-shadow:inset 0 0 22px rgba(255,255,255,.08);
+  border-radius:9px;
+  display:none;
+}
+
+.hint{
+  padding:10px 12px;
+  border-radius:12px;
+  background:#071727;
+  border:1px solid #17344f;
+  color:#91a8bf;
+  font-size:11px;
+  line-height:1.65;
+  margin-top:10px;
+}
+
+.keyCard summary{
+  list-style:none;
+  cursor:pointer;
+  font-weight:800;
+  font-size:15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:2px 0;
+}
+.keyCard summary::-webkit-details-marker{display:none}
+.keyCard summary::after{content:'＋';font-size:21px;color:#75dfff}
+.keyCard[open] summary::after{content:'−'}
+.keyBody{margin-top:12px}
+
+.styleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.styleBox{
+  padding:12px;
+  border:1px solid #1d3d5a;
+  border-radius:15px;
+  background:#071524;
+}
+.styleTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.styleValue{
+  padding:4px 9px;
+  border-radius:999px;
+  background:#102d4a;
+  color:#8fe5ff;
+  font-size:10px;
+  white-space:nowrap;
+}
+.stepper{display:grid;grid-template-columns:40px 1fr 40px;gap:6px;margin-top:8px}
+.stepper button{margin:0;padding:7px;font-size:17px}
+.stepper input{margin:0;text-align:center;padding:8px}
+.posGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.posBtn{margin:0;padding:9px 3px;font-size:10px;background:#0e1d30;border:1px solid #28465f;box-shadow:none}
+.posBtn.active{background:linear-gradient(135deg,#356fdf,#23b4e6);border-color:#72ddff}
+.moveBtn{margin-top:10px}
+
+.check{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+  padding:10px;
+  border-radius:13px;
+  background:#071524;
+  border:1px solid #1b3853;
+}
+.check input{width:auto;accent-color:#5b8cff}
+.check span{font-size:12px;color:#c4d5e5}
+
+.finalDownload{
+  display:none;
+  background:linear-gradient(135deg,#0ea77a,#35d399);
+  font-size:14px;
+  padding:15px;
+  border-color:#58e0ae;
+}
+
+.footer{text-align:center;color:#657d96;font-size:10px;margin-top:18px}
+
+@media(max-width:600px){
+  .wrap{padding:9px 9px 40px}
+  .hero{padding:18px 15px;border-radius:22px}
+  h1{font-size:21px}
+  .workflowStep{padding:8px 4px;font-size:9px}
+  .workflowStep b{font-size:10px}
+  .styleGrid{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr}
+  .subtitlePreview{font-size:19px}
+  .card{padding:14px}
+}
+
+
+/* ===== Colorful Studio UI ===== */
+body{background:radial-gradient(700px 360px at 0% 0%,rgba(124,58,237,.30),transparent 65%),radial-gradient(650px 360px at 100% 8%,rgba(6,182,212,.24),transparent 62%),radial-gradient(600px 420px at 50% 100%,rgba(236,72,153,.12),transparent 65%),#040810;}
+.hero{background:linear-gradient(135deg,rgba(48,24,94,.96),rgba(7,35,62,.96) 52%,rgba(8,67,74,.92));border-color:#4b3d86;}
+.logoIcon{background:linear-gradient(135deg,#7c3aed 0%,#06b6d4 52%,#ec4899 100%);}
+.heroPill:nth-child(1){border-color:#6545a8;color:#d9c8ff}.heroPill:nth-child(2){border-color:#177f91;color:#baf7ff}.heroPill:nth-child(3){border-color:#a83c79;color:#ffc3e5}.heroPill:nth-child(4){border-color:#a56a27;color:#ffe0a8}
+.workflowStep.active:nth-child(1){border-color:#6845bd;background:linear-gradient(180deg,#24134d,#10172d)}.workflowStep.active:nth-child(2){border-color:#137e9c;background:linear-gradient(180deg,#0b3444,#101c2d)}.workflowStep.active:nth-child(3){border-color:#a2387a;background:linear-gradient(180deg,#421433,#17192b)}.workflowStep.active:nth-child(4){border-color:#a56b2a;background:linear-gradient(180deg,#422914,#181a27)}
+.thumbnailCard{overflow:hidden;background:linear-gradient(145deg,rgba(33,20,67,.98),rgba(7,22,38,.98));border-color:#5b3c91;}
+.thumbnailHero{position:relative;padding:15px;margin:-16px -16px 14px;background:radial-gradient(300px 150px at 85% 20%,rgba(6,182,212,.24),transparent 65%),linear-gradient(135deg,#1b123b,#092638 55%,#2a0e32);border-bottom:1px solid #44336b;}
+.thumbnailHero h2{margin:0;font-size:17px}.thumbnailHero p{margin:5px 0 0;color:#9db4cb;font-size:10px;line-height:1.6}.sectionAccent{display:flex;align-items:center;gap:9px;margin:-2px 0 12px;color:#dbeafe;font-size:10px;font-weight:700}.sectionAccent i{width:7px;height:7px;border-radius:50%;display:block;background:linear-gradient(135deg,#7c3aed,#06b6d4,#ec4899);box-shadow:0 0 12px rgba(124,58,237,.8)}
+.thumbMode,.thumbControls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.thumbMode button{margin:0;padding:10px 7px;font-size:10px;background:#101b30;border-color:#304765;box-shadow:none}.thumbMode button.active{background:linear-gradient(135deg,#7c3aed,#06b6d4);border-color:#79e9ff}
+.thumbPreview{position:relative;min-height:170px;margin-top:11px;border-radius:17px;overflow:hidden;border:1px solid #38516e;background:radial-gradient(circle at 50% 30%,#253b58,#0a111b 65%);display:grid;place-items:center}.thumbFrame{width:100%;aspect-ratio:16/9;display:grid;place-items:center;padding:18px;text-align:center;position:relative;background:linear-gradient(135deg,rgba(124,58,237,.38),rgba(6,182,212,.18) 50%,rgba(236,72,153,.25))}.thumbTitle{position:relative;z-index:2;font-size:21px;font-weight:800;line-height:1.25;text-shadow:0 3px 14px #000}.thumbTag{position:absolute;left:12px;top:10px;z-index:2;padding:5px 8px;border-radius:999px;background:rgba(3,9,17,.72);border:1px solid #3d5975;color:#c5f7ff;font-size:9px}.thumbGlow{position:absolute;width:150px;height:150px;border-radius:50%;background:#06b6d4;opacity:.18;filter:blur(30px)}
+.thumbOption{padding:10px;border-radius:13px;background:#081525;border:1px solid #233d59}.thumbOption label{margin:0 0 5px;font-size:10px}.thumbAction{margin-top:10px;background:linear-gradient(135deg,#7c3aed,#ec4899 52%,#06b6d4);border-color:#8e7aff}.thumbResult{display:none;margin-top:10px;padding:10px;border-radius:12px;background:#071a1a;border:1px solid #23685e;color:#9ff3d2;font-size:11px;line-height:1.6}@media(max-width:600px){.thumbControls,.thumbMode{grid-template-columns:1fr}.thumbTitle{font-size:17px}}
+
+
+/* ===== Independent Recap Thumbnail Card ===== */
+.thumbFlow{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  flex-wrap:wrap;margin:0 0 13px;
+  padding:9px 8px;border-radius:13px;
+  background:#071524;border:1px solid #263e5a;
+  color:#9cc0da;font-size:9px;
+}
+.thumbFlow span{
+  padding:5px 7px;border-radius:999px;
+  background:#10253b;border:1px solid #2a4b68;color:#cceeff;
+}
+.thumbFlow b{color:#55ddff;font-size:12px}
+
+.thumbVideoInfo{
+  margin-top:8px;padding:9px 10px;
+  border-radius:11px;background:#061321;
+  border:1px solid #1d3954;color:#8ea8c0;
+  font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.thumbAnalyze{
+  background:linear-gradient(135deg,#6d3df5,#08b6d8);
+  border-color:#6be9ff;
+}
+
+.thumbResultPanel{
+  display:none;margin-top:12px;padding:11px;
+  border-radius:14px;background:#071525;
+  border:1px solid #3c4e7b;
+}
+.thumbResultHead{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:7px;color:#dceaff;font-size:11px;font-weight:700;
+}
+.aiBadge{
+  padding:3px 7px;border-radius:999px;
+  color:#e9dcff;background:#321a62;border:1px solid #7149c5;font-size:8px;
+}
+.thumbResultPanel textarea{min-height:72px;margin:0}
+
+.thumbDesignHead{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:14px 0 7px;color:#e8f4ff;font-size:12px;font-weight:800;
+}
+.thumbDesignHead small{color:#748da7;font-size:9px;font-weight:500}
+
+.thumbPreview{
+  position:relative;width:100%;
+  border-radius:17px;overflow:hidden;
+  border:1px solid #4b4c7f;
+  background:#050910;
+  box-shadow:0 16px 38px rgba(0,0,0,.38);
+}
+.thumbFrame{
+  position:relative;width:100%;
+  aspect-ratio:16/9;overflow:hidden;
+  background:
+    radial-gradient(circle at 25% 35%,rgba(120,70,255,.45),transparent 28%),
+    radial-gradient(circle at 78% 25%,rgba(0,220,255,.30),transparent 25%),
+    linear-gradient(135deg,#1b0d38,#082638 55%,#330d2c);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;
+}
+.thumbImagePlaceholder{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:4px;color:#b2c7da;font-size:27px;
+  opacity:.55;
+}
+.thumbImagePlaceholder small{font-size:9px}
+.thumbOverlay{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.58));
+}
+.thumbTopTag{
+  position:absolute;left:10px;top:9px;z-index:3;
+  padding:5px 8px;border-radius:5px;
+  background:#00d9ff;color:#00131a;
+  font-size:8px;font-weight:900;
+}
+.thumbTitlePreview{
+  position:relative;z-index:3;
+  max-width:90%;text-align:center;
+  color:#fff;font-weight:900;
+  font-size:clamp(17px,4.7vw,31px);
+  line-height:1.15;
+  text-shadow:
+    0 3px 0 #000,
+    0 5px 18px rgba(0,0,0,.95);
+}
+.thumbBottomTag{
+  position:absolute;right:10px;bottom:9px;z-index:3;
+  padding:5px 8px;border-radius:5px;
+  background:#ffe600;color:#161100;
+  font-size:8px;font-weight:900;
+}
+.thumbControls{margin-top:10px}
+.thumbGenerate{
+  margin-top:11px;
+  background:linear-gradient(135deg,#f21d91,#743cf3,#00c9df);
+  border-color:#ff7bc7;
+}
+.thumbDownloadArea{display:none}
+.thumbDownload{
+  background:linear-gradient(135deg,#09a97c,#27e1a6);
+  border-color:#6affc9;
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="logo">
+      <div class="logoIcon">🇲🇲</div>
+      <div>
+        <h1>Burmese YNT SRT</h1>
+        <div class="sub">AI Subtitle Studio • Transcript • Translate • Edit • Burn</div>
+      </div>
+    </div>
+    <div class="heroMeta">
+      <span class="heroPill">🎙️ Groq</span>
+      <span class="heroPill">🇲🇲 Gemini</span>
+      <span class="heroPill">🌫️ Blur</span>
+      <span class="heroPill">🎬 MP4</span>
+    </div>
+  </section>
+
+  <div class="workflow">
+    <div class="workflowStep active"><b>01</b>Video</div>
+    <div class="workflowStep active"><b>02</b>Transcript</div>
+    <div class="workflowStep active"><b>03</b>Myanmar</div>
+    <div class="workflowStep active"><b>04</b>Final MP4</div>
+  </div>
+
+  <details class="card keyCard">
+    <summary>🔑 Key Settings</summary>
+    <div class="keyBody">
+      <label>Groq API Key</label>
+      <input id="groqKey" type="password" placeholder="Groq API Key">
+      <label>Gemini API Key</label>
+      <input id="geminiKey" type="password" placeholder="Gemini API Key">
+      <button class="dark" onclick="saveKeys()">💾 API Key သိမ်းမယ်</button>
+      <div class="small">Key တွေကို ဒီ browser ရဲ့ localStorage ထဲမှာသာ သိမ်းထားပါတယ်။</div>
+    </div>
+  </details>
+
+  <section class="card">
+    <div class="title">🎬 Video</div>
+    <input id="videoFile" class="file" type="file" accept="video/*">
+    <div class="small">အများဆုံး 300MB • 5 မိနစ်</div>
+    <div class="previewBox" id="previewBox" style="display:none;margin-top:12px"><div style="position:absolute;z-index:8;top:9px;left:9px;padding:5px 8px;border-radius:999px;background:rgba(4,12,21,.78);border:1px solid #294963;color:#aeeaff;font-size:9px;pointer-events:none">● LIVE PREVIEW</div>
+      <video id="video" controls playsinline></video>
+      <div class="subtitlePreview" id="subtitlePreview"></div>
+      <div class="blurLayer"><div class="blurRect" id="blurRect"></div></div>
+    </div>
+    <button onclick="transcribe()" id="transcribeBtn">🎙️ Groq Transcript</button>
+    <button class="green" onclick="translateMyanmar()" id="translateBtn" disabled>🇲🇲 Myanmar Translation</button>
+  </section>
+
+  <section class="card">
+    <div class="title">📊 Status</div>
+    <div class="status" id="status">Video ရွေးပြီး စတင်နိုင်ပါတယ်။</div>
+  </section>
+
+  <section class="card">
+    <div class="title">📝 Original Transcript</div>
+    <textarea id="originalText" readonly placeholder="Groq Transcript ဒီမှာပေါ်ပါမယ်"></textarea>
+    <button class="dark" onclick="downloadOriginal()">⬇️ Download Original Transcript</button>
+  </section>
+
+  <section class="card">
+    <div class="title">🇲🇲 Myanmar Subtitle</div>
+    <textarea id="myanmarText" readonly placeholder="Myanmar Translation ဒီမှာပေါ်ပါမယ်"></textarea>
+    <button class="dark" onclick="downloadSrt()">⬇️ Download Myanmar SRT</button>
+  </section>
+
+  <section class="card">
+    <div class="title">🎨 Subtitle Style</div>
+    <div class="styleGrid">
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာလုံးအရွယ်</label><span class="styleValue" id="fontSizeValue">42 px</span></div>
+        <div class="stepper"><button type="button" class="dark" onclick="stepStyle('fontSize',-1)">−</button><input id="fontSize" type="number" min="22" max="80" step="1" value="42"><button type="button" class="dark" onclick="stepStyle('fontSize',1)">＋</button></div>
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">Outline</label><span class="styleValue" id="outlineValue">3 px</span></div>
+        <div class="stepper"><button type="button" class="dark" onclick="stepStyle('outline',-1)">−</button><input id="outline" type="number" min="0" max="8" step="1" value="3"><button type="button" class="dark" onclick="stepStyle('outline',1)">＋</button></div>
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာလုံးအရောင်</label><span class="styleValue" id="colorCode">#FFFFFF</span></div>
+        <input id="color" type="color" value="#ffffff" style="height:46px;margin-top:8px;padding:4px">
+      </div>
+      <div class="styleBox">
+        <div class="styleTop"><label style="margin:0">စာတန်းနေရာ</label><span class="styleValue" id="positionValue">အောက်</span></div>
+        <input id="position" type="hidden" value="bottom">
+        <div class="posGrid"><button type="button" class="posBtn" data-pos="top" onclick="setPosition('top')">အပေါ်</button><button type="button" class="posBtn" data-pos="middle" onclick="setPosition('middle')">အလယ်</button><button type="button" class="posBtn active" data-pos="bottom" onclick="setPosition('bottom')">အောက်</button></div>
+      </div>
+    </div>
+    <button type="button" class="dark moveBtn" id="subtitleMoveBtn" onclick="toggleSubtitleMove()">🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်</button>
+    <button type="button" class="dark" onclick="resetSubtitlePosition()">↺ Subtitle နေရာ Reset</button>
+    <div class="hint">Video ပေါ်က မြန်မာစာတန်းကို လက်နဲ့ ဆွဲပြီး ကိုယ်လိုချင်တဲ့နေရာမှာ ထားနိုင်ပါတယ်။</div>
+  </section>
+
+  <section class="card">
+    <div class="title">🟦 Original စာ Blur</div>
+    <div class="check">
+      <input id="blurToggle" type="checkbox">
+      <span>မူရင်းစာတန်းနေရာကို Blur လုပ်မယ်</span>
+    </div>
+    <button class="pink" onclick="startBlur()" id="blurBtn">🖌️ Blur နေရာကို လက်နဲ့ရွေးမယ်</button>
+    <button class="dark" onclick="clearBlur()">✖️ Blur နေရာဖျက်မယ်</button>
+    <div class="hint">Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာရှိတဲ့နေရာကို ရွေးပါ။ ရွေးထားတဲ့နေရာကို Preview မှာ ဝါးဝါးလေး အုပ်ပြထားပါမယ်။ အများဆုံး ၃ နေရာရွေးနိုင်ပါတယ်။</div>
+  </section>
+
+  
+  
+  <!-- =================================================
+       INDEPENDENT THUMBNAIL STUDIO
+       Completely separate from SRT workflow
+  ================================================== -->
+  <section class="card thumbnailCard" id="thumbnailStudio">
+    <div class="thumbnailHero">
+      <div class="sectionAccent"><i></i> RECAP CONTENT STUDIO</div>
+      <h2>🖼️ Recap Thumbnail</h2>
+      <p>ဒီ Card က SRT Card နဲ့ လုံးဝသီးသန့်ပါ။ Recap Video တစ်ပုဒ်ထည့် → Video ကိုနားလည် → သင့်တော်တဲ့ ခေါင်းစဉ် → Cover Thumbnail ပုံထုတ်ဖို့အတွက်ပါ။</p>
+    </div>
+
+    <div class="thumbFlow">
+      <span>① Video</span><b>→</b><span>② Analyze</span><b>→</b><span>③ Title</span><b>→</b><span>④ Thumbnail</span>
+    </div>
+
+    <label>🎬 Recap Video ထည့်ပါ</label>
+    <input id="thumbVideo" class="file" type="file" accept="video/*">
+
+    <div class="thumbVideoInfo" id="thumbVideoInfo">
+      Video မရွေးရသေးပါ
+    </div>
+
+    <button type="button" class="thumbAnalyze" id="thumbAnalyzeBtn">
+      🧠 Analyze Video & Generate Title
+    </button>
+
+    <div class="thumbResultPanel" id="thumbResultPanel">
+      <div class="thumbResultHead">
+        <span>📝 Suggested Title</span>
+        <span class="aiBadge">AI</span>
+      </div>
+      <textarea id="thumbTitle" rows="2" placeholder="Video analysis ပြီးရင် ခေါင်းစဉ် ဒီနေရာမှာပေါ်မယ်"></textarea>
+    </div>
+
+    <div class="thumbDesignHead">
+      <span>🎨 Thumbnail Design</span>
+      <small>Reference style</small>
+    </div>
+
+    <div class="thumbPreview" id="thumbPreview">
+      <div class="thumbFrame">
+        <div class="thumbImagePlaceholder" id="thumbImagePlaceholder">
+          <span>🖼️</span>
+          <small>AI Thumbnail Preview</small>
+        </div>
+        <div class="thumbOverlay"></div>
+        <div class="thumbTopTag">RECAP</div>
+        <div class="thumbTitlePreview" id="thumbTitlePreview">Video ထည့်ပြီး စတင်ပါ</div>
+        <div class="thumbBottomTag">▶ WATCH NOW</div>
+      </div>
+    </div>
+
+    <div class="thumbControls">
+      <div class="thumbOption">
+        <label>🎭 Style</label>
+        <select id="thumbStyle">
+          <option value="dramatic">Dramatic Korean Drama</option>
+          <option value="emotional">Emotional Story</option>
+          <option value="mystery">Mystery / Suspense</option>
+          <option value="romance">Romance</option>
+        </select>
+      </div>
+      <div class="thumbOption">
+        <label>📐 Size</label>
+        <select id="thumbRatio">
+          <option value="16:9">16:9 YouTube</option>
+          <option value="9:16">9:16 Reels / TikTok</option>
+          <option value="1:1">1:1 Square</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" class="thumbGenerate" id="thumbGenerateBtn">
+      ✨ Generate Thumbnail
+    </button>
+
+    <div class="thumbDownloadArea" id="thumbDownloadArea">
+      <button type="button" class="thumbDownload" id="thumbDownloadBtn">
+        ⬇️ Download Thumbnail
+      </button>
+    </div>
+
+    <div class="hint">
+      💡 <b>သီးသန့် Card</b> — ဒီ Recap Thumbnail အပိုင်းက အပေါ်က SRT / Myanmar Subtitle workflow နဲ့ မဆက်ပါဘူး။ SRT မလုပ်ဘဲ Video တစ်ပုဒ်တည်းနဲ့ Thumbnail workflow ကို သီးသန့်သုံးနိုင်ပါတယ်။
+    </div>
+  </section>
+
+
+<section class="card">
+    <div class="title">🎥 Final Video</div>
+    <div class="hint">Myanmar Subtitle + Blur + Style ကို Video ထဲ တိုက်ရိုက်ထည့်ပြီး MP4 ထုတ်ပေးပါမယ်။</div>
+    <button onclick="renderVideo()" id="renderBtn" disabled>🔥 Burn Myanmar Subtitle + Blur</button>
+    <a id="finalDownload" class="download finalDownload" href="#" download="Burmese-YNT-SRT.mp4">⬇️ Final Video Download</a>
+  </section>
+
+  <div class="footer">Burmese YNT SRT • Groq Whisper + Gemini</div>
+</div>
+
+<script>
+let selectedVideo = null;
+let originalTranscript = [];
+let myanmarTranscript = [];
+let blurRegions = [];
+let blurDrawing = false;
+let blurStart = null;
+let objectUrl = null;
+
+const $ = id => document.getElementById(id);
+
+function status(msg){ $('status').textContent = msg; }
+
+function saveKeys(){
+  localStorage.setItem('byn_groq', $('groqKey').value.trim());
+  localStorage.setItem('byn_gemini', $('geminiKey').value.trim());
+  status('✅ API Key သိမ်းပြီးပါပြီ');
+}
+function loadKeys(){
+  $('groqKey').value = localStorage.getItem('byn_groq') || '';
+  $('geminiKey').value = localStorage.getItem('byn_gemini') || '';
+}
+function getGroq(){ return $('groqKey').value.trim() || localStorage.getItem('byn_groq') || ''; }
+function getGemini(){ return $('geminiKey').value.trim() || localStorage.getItem('byn_gemini') || ''; }
+
+function fmt(sec){
+  const ms=Math.max(0,Math.round(Number(sec||0)*1000));
+  const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000), x=ms%1000;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(x).padStart(3,'0')}`;
+}
+function displaySrt(arr, useText=true){
+  return arr.map((s,i)=>`${i+1}\n${fmt(s.start)} --> ${fmt(s.end)}\n${useText?s.text:''}\n`).join('\n');
+}
+function downloadText(name,text,type='text/plain'){
+  const blob=new Blob([text],{type});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function downloadOriginal(){
+  if(!originalTranscript.length) return status('❌ Original Transcript မရှိသေးပါ');
+  downloadText('original-transcript.txt',originalTranscript.map(s=>`${fmt(s.start)} --> ${fmt(s.end)}\n${s.text}`).join('\n\n'));
+}
+function downloadSrt(){
+  if(!myanmarTranscript.length) return status('❌ Myanmar Subtitle မရှိသေးပါ');
+  downloadText('Burmese-YNT-SRT.srt',displaySrt(myanmarTranscript),'application/x-subrip');
+}
+
+$('videoFile').addEventListener('change',e=>{
+  selectedVideo=e.target.files[0]||null;
+  originalTranscript=[]; myanmarTranscript=[]; blurRegions=[]; clearBlur();
+  $('originalText').value=''; $('myanmarText').value='';
+  $('translateBtn').disabled=true; $('renderBtn').disabled=true;
+  if(!selectedVideo) return;
+  if(selectedVideo.size>300*1024*1024){ status('❌ Video က 300MB ထက်ကြီးနေပါတယ်'); return; }
+  if(objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(selectedVideo);
+  $('video').src=objectUrl; $('previewBox').style.display='block';
+  status('✅ Video ရွေးပြီးပါပြီ။ Groq Transcript ကိုနှိပ်ပါ။');
+});
+
+async function transcribe(){
+  if(!selectedVideo) return status('❌ Video ရွေးပေးပါ');
+  const key=getGroq(); if(!key) return status('❌ Groq API Key ထည့်ပေးပါ');
+  $('transcribeBtn').disabled=true; status('⏳ Groq က အသံကို စစ်ပြီး စကားပြောချိန်အတိုင်း Transcript လုပ်နေပါတယ်...');
+  const fd=new FormData(); fd.append('video',selectedVideo);
+  try{
+    const r=await fetch('/api/transcribe',{method:'POST',headers:{'x-groq-api-key':key},body:fd});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||'Groq Error');
+    originalTranscript=d.transcript||[];
+    $('originalText').value=displaySrt(originalTranscript);
+    $('translateBtn').disabled=false;
+    status(`✅ Transcript ပြီးပါပြီ — ${originalTranscript.length} subtitle cue`);
+  }catch(e){status('❌ Groq Error: '+e.message)}
+  finally{$('transcribeBtn').disabled=false}
+}
+
+async function translateMyanmar(){
+  if(!originalTranscript.length) return status('❌ အရင် Transcript လုပ်ပါ');
+  const key=getGemini(); if(!key) return status('❌ Gemini API Key ထည့်ပေးပါ');
+  $('translateBtn').disabled=true; status('⏳ Gemini က မြန်မာစာပဲဖြစ်အောင် ဘာသာပြန်နေပါတယ်...');
+  try{
+    const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json','x-gemini-api-key':key},body:JSON.stringify({transcript:originalTranscript})});
+    const d=await r.json(); if(!r.ok) throw new Error(d.error||'Gemini Error');
+    myanmarTranscript=d.transcript||[];
+    $('myanmarText').value=displaySrt(myanmarTranscript);
+    $('renderBtn').disabled=!myanmarTranscript.length;
+    status(`✅ မြန်မာစာတန်းထိုး ပြီးပါပြီ — ${myanmarTranscript.length} cue`);
+  }catch(e){status('❌ Gemini Error: '+e.message)}
+  finally{$('translateBtn').disabled=false}
+}
+
+function currentSubtitle(){
+  const t=$('video').currentTime;
+  return myanmarTranscript.find(s=>t>=Number(s.start)&&t<=Number(s.end));
+}
+
+let subtitleMoveMode=false;
+let subtitleDrag=null;
+let subtitlePosition={x:0.5,y:0.90};
+
+function clamp01(v){ return Math.max(0,Math.min(1,Number(v)||0)); }
+function setPreviewSubtitlePosition(){
+  const p=$('subtitlePreview');
+  p.style.left=(subtitlePosition.x*100)+'%';
+  p.style.top=(subtitlePosition.y*100)+'%';
+  p.style.bottom='auto';
+  p.style.transform='translate(-50%,-50%)';
+}
+function updateStylePreview(){
+  $('fontSizeValue').textContent=(Number($('fontSize').value)||42)+' px';
+  $('outlineValue').textContent=(Number($('outline').value)||0)+' px';
+  $('colorCode').textContent=$('color').value.toUpperCase();
+  const labels={top:'အပေါ်',middle:'အလယ်',bottom:'အောက်'};
+  $('positionValue').textContent=labels[$('position').value]||'အောက်';
+  document.querySelectorAll('.posBtn').forEach(btn=>btn.classList.toggle('active',btn.dataset.pos===$('position').value));
+  $('video').dispatchEvent(new Event('timeupdate'));
+}
+function stepStyle(id,delta){
+  const el=$(id); const min=Number(el.min), max=Number(el.max);
+  el.value=Math.max(min,Math.min(max,(Number(el.value)||min)+delta));
+  updateStylePreview();
+}
+function setPosition(pos){
+  $('position').value=pos;
+  const preset={top:{x:0.5,y:0.10},middle:{x:0.5,y:0.50},bottom:{x:0.5,y:0.90}};
+  subtitlePosition=preset[pos]||preset.bottom;
+  setPreviewSubtitlePosition();
+  updateStylePreview();
+}
+function resetSubtitlePosition(){
+  setPosition($('position').value||'bottom');
+  subtitleMoveMode=false;
+  $('subtitlePreview').classList.remove('moveMode');
+  $('subtitleMoveBtn').textContent='🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်';
+  status('↺ Subtitle နေရာ Reset လုပ်ပြီးပါပြီ');
+}
+function toggleSubtitleMove(){
+  subtitleMoveMode=!subtitleMoveMode;
+  $('subtitlePreview').classList.toggle('moveMode',subtitleMoveMode);
+  $('subtitleMoveBtn').textContent=subtitleMoveMode?'✅ Subtitle နေရာရွှေ့နေပါပြီ — Video ပေါ်မှာ ဆွဲပါ':'🖐️ Subtitle ကို လက်နဲ့ရွေး/ရွှေ့မယ်';
+  status(subtitleMoveMode?'🖐️ မြန်မာ Subtitle ကို Video ပေါ်မှာ လက်နဲ့ ဆွဲရွှေ့ပါ':'✅ Subtitle နေရာ သိမ်းထားပါပြီ');
+}
+$('video').addEventListener('timeupdate',()=>{
+  const s=currentSubtitle(), p=$('subtitlePreview');
+  if(s){p.textContent=s.text;p.style.display='block';}
+  else p.style.display='none';
+  p.style.fontSize=(Number($('fontSize').value)||42)+'px';
+  p.style.color=$('color').value;
+  setPreviewSubtitlePosition();
+});
+['fontSize','outline','color'].forEach(id=>$(id).addEventListener('input',updateStylePreview));
+
+function contentPoint(ev){
+  const box=$('video').getBoundingClientRect();
+  return {x:clamp01((ev.clientX-box.left)/box.width),y:clamp01((ev.clientY-box.top)/box.height)};
+}
+function videoPoint(ev){ return contentPoint(ev); }
+
+$('subtitlePreview').addEventListener('pointerdown',e=>{
+  if(!subtitleMoveMode) return;
+  e.preventDefault(); e.stopPropagation();
+  $('subtitlePreview').setPointerCapture?.(e.pointerId);
+  const p=contentPoint(e);
+  subtitleDrag={dx:subtitlePosition.x-p.x,dy:subtitlePosition.y-p.y};
+});
+$('subtitlePreview').addEventListener('pointermove',e=>{
+  if(!subtitleMoveMode||!subtitleDrag) return;
+  e.preventDefault();
+  const p=contentPoint(e);
+  subtitlePosition={x:clamp01(p.x+subtitleDrag.dx),y:clamp01(p.y+subtitleDrag.dy)};
+  setPreviewSubtitlePosition();
+});
+$('subtitlePreview').addEventListener('pointerup',e=>{
+  if(!subtitleMoveMode) return;
+  subtitleDrag=null;
+  status(`✅ Subtitle နေရာ သိမ်းပြီးပါပြီ — X ${Math.round(subtitlePosition.x*100)}% / Y ${Math.round(subtitlePosition.y*100)}%`);
+});
+
+function renderBlurRects(){
+  const layer=document.querySelector('.blurLayer');
+  layer.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());
+  blurRegions.forEach(r=>{
+    const el=document.createElement('div'); el.className='blurRect dynamic'; el.style.display='block';
+    el.style.left=(r.x*100)+'%';el.style.top=(r.y*100)+'%';el.style.width=(r.w*100)+'%';el.style.height=(r.h*100)+'%';
+    layer.appendChild(el);
+  });
+}
+function startBlur(){
+  if(!$('blurToggle').checked) $('blurToggle').checked=true;
+  if(!$('video').src) return status('❌ Video မရှိပါ');
+  if(blurRegions.length>=3) return status('ℹ️ Blur နေရာ ၃ ခုအထိ ရပါပြီ');
+  blurDrawing=true; status('🖌️ Video ပေါ်မှာ လက်နဲ့ ဆွဲပြီး မူရင်းစာနေရာကို ရွေးပါ');
+}
+$('video').addEventListener('pointerdown',e=>{
+  if(!blurDrawing) return;
+  e.preventDefault(); $('video').setPointerCapture?.(e.pointerId);
+  blurStart=videoPoint(e);
+});
+$('video').addEventListener('pointermove',e=>{
+  if(!blurDrawing||!blurStart) return;
+});
+$('video').addEventListener('pointerup',e=>{
+  if(!blurDrawing||!blurStart) return;
+  const p=videoPoint(e);
+  const x=Math.min(blurStart.x,p.x), y=Math.min(blurStart.y,p.y), w=Math.abs(p.x-blurStart.x), h=Math.abs(p.y-blurStart.y);
+  blurStart=null; blurDrawing=false;
+  if(w<.03||h<.03) return status('⚠️ Blur box ကို နည်းနည်းပိုကြီးအောင် ဆွဲပါ');
+  blurRegions.push({x,y,w,h}); renderBlurRects();
+  status(`✅ Blur နေရာ ${blurRegions.length} ခု ရွေးပြီးပါပြီ`);
+});
+function clearBlur(){blurRegions=[];document.querySelectorAll('.blurRect.dynamic').forEach(x=>x.remove());blurStart=null;blurDrawing=false;status('🧹 Blur နေရာတွေ ဖျက်ပြီးပါပြီ');}
+
+async function renderVideo(){
+  if(!selectedVideo) return status('❌ Video မရှိပါ');
+  if(!myanmarTranscript.length) return status('❌ Myanmar Subtitle အရင်လုပ်ပါ');
+  if($('blurToggle').checked && !blurRegions.length) return status('⚠️ Blur ON ဖြစ်နေပါတယ်။ Video ပေါ်မှာ Blur နေရာရွေးပါ');
+  $('renderBtn').disabled=true; $('finalDownload').style.display='none';
+  status('⏳ Final Video Render လုပ်နေပါတယ်...');
+  const fd=new FormData(); fd.append('video',selectedVideo);
+  fd.append('segments',JSON.stringify(myanmarTranscript));
+  fd.append('blurRegions',JSON.stringify($('blurToggle').checked?blurRegions:[]));
+  fd.append('fontSize',$('fontSize').value); fd.append('outline',$('outline').value);
+  fd.append('color',$('color').value); fd.append('position',$('position').value);
+  fd.append('subtitlePosition',JSON.stringify(subtitlePosition));
+  try{
+    const r=await fetch('/api/render',{method:'POST',body:fd});
+    const d=await r.json().catch(()=>null);
+    if(!r.ok) throw new Error(d?.error||'Render Error');
+    if(!d?.downloadUrl) throw new Error('Final Video Download Link မရပါ');
+    $('finalDownload').href=d.downloadUrl;
+    $('finalDownload').download=d.filename||'Burmese-YNT-SRT.mp4';
+    $('finalDownload').style.display='block';
+    status('✅ Final Video ရပါပြီ — အောက်က Final Video Download ကိုနှိပ်ပါ။');
+    $('finalDownload').scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){status('❌ Video Render Error: '+e.message)}
+  finally{$('renderBtn').disabled=false}
+}
+
+loadKeys();
+updateStylePreview();
+setPosition('bottom');
+
+/* ===== Independent Thumbnail Card UI ===== */
+(function(){
+  const video = document.getElementById('thumbVideo');
+  const info = document.getElementById('thumbVideoInfo');
+  const analyze = document.getElementById('thumbAnalyzeBtn');
+  const panel = document.getElementById('thumbResultPanel');
+  const title = document.getElementById('thumbTitle');
+  const preview = document.getElementById('thumbTitlePreview');
+  const generate = document.getElementById('thumbGenerateBtn');
+  const downloadArea = document.getElementById('thumbDownloadArea');
+  const ratio = document.getElementById('thumbRatio');
+  const frame = document.querySelector('#thumbPreview .thumbFrame');
+
+  function updateTitle(){
+    if(preview) preview.textContent = title?.value.trim() || 'Video ထည့်ပြီး စတင်ပါ';
+  }
+
+  video?.addEventListener('change',()=>{
+    const f = video.files?.[0];
+    if(info) info.textContent = f ? `🎬 ${f.name} • ${(f.size/1024/1024).toFixed(1)} MB` : 'Video မရွေးရသေးပါ';
+  });
+
+  title?.addEventListener('input',updateTitle);
+
+  ratio?.addEventListener('change',()=>{
+    if(frame) frame.style.aspectRatio = ratio.value.replace(':',' / ');
+  });
+
+  analyze?.addEventListener('click',()=>{
+    if(!video?.files?.length){
+      if(info) info.textContent='⚠️ အရင် Recap Video တစ်ပုဒ်ရွေးပါ';
+      return;
+    }
+    if(panel) panel.style.display='block';
+    if(title && !title.value.trim()) title.value='Video ကို Analyze ပြီးရင် AI ခေါင်းစဉ် ဒီနေရာမှာ ထည့်မယ်';
+    updateTitle();
+    if(info) info.textContent='🧠 Video Analysis UI Ready — AI backend ချိတ်ရန် အဆင့်';
+  });
+
+  generate?.addEventListener('click',()=>{
+    if(!video?.files?.length){
+      if(info) info.textContent='⚠️ အရင် Recap Video တစ်ပုဒ်ရွေးပါ';
+      return;
+    }
+    updateTitle();
+    if(downloadArea) downloadArea.style.display='block';
+    if(info) info.textContent='✨ Thumbnail Preview Ready — AI Image Generation backend ချိတ်ရန် အဆင့်';
+  });
+})();
+
+</script>
+
+
+
+<script>
+/* ===== Connected Recap Thumbnail Studio ===== */
+(function(){
+  const video = document.getElementById('thumbVideo');
+  const info = document.getElementById('thumbVideoInfo');
+  const analyze = document.getElementById('thumbAnalyzeBtn');
+  const panel = document.getElementById('thumbResultPanel');
+  const title = document.getElementById('thumbTitle');
+  const preview = document.getElementById('thumbTitlePreview');
+  const generate = document.getElementById('thumbGenerateBtn');
+  const downloadArea = document.getElementById('thumbDownloadArea');
+  const downloadBtn = document.getElementById('thumbDownloadBtn');
+  const ratio = document.getElementById('thumbRatio');
+  const style = document.getElementById('thumbStyle');
+  const frame = document.querySelector('#thumbPreview .thumbFrame');
+  const placeholder = document.getElementById('thumbImagePlaceholder');
+
+  let thumbnailJobId = '';
+
+  function setInfo(message){
+    if(info) info.textContent = message;
+  }
+
+  function updatePreview(){
+    if(preview){
+      preview.textContent =
+        title?.value.trim() || 'Video ထည့်ပြီး စတင်ပါ';
+    }
+    if(frame && ratio){
+      frame.style.aspectRatio =
+        ratio.value.replace(':',' / ');
+    }
+  }
+
+  function setBusy(button, busy, normalText, busyText){
+    if(!button) return;
+    button.disabled = busy;
+    button.textContent = busy ? busyText : normalText;
+  }
+
+  async function readJson(response){
+    const data = await response.json().catch(()=>null);
+    if(!response.ok){
+      throw new Error(data?.error || `Server Error (${response.status})`);
+    }
+    if(!data?.ok){
+      throw new Error(data?.error || 'Thumbnail Error');
+    }
+    return data;
+  }
+
+  video?.addEventListener('change',()=>{
+    const file = video.files?.[0];
+    thumbnailJobId = '';
+
+    if(downloadArea) downloadArea.style.display = 'none';
+
+    if(!file){
+      setInfo('Video မရွေးရသေးပါ');
+      if(panel) panel.style.display = 'none';
+      if(placeholder) placeholder.style.display = 'flex';
+      updatePreview();
+      return;
+    }
+
+    if(file.size > 300 * 1024 * 1024){
+      setInfo('❌ Video က 300MB ထက်ကြီးနေပါတယ်');
+      video.value = '';
+      return;
+    }
+
+    setInfo(`🎬 ${file.name} • ${(file.size/1024/1024).toFixed(1)} MB`);
+    updatePreview();
+  });
+
+  title?.addEventListener('input', updatePreview);
+  ratio?.addEventListener('change', updatePreview);
+
+  analyze?.addEventListener('click', async()=>{
+    const file = video?.files?.[0];
+
+    if(!file){
+      setInfo('⚠️ အရင် Recap Video တစ်ပုဒ်ရွေးပါ');
+      return;
+    }
+
+    const key =
+      (typeof getGemini === 'function' ? getGemini() : '') ||
+      localStorage.getItem('byn_gemini') ||
+      '';
+
+    if(!key){
+      setInfo('❌ Gemini API Key ထည့်ပေးပါ');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('video', file);
+
+    setBusy(
+      analyze,
+      true,
+      '🧠 Analyze Video & Generate Title',
+      '⏳ Video Analyze လုပ်နေပါတယ်...'
+    );
+
+    setInfo('⏳ Gemini က Video ကိုကြည့်ပြီး ဇာတ်လမ်းခေါင်းစဉ်နဲ့ Thumbnail Scene ရွေးနေပါတယ်...');
+
+    try{
+      const response = await fetch('/api/thumbnail/analyze',{
+        method:'POST',
+        headers:{
+          'x-gemini-api-key': key
+        },
+        body: fd
+      });
+
+      const data = await readJson(response);
+
+      thumbnailJobId = data.jobId || '';
+
+      if(title){
+        title.value = data.title || '';
+      }
+
+      if(panel){
+        panel.style.display = 'block';
+      }
+
+      updatePreview();
+
+      const scene = data.thumbnailScene
+        ? ` • Cover Scene ${data.thumbnailScene}`
+        : '';
+
+      setInfo(
+        `✅ Video Analysis ပြီးပါပြီ${scene} — ခေါင်းစဉ်ကို ပြင်ပြီး Generate လုပ်နိုင်ပါတယ်`
+      );
+    }catch(error){
+      thumbnailJobId = '';
+      setInfo('❌ Thumbnail Analyze Error: ' + error.message);
+    }finally{
+      setBusy(
+        analyze,
+        false,
+        '🧠 Analyze Video & Generate Title',
+        ''
+      );
+    }
+  });
+
+  generate?.addEventListener('click', async()=>{
+    if(!video?.files?.[0]){
+      setInfo('⚠️ အရင် Recap Video တစ်ပုဒ်ရွေးပါ');
+      return;
+    }
+
+    if(!thumbnailJobId){
+      setInfo('⚠️ အရင် “Analyze Video & Generate Title” ကိုလုပ်ပါ');
+      return;
+    }
+
+    const key =
+      (typeof getGemini === 'function' ? getGemini() : '') ||
+      localStorage.getItem('byn_gemini') ||
+      '';
+
+    if(!key){
+      setInfo('❌ Gemini API Key ထည့်ပေးပါ');
+      return;
+    }
+
+    const finalTitle =
+      title?.value.trim() || '';
+
+    if(!finalTitle){
+      setInfo('⚠️ Thumbnail ခေါင်းစဉ် မရှိသေးပါ');
+      return;
+    }
+
+    setBusy(
+      generate,
+      true,
+      '✨ Generate Thumbnail',
+      '⏳ AI Thumbnail ဖန်တီးနေပါတယ်...'
+    );
+
+    if(downloadArea) downloadArea.style.display = 'none';
+
+    setInfo(
+      '⏳ Gemini က Video ထဲက အရေးကြီးဆုံး Scene ကိုအသုံးပြုပြီး Cover Image ဖန်တီးနေပါတယ်...'
+    );
+
+    try{
+      const response = await fetch('/api/thumbnail/generate',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-gemini-api-key': key
+        },
+        body: JSON.stringify({
+          jobId: thumbnailJobId,
+          title: finalTitle,
+          style: style?.value || 'dramatic',
+          ratio: ratio?.value || '16:9'
+        })
+      });
+
+      const data = await readJson(response);
+
+      const imageUrl =
+        data.imageUrl +
+        (data.imageUrl.includes('?') ? '&' : '?') +
+        't=' + Date.now();
+
+      if(placeholder) placeholder.style.display = 'none';
+
+      const oldImage =
+        document.getElementById('thumbGeneratedImage');
+
+      if(oldImage) oldImage.remove();
+
+      const img =
+        document.createElement('img');
+
+      img.id = 'thumbGeneratedImage';
+      img.src = imageUrl;
+      img.alt = finalTitle;
+      img.style.cssText =
+        'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+
+      frame?.prepend(img);
+
+      updatePreview();
+
+      if(downloadBtn){
+        downloadBtn.onclick = ()=>{
+          const a = document.createElement('a');
+          a.href = data.imageUrl;
+          a.download = data.filename || 'Recap-Thumbnail.png';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        };
+      }
+
+      if(downloadArea){
+        downloadArea.style.display = 'block';
+      }
+
+      setInfo(
+        `✅ Thumbnail အဆင်သင့်ဖြစ်ပါပြီ${data.thumbnailScene ? ` • Scene ${data.thumbnailScene}` : ''} — Download လုပ်နိုင်ပါပြီ`
+      );
+
+      thumbnailJobId = '';
+    }catch(error){
+      setInfo('❌ Thumbnail Generate Error: ' + error.message);
+    }finally{
+      setBusy(
+        generate,
+        false,
+        '✨ Generate Thumbnail',
+        ''
+      );
+    }
+  });
+
+  updatePreview();
+})();
+</script>
+
+</body>
+</html>
