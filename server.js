@@ -21,22 +21,9 @@ const PUBLIC = path.join(ROOT, 'public');
 const TMP = path.join(os.tmpdir(), 'burmese-ynt-srt');
 const FONT_DIR = path.join(TMP, 'fonts');
 const MYANMAR_FONT = path.join(FONT_DIR, 'NotoSansMyanmar.ttf');
-const RENDER_STORE = new Map();
-const RENDER_TTL_MS = 30 * 60 * 1000;
 
 await fs.mkdir(TMP, { recursive: true });
 await fs.mkdir(FONT_DIR, { recursive: true });
-
-const renderCleanupTimer = setInterval(async () => {
-  const now = Date.now();
-  for (const [token, item] of RENDER_STORE) {
-    if (now - item.createdAt > RENDER_TTL_MS) {
-      RENDER_STORE.delete(token);
-      await fs.rm(item.path, { force: true }).catch(() => {});
-    }
-  }
-}, 10 * 60 * 1000);
-renderCleanupTimer.unref?.();
 
 async function ensureMyanmarFont() {
   try {
@@ -68,7 +55,9 @@ async function ensureMyanmarFont() {
 await ensureMyanmarFont();
 
 const GROQ_MODEL = 'whisper-large-v3';
-const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const GEMINI_MODEL = 'gemini-3.8-flash';
+const THUMBNAIL_ANALYSIS_MODEL = 'gemini-3.8-flash';
+const THUMBNAIL_IMAGE_MODEL = 'gemini-3.1-flash-image';
 
 const allowedExt = new Set([
   '.mp4', '.mov', '.mkv', '.webm', '.avi', '.m4v', '.flv', '.wmv',
@@ -512,21 +501,15 @@ function buildAss(segments, options, width, height) {
   const fontSize = Math.max(22, Math.min(80, Number(options.fontSize) || 42));
   const outline = Math.max(0, Math.min(8, Number(options.outline) || 3));
   const position = ['top', 'middle', 'bottom'].includes(options.position) ? options.position : 'bottom';
-  const custom = options.subtitlePosition && typeof options.subtitlePosition === 'object'
-    ? options.subtitlePosition
-    : null;
-  const customX = custom ? Math.round(clamp01(custom.x) * (width || 1920)) : null;
-  const customY = custom ? Math.round(clamp01(custom.y) * (height || 1080)) : null;
-  const alignment = custom ? 5 : (position === 'top' ? 8 : position === 'middle' ? 5 : 2);
-  const marginV = custom ? 0 : (position === 'top' ? 55 : position === 'middle' ? 0 : 55);
+  const alignment = position === 'top' ? 8 : position === 'middle' ? 5 : 2;
+  const marginV = position === 'top' ? 55 : position === 'middle' ? 0 : 55;
   const color = hexToAssColor(options.color || '#FFFFFF');
   const border = hexToAssColor('#000000');
   const font = 'Noto Sans Myanmar';
 
-  const events = segments.map(s => {
-    const tag = custom ? `{\\an5\\pos(${customX},${customY})}` : '';
-    return `Dialogue: 0,${assTime(s.start)},${assTime(s.end)},Default,,0,0,0,,${tag}${assEscape(s.text)}`;
-  }).join('\n');
+  const events = segments.map(s =>
+    `Dialogue: 0,${assTime(s.start)},${assTime(s.end)},Default,,0,0,0,,${assEscape(s.text)}`
+  ).join('\n');
 
   return `[Script Info]
 ScriptType: v4.00+
@@ -553,15 +536,13 @@ function safeBlurRegions(regions, width, height) {
   return regions.slice(0, 3).map(r => {
     const x = Math.round(clamp01(r.x) * width);
     const y = Math.round(clamp01(r.y) * height);
-    const rawW = Math.max(8, Math.round(clamp01(r.w) * width));
-    const rawH = Math.max(8, Math.round(clamp01(r.h) * height));
-    const safeX = Math.min(x, Math.max(0, width - 8));
-    const safeY = Math.min(y, Math.max(0, height - 8));
+    const w = Math.max(8, Math.round(clamp01(r.w) * width));
+    const h = Math.max(8, Math.round(clamp01(r.h) * height));
     return {
-      x: safeX,
-      y: safeY,
-      w: Math.max(8, Math.min(rawW, width - safeX)),
-      h: Math.max(8, Math.min(rawH, height - safeY))
+      x: Math.min(x, Math.max(0, width - 8)),
+      y: Math.min(y, Math.max(0, height - 8)),
+      w: Math.min(w, width),
+      h: Math.min(h, height)
     };
   }).filter(r => r.w >= 8 && r.h >= 8);
 }
@@ -576,14 +557,256 @@ function makeBlurFilter(regions) {
   let base = '[s0]';
   for (let i = 0; i < regions.length; i++) {
     const r = regions[i];
-    const crop = `[s${i + 1}]crop=${r.w}:${r.h}:${r.x}:${r.y},boxblur=30:6,drawbox=x=0:y=0:w=iw:h=ih:color=black@0.10:t=fill[b${i}]`;
+    const crop = `[s${i + 1}]crop=${r.w}:${r.h}:${r.x}:${r.y},boxblur=18:2[b${i}]`;
     filter += crop + ';';
     const next = `[o${i}]`;
-    filter += `${base}[b${i}]overlay=${r.x}:${r.y}:shortest=1${next};`;
+    filter += `${base}[b${i}]overlay=${r.x}:${r.y}${next};`;
     base = next;
   }
   filter += `${base}null[video]`;
   return filter;
+}
+
+
+/* =========================================================
+   RECAP THUMBNAIL STUDIO
+   Separate workflow from Myanmar SRT.
+========================================================= */
+
+const thumbnailJobs = new Map();
+const thumbnailImages = new Map();
+const THUMBNAIL_JOB_TTL = 30 * 60 * 1000;
+
+function rememberThumbnailJob(id, data) {
+  thumbnailJobs.set(id, { ...data, createdAt: Date.now() });
+  setTimeout(() => {
+    const job = thumbnailJobs.get(id);
+    if (!job) return;
+    thumbnailJobs.delete(id);
+    cleanup(job.videoPath);
+  }, THUMBNAIL_JOB_TTL).unref?.();
+}
+
+function getMimeType(file) {
+  const ext = path.extname(file || '').toLowerCase();
+  if (ext === '.mov') return 'video/mov';
+  if (ext === '.webm') return 'video/webm';
+  if (ext === '.avi') return 'video/avi';
+  if (ext === '.mpg' || ext === '.mpeg') return 'video/mpeg';
+  return 'video/mp4';
+}
+
+async function uploadGeminiVideo(videoPath, apiKey, mimeType) {
+  const ai = new GoogleGenAI({ apiKey });
+  const uploaded = await ai.files.upload({
+    file: videoPath,
+    config: { mimeType }
+  });
+
+  let file = uploaded;
+  for (let i = 0; i < 120; i++) {
+    file = await ai.files.get({ name: uploaded.name });
+    const state = String(file?.state || '').toUpperCase();
+    if (state === 'ACTIVE') return { ai, file };
+    if (state === 'FAILED') throw new Error('Gemini Video File processing failed');
+    await sleep(2500);
+  }
+  throw new Error('Gemini Video processing အချိန်ကျော်သွားပါတယ်');
+}
+
+function extractInteractionText(interaction) {
+  if (interaction?.output_text) return String(interaction.output_text);
+  const steps = Array.isArray(interaction?.steps) ? interaction.steps : [];
+  const texts = [];
+  for (const step of steps) {
+    const content = Array.isArray(step?.content) ? step.content : [];
+    for (const item of content) {
+      if (typeof item?.text === 'string') texts.push(item.text);
+    }
+  }
+  return texts.join('\n');
+}
+
+function extractJsonObject(text) {
+  const raw = String(text || '').trim();
+  const candidates = [
+    raw,
+    raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+  ];
+  for (const value of candidates) {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch {}
+  }
+  const a = raw.indexOf('{');
+  const b = raw.lastIndexOf('}');
+  if (a >= 0 && b > a) {
+    try {
+      const parsed = JSON.parse(raw.slice(a, b + 1));
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch {}
+  }
+  return null;
+}
+
+function safeTitle(value) {
+  return cleanText(value)
+    .replace(/[<>\\/|{}\[\]`]/g, '')
+    .slice(0, 120)
+    .trim();
+}
+
+function safeRatio(value) {
+  return ['16:9', '9:16', '1:1'].includes(String(value)) ? String(value) : '16:9';
+}
+
+async function analyzeRecapVideo(videoPath, apiKey, mimeType) {
+  const { ai, file } = await uploadGeminiVideo(videoPath, apiKey, mimeType);
+  const prompt = `
+You are analyzing a short drama/movie recap video for a social-media cover thumbnail.
+Watch and understand the WHOLE video, including visual events and spoken dialogue.
+Return ONLY valid JSON with this exact structure:
+{
+  "title": "one short compelling Myanmar Unicode recap title",
+  "summary": "one concise Myanmar summary of the story",
+  "thumbnailScene": "MM:SS",
+  "thumbnailReason": "why this moment is the strongest cover moment"
+}
+
+Rules:
+- The title MUST be natural Myanmar Unicode.
+- Do not use English, Chinese, Japanese, Korean or Thai in the title.
+- Keep the title short enough for a thumbnail (ideally 6-16 Myanmar words).
+- Make it describe the actual story, not a generic title.
+- Pick the most visually/emotionally important moment for thumbnailScene.
+- Use a real timestamp from the video in MM:SS format.
+- Do not invent characters or events that are not in the video.
+`;
+
+  const interaction = await ai.interactions.create({
+    model: THUMBNAIL_ANALYSIS_MODEL,
+    input: [
+      { type: 'video', uri: file.uri, mime_type: file.mimeType || mimeType },
+      { type: 'text', text: prompt }
+    ]
+  });
+
+  const parsed = extractJsonObject(extractInteractionText(interaction));
+  if (!parsed) throw new Error('Gemini က Thumbnail Analysis JSON မပြန်ပါ');
+
+  return {
+    title: safeTitle(parsed.title) || 'ဒီဇာတ်လမ်းရဲ့ မမျှော်လင့်ထားတဲ့ အလှည့်အပြောင်း',
+    summary: cleanText(parsed.summary),
+    thumbnailScene: /^\d{1,2}:\d{2}$/.test(String(parsed.thumbnailScene || ''))
+      ? String(parsed.thumbnailScene)
+      : '00:00',
+    thumbnailReason: cleanText(parsed.thumbnailReason),
+    fileUri: file.uri,
+    mimeType: file.mimeType || mimeType
+  };
+}
+
+async function generateRecapThumbnail(videoPath, apiKey, mimeType, title, style, ratio, scene, summary) {
+  const { ai, file } = await uploadGeminiVideo(videoPath, apiKey, mimeType);
+  const styleText = {
+    dramatic: 'high-impact Korean drama recap poster, cinematic lighting, dramatic faces, rich contrast, premium streaming poster feel',
+    emotional: 'emotional Korean drama recap poster, expressive faces, soft cinematic lighting, strong emotional storytelling',
+    mystery: 'mystery thriller recap poster, suspenseful composition, moody cinematic lighting, dramatic shadows',
+    romance: 'romantic Korean drama recap poster, elegant cinematic lighting, expressive couple-focused composition'
+  }[String(style)] || 'cinematic Korean drama recap poster';
+
+  const prompt = `
+Create ONE polished social-media recap cover image from this video.
+Focus primarily on the strongest important visual moment around ${scene || '00:00'}.
+Use the video as the visual source and preserve the actual characters, setting, wardrobe and events shown in it.
+
+STYLE:
+${styleText}
+
+STORY CONTEXT:
+${summary || 'Use the actual video context.'}
+
+TITLE TO INSPIRE THE COMPOSITION:
+${title}
+
+IMPORTANT:
+- Create a clean cover image with the characters/scenes as the focal point.
+- Leave a clear lower-third or central negative-space area where a title can be placed later.
+- DO NOT render any words, letters, captions, logos, watermarks, UI, or fake text inside the image.
+- Do not invent a different story.
+- Make it look like a high-quality drama/movie recap thumbnail, not a generic AI poster.
+`;
+
+  const interaction = await ai.interactions.create({
+    model: THUMBNAIL_IMAGE_MODEL,
+    input: [
+      { type: 'video', uri: file.uri, mime_type: file.mimeType || mimeType },
+      { type: 'text', text: prompt }
+    ],
+    response_format: {
+      type: 'image',
+      mime_type: 'image/png',
+      aspect_ratio: safeRatio(ratio),
+      image_size: '1K'
+    }
+  });
+
+  const image = interaction?.output_image;
+  if (!image?.data) throw new Error('Gemini က Thumbnail Image မထုတ်ပေးနိုင်ပါ');
+  return Buffer.from(image.data, 'base64');
+}
+
+function wrapThumbnailTitle(title, maxChars) {
+  const words = String(title || '').trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (line && next.length > maxChars) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 2).join('\n');
+}
+
+async function burnThumbnailTitle(imageBuffer, title, ratio) {
+  const imagePath = path.join(TMP, `${crypto.randomUUID()}.png`);
+  const titlePath = path.join(TMP, `${crypto.randomUUID()}.txt`);
+  const outputPath = path.join(TMP, `${crypto.randomUUID()}-thumbnail.png`);
+
+  await fs.writeFile(imagePath, imageBuffer);
+
+  const maxChars = ratio === '9:16' ? 15 : ratio === '1:1' ? 19 : 24;
+  const wrappedTitle = wrapThumbnailTitle(title, maxChars);
+  await fs.writeFile(titlePath, wrappedTitle, 'utf8');
+
+  const fontSize = ratio === '9:16' ? 44 : ratio === '1:1' ? 48 : 54;
+  const boxHeight = ratio === '9:16' ? 285 : ratio === '1:1' ? 205 : 180;
+  const bottomMargin = ratio === '9:16' ? 55 : ratio === '1:1' ? 42 : 38;
+  const fontFile = escapeFilterPath(MYANMAR_FONT);
+  const titleFile = escapeFilterPath(titlePath);
+
+  await runProcess(ffmpegStatic, [
+    '-y',
+    '-i', imagePath,
+    '-vf',
+    `drawbox=x=0:y=h-${boxHeight}:w=iw:h=${boxHeight}:color=black@0.38:t=fill,` +
+    `drawtext=fontfile='${fontFile}':textfile='${titleFile}':fontcolor=0xFFE76A:fontsize=${fontSize}:line_spacing=8:borderw=4:bordercolor=black@0.95:x=(w-text_w)/2:y=h-text_h-${bottomMargin}:shadowx=2:shadowy=2`,
+    '-frames:v', '1',
+    '-c:v', 'png',
+    outputPath
+  ]);
+
+  const output = await fs.readFile(outputPath);
+  cleanup(imagePath);
+  cleanup(titlePath);
+  cleanup(outputPath);
+  return output;
 }
 
 function cleanup(file) {
@@ -670,6 +893,114 @@ app.post('/api/translate', async (req, res) => {
   }
 });
 
+
+app.post('/api/thumbnail/analyze', upload.single('video'), async (req, res) => {
+  const video = req.file?.path;
+  try {
+    if (!video) throw new Error('Recap Video မရှိပါ');
+    const geminiKey = getKey(req, 'x-gemini-api-key', 'geminiApiKey', 'GEMINI_API_KEY', 'Gemini API Key');
+    const info = await probeVideo(video);
+    if (info.duration > MAX_SECONDS) throw new Error('Recap Video က 5 မိနစ်ထက်ကျော်နေပါတယ်');
+
+    const mimeType = getMimeType(video);
+    const analysis = await analyzeRecapVideo(video, geminiKey, mimeType);
+    const jobId = crypto.randomUUID();
+
+    rememberThumbnailJob(jobId, {
+      videoPath: video,
+      mimeType,
+      duration: info.duration,
+      width: info.width,
+      height: info.height,
+      title: analysis.title,
+      summary: analysis.summary,
+      thumbnailScene: analysis.thumbnailScene,
+      thumbnailReason: analysis.thumbnailReason
+    });
+
+    res.json({
+      ok: true,
+      jobId,
+      title: analysis.title,
+      summary: analysis.summary,
+      thumbnailScene: analysis.thumbnailScene,
+      thumbnailReason: analysis.thumbnailReason
+    });
+  } catch (error) {
+    console.error('THUMBNAIL ANALYZE ERROR:', error);
+    cleanup(video);
+    res.status(400).json({ ok: false, error: error?.message || 'Thumbnail Analysis Error' });
+  }
+});
+
+app.post('/api/thumbnail/generate', async (req, res) => {
+  try {
+    const jobId = String(req.body?.jobId || '').trim();
+    const job = thumbnailJobs.get(jobId);
+    if (!job) throw new Error('Thumbnail Analysis session မတွေ့ပါ။ Video ကို Analyze ပြန်လုပ်ပါ');
+
+    const geminiKey = getKey(req, 'x-gemini-api-key', 'geminiApiKey', 'GEMINI_API_KEY', 'Gemini API Key');
+    const title = safeTitle(req.body?.title) || job.title;
+    const style = String(req.body?.style || 'dramatic');
+    const ratio = safeRatio(req.body?.ratio);
+
+    const imageBuffer = await generateRecapThumbnail(
+      job.videoPath,
+      geminiKey,
+      job.mimeType,
+      title,
+      style,
+      ratio,
+      job.thumbnailScene,
+      job.summary
+    );
+
+    const finalImage = await burnThumbnailTitle(imageBuffer, title, ratio);
+    const imageId = crypto.randomUUID();
+    const imagePath = path.join(TMP, `${imageId}.png`);
+    await fs.writeFile(imagePath, finalImage);
+    thumbnailImages.set(imageId, { imagePath, filename: 'Recap-Thumbnail.png', createdAt: Date.now() });
+
+    setTimeout(() => {
+      const item = thumbnailImages.get(imageId);
+      if (!item) return;
+      thumbnailImages.delete(imageId);
+      cleanup(item.imagePath);
+    }, THUMBNAIL_JOB_TTL).unref?.();
+
+    thumbnailJobs.delete(jobId);
+    cleanup(job.videoPath);
+
+    res.json({
+      ok: true,
+      imageUrl: `/api/thumbnail/download/${imageId}`,
+      filename: 'Recap-Thumbnail.png',
+      title,
+      ratio,
+      thumbnailScene: job.thumbnailScene
+    });
+  } catch (error) {
+    console.error('THUMBNAIL GENERATE ERROR:', error);
+    res.status(400).json({ ok: false, error: error?.message || 'Thumbnail Generate Error' });
+  }
+});
+
+app.get('/api/thumbnail/download/:id', async (req, res) => {
+  const item = thumbnailImages.get(String(req.params.id || ''));
+  if (!item) return res.status(404).json({ ok: false, error: 'Thumbnail မတွေ့ပါ' });
+  try {
+    await fs.access(item.imagePath);
+    res.download(item.imagePath, item.filename, () => {
+      thumbnailImages.delete(String(req.params.id || ''));
+      cleanup(item.imagePath);
+    });
+  } catch (error) {
+    thumbnailImages.delete(String(req.params.id || ''));
+    cleanup(item.imagePath);
+    res.status(404).json({ ok: false, error: 'Thumbnail Download မရပါ' });
+  }
+});
+
 app.post('/api/render', upload.single('video'), async (req, res) => {
   const video = req.file?.path;
   let ass = null;
@@ -680,7 +1011,6 @@ app.post('/api/render', upload.single('video'), async (req, res) => {
 
     const info = await probeVideo(video);
     if (info.duration > MAX_SECONDS) throw new Error('Video က 5 မိနစ်ထက်ကျော်နေပါတယ်');
-    if (!info.width || !info.height) throw new Error('Video size မဖတ်နိုင်ပါ');
 
     const segments = Array.isArray(req.body?.segments)
       ? req.body.segments
@@ -688,17 +1018,11 @@ app.post('/api/render', upload.single('video'), async (req, res) => {
 
     if (!segments.length) throw new Error('Myanmar Subtitle မရှိပါ');
 
-    let subtitlePosition = null;
-    try {
-      subtitlePosition = JSON.parse(String(req.body?.subtitlePosition || 'null'));
-    } catch {}
-
     const options = {
       fontSize: Number(req.body?.fontSize) || 42,
       outline: Number(req.body?.outline) || 3,
       color: String(req.body?.color || '#FFFFFF'),
-      position: String(req.body?.position || 'bottom'),
-      subtitlePosition
+      position: String(req.body?.position || 'bottom')
     };
 
     const regions = safeBlurRegions(
@@ -735,28 +1059,14 @@ app.post('/api/render', upload.single('video'), async (req, res) => {
       '-crf', '22',
       '-c:a', 'aac',
       '-b:a', '128k',
-      '-pix_fmt', 'yuv420p',
       '-movflags', '+faststart',
       output
     ]);
 
-    const token = crypto.randomUUID();
-    RENDER_STORE.set(token, {
-      path: output,
-      filename: 'Burmese-YNT-SRT.mp4',
-      createdAt: Date.now()
-    });
-
-    cleanup(video);
-    cleanup(ass);
-    video && (ass = null);
-    ass = null;
-    output = null;
-
-    res.json({
-      ok: true,
-      filename: 'Burmese-YNT-SRT.mp4',
-      downloadUrl: `/api/download/${token}`
+    res.download(output, 'Burmese-YNT-SRT.mp4', async () => {
+      cleanup(video);
+      cleanup(ass);
+      cleanup(output);
     });
   } catch (error) {
     console.error('RENDER ERROR:', error);
@@ -764,25 +1074,6 @@ app.post('/api/render', upload.single('video'), async (req, res) => {
     cleanup(ass);
     cleanup(output);
     res.status(400).json({ ok: false, error: error?.message || 'Video render မအောင်မြင်ပါ' });
-  }
-});
-
-app.get('/api/download/:token', async (req, res) => {
-  const token = String(req.params.token || '');
-  const item = RENDER_STORE.get(token);
-  if (!item) return res.status(404).send('Download link သက်တမ်းကုန်သွားပါပြီ။ Final Video ကို ပြန် Render လုပ်ပါ။');
-
-  try {
-    await fs.access(item.path);
-    res.download(item.path, item.filename, error => {
-      RENDER_STORE.delete(token);
-      cleanup(item.path);
-      if (error && !res.headersSent) res.status(404).send('Final Video download မအောင်မြင်ပါ');
-    });
-  } catch {
-    RENDER_STORE.delete(token);
-    cleanup(item.path);
-    if (!res.headersSent) res.status(404).send('Final Video ဖိုင် မတွေ့ပါ');
   }
 });
 
