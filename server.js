@@ -50,11 +50,13 @@ await ensureMyanmarFont();
 
 const GROQ_MODEL = 'whisper-large-v3';
 const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const APP_VERSION = '3.0.0-image-thumbnail-fix';
 
 const allowedExt = new Set([
   '.mp4','.mov','.mkv','.webm','.avi','.m4v','.flv','.wmv','.mpeg','.mpg',
   '.mp3','.wav','.m4a','.ogg','.opus'
 ]);
+const allowedImageExt = new Set(['.jpg','.jpeg','.png','.webp','.gif','.bmp']);
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -69,6 +71,23 @@ const upload = multer({
   fileFilter:(_req,file,cb)=>{
     const ext=path.extname(file.originalname||'').toLowerCase();
     if(!allowedExt.has(ext)) return cb(new Error('MP4 / MOV / MKV / WEBM video ကိုသုံးပါ။'));
+    cb(null,true);
+  }
+});
+
+const uploadImage = multer({
+  storage: multer.diskStorage({
+    destination: (_req,_file,cb)=>cb(null,TMP),
+    filename: (_req,file,cb)=>{
+      const ext0=path.extname(file.originalname||'').toLowerCase();
+      const ext=allowedImageExt.has(ext0)?ext0:'.jpg';
+      cb(null,`${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`);
+    }
+  }),
+  limits:{fileSize:MAX_BYTES,files:1},
+  fileFilter:(_req,file,cb)=>{
+    const ext=path.extname(file.originalname||'').toLowerCase();
+    if(!allowedImageExt.has(ext)) return cb(new Error('JPG / JPEG / PNG / WEBP image ကိုသုံးပါ။'));
     cb(null,true);
   }
 });
@@ -322,7 +341,7 @@ app.post('/api/thumbnail/title',upload.single('video'),async(req,res)=>{
   }finally{cleanup(video);}
 });
 
-app.post('/api/thumbnail/face',upload.single('image'),async(req,res)=>{
+app.post('/api/thumbnail/face-image',uploadImage.single('image'),async(req,res)=>{
   const image=req.file?.path;
   try{
     if(!image) throw new Error('Thumbnail ပုံ မရှိပါ');
@@ -339,7 +358,7 @@ app.post('/api/thumbnail/face',upload.single('image'),async(req,res)=>{
   }finally{cleanup(image);}
 });
 
-app.post('/api/thumbnail/generate',upload.single('image'),async(req,res)=>{
+app.post('/api/thumbnail/generate-image',uploadImage.single('image'),async(req,res)=>{
   const image=req.file?.path; let cropped=null,ass=null,svg=null,svgPng=null,output=null,registered=false;
   try{
     if(!image) throw new Error('Thumbnail ပုံ မရှိပါ');
@@ -376,6 +395,7 @@ app.post('/api/thumbnail/generate',upload.single('image'),async(req,res)=>{
   }finally{cleanup(image);cleanup(cropped);cleanup(ass);cleanup(svg);cleanup(svgPng);if(!registered)cleanup(output);}
 });
 
+app.get('/api/thumbnail/version',(_req,res)=>res.json({ok:true,version:APP_VERSION,thumbnailInput:'IMAGE_ONLY',videoRequiredForGenerate:false}));
 app.use('/api',(_req,res)=>res.status(404).json({ok:false,error:'API endpoint မတွေ့ပါ'}));
 app.use((error,_req,res,_next)=>{console.error('SERVER ERROR:',error);if(res.headersSent)return;res.status(500).json({ok:false,error:error?.message||'Server Error'});});
-app.listen(PORT,'0.0.0.0',()=>{console.log(`Burmese YNT SRT server running on port ${PORT}`);console.log(`Groq: ${GROQ_MODEL}`);console.log(`Gemini: ${GEMINI_MODEL}`);console.log('Video Burn: ENABLED');console.log('Original Text Blur: ENABLED');});
+app.listen(PORT,'0.0.0.0',()=>{console.log(`Burmese YNT SRT server running on port ${PORT}`);console.log(`Groq: ${GROQ_MODEL}`);console.log(`Gemini: ${GEMINI_MODEL}`);console.log(`Thumbnail: IMAGE ONLY (${APP_VERSION})`);console.log('Video Burn: ENABLED');console.log('Original Text Blur: ENABLED');});
