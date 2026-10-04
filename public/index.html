@@ -2,86 +2,90 @@
 <html lang="my">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>YNT Thumbnail & SRT</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#060914;color:#f4f7ff;font-family:system-ui,-apple-system,"Noto Sans Myanmar",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0}.wrap{max-width:960px;margin:auto;padding:16px}.hero{padding:24px 20px;border:1px solid #28375f;border-radius:24px;background:radial-gradient(circle at 85% 10%,#6946ff33,transparent 34%),linear-gradient(135deg,#121a38,#0b1020);box-shadow:0 20px 55px #0008;margin-bottom:15px}.brand{font-size:28px;font-weight:950;letter-spacing:-.5px}.sub{margin-top:7px;color:#9eadd0;font-size:13px}.card{background:#0e1528;border:1px solid #26365e;border-radius:22px;margin:14px 0;overflow:hidden;box-shadow:0 12px 35px #0006}.head{padding:18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}.head strong{font-size:18px}.arrow{color:#91a5ff;font-size:21px;transition:.2s}.open .arrow{transform:rotate(180deg)}.body{display:none;border-top:1px solid #263455;padding:18px}.open .body{display:block}.label{display:block;color:#aab9da;font-size:13px;margin:0 0 8px}.file{width:100%;padding:15px;background:#080e1d;color:#dce5fb;border:1px dashed #465b8c;border-radius:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{background:#080e1d;border:1px solid #263555;border-radius:15px;padding:12px}.box input,.box select{width:100%;padding:11px;background:#10182c;color:#fff;border:1px solid #34466f;border-radius:10px}.btn{width:100%;padding:14px;border-radius:13px;background:#725bff;color:white;font-weight:900;margin-top:10px}.btn.green{background:#17a978}.btn:disabled{opacity:.45;cursor:not-allowed}.status{margin-top:10px;padding:11px 13px;background:#080e1d;border-radius:12px;color:#9bacce;font-size:13px;min-height:42px}.srt{width:100%;min-height:220px;margin-top:10px;background:#060b17;color:#dfe8ff;border:1px solid #283a62;border-radius:13px;padding:12px;resize:vertical}.thumbPreview{position:relative;margin-top:14px;background:#050811;border:1px solid #31456f;border-radius:18px;overflow:hidden}.thumbPreview img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}.placeholder{aspect-ratio:16/9;display:grid;place-items:center;color:#6f80a6}.download{display:block;margin-top:10px;padding:14px;border-radius:13px;background:#17a978;color:#fff;text-align:center;text-decoration:none;font-weight:900}.hidden{display:none!important}.small{font-size:12px;color:#8294b9;margin-top:9px}.hint{font-size:12px;color:#8192b4;margin-top:6px;line-height:1.6}.sectionTitle{font-weight:900;margin:18px 0 9px}.epToggle{display:flex;align-items:center;gap:9px;color:#b7c6e4;font-size:13px;margin-top:12px}.epToggle input{width:18px;height:18px}.badge{display:inline-block;font-size:11px;padding:5px 8px;border-radius:999px;background:#171f38;color:#aebdf1;margin-top:10px}.divider{height:1px;background:#253553;margin:18px 0}@media(max-width:650px){.wrap{padding:10px}.row{grid-template-columns:1fr}.brand{font-size:24px}.card{border-radius:18px}}
+:root{--bg:#070a16;--card:#0e1529;--card2:#111a31;--line:#26385f;--text:#f4f7ff;--muted:#9aa8c7;--accent:#6c5cff;--accent2:#21d4a6;--danger:#ff5368}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#15163a 0,#070a16 38%);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Myanmar",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{width:min(760px,100%);margin:auto;padding:18px 14px 50px}.head{padding:12px 6px 20px}.brand{font-size:25px;font-weight:900}.sub{color:var(--muted);margin-top:5px;font-size:13px}.card{background:linear-gradient(180deg,#10172c,#0b1223);border:1px solid var(--line);border-radius:22px;margin:14px 0;box-shadow:0 14px 45px #0005;overflow:hidden}.cardhead{padding:18px 18px;display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:18px}.cardbody{padding:0 18px 20px}.collapsed .cardbody{display:none}.arrow{color:#93a3c8}.step{border:1px solid #26375c;background:#0a1121;border-radius:18px;padding:14px;margin:12px 0}.step h3{font-size:15px;margin:0 0 10px}.hint{font-size:12px;color:var(--muted);line-height:1.6}.drop{border:1.5px dashed #40598d;border-radius:15px;padding:16px;text-align:center;background:#0b1428}.drop input{display:none}.pick{display:inline-block;background:#202e52;border:1px solid #3b5384;border-radius:12px;padding:10px 14px;font-weight:700}.files{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.thumb{aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid #30466f;background:#090e1b}.thumb img{width:100%;height:100%;object-fit:cover}.stylePreview{height:120px;margin-top:10px;border-radius:13px;overflow:hidden;border:1px solid #30466f}.stylePreview img{width:100%;height:100%;object-fit:cover}.field{margin-top:12px}.field label{display:block;color:#aebbd5;margin-bottom:7px;font-size:14px}.input,.select,.textarea{width:100%;background:#10192e;color:#fff;border:1px solid #354c7d;border-radius:13px;padding:12px 13px;outline:none}.input:focus,.select:focus{border-color:#766cff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{display:flex;align-items:center;gap:9px;color:#c5d0e8}.check input{width:20px;height:20px;accent-color:#6c5cff}.btn{width:100%;border:0;border-radius:15px;padding:14px 16px;font-weight:900;margin-top:12px;color:white;background:linear-gradient(135deg,#6356ff,#8b4fff);box-shadow:0 8px 25px #5b50ff33}.btn.secondary{background:#182542;border:1px solid #38527f}.btn.green{background:linear-gradient(135deg,#11b98e,#1c83c5)}.btn:disabled{opacity:.45;cursor:not-allowed}.progress{display:none;margin-top:14px}.bar{height:8px;background:#17233c;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;width:20%;background:linear-gradient(90deg,#6c5cff,#20d6a7);animation:load 1.5s infinite}@keyframes load{50%{width:85%}}.status{margin-top:10px;color:#aebbd5;font-size:13px;white-space:pre-wrap}.result{display:none;margin-top:15px}.result img{display:block;width:100%;border-radius:18px;border:1px solid #3a4e78}.download{display:block;text-align:center;margin-top:12px;padding:13px;border-radius:13px;background:#21cfa5;color:#04130f;text-decoration:none;font-weight:900}.danger{color:#ff7b8c}.api{font-size:12px}.api summary{cursor:pointer;color:#aebbd5}.note{font-size:12px;color:#8e9bbb;line-height:1.6}.srtarea{min-height:220px;resize:vertical}.srtActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.small{font-size:12px}.titlePreview{font-size:13px;color:#9fdacb;margin-top:8px;min-height:20px}
+@media(max-width:520px){.wrap{padding:10px 10px 40px}.row{grid-template-columns:1fr}.files{grid-template-columns:repeat(4,1fr)}.brand{font-size:22px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="hero">
-    <div class="brand">🎬 YNT Thumbnail & SRT</div>
-    <div class="sub">Video ကနေ AI Title ရယူပြီး ကိုယ်တိုင်ထည့်တဲ့ပုံနဲ့ Recap Thumbnail ဖန်တီးပါ။</div>
-  </header>
+  <div class="head"><div class="brand">🎬 YNT Thumbnail & SRT</div><div class="sub">Video → AI Story → Character Reference → Style → Final Thumbnail</div></div>
 
-  <section class="card" id="srtCard">
-    <div class="head" onclick="toggleCard('srtCard')"><strong>🇲🇲 Myanmar Subtitle</strong><span class="arrow">⌄</span></div>
-    <div class="body">
-      <label class="label">🎥 Subtitle Video</label>
-      <input id="srtVideo" class="file" type="file" accept="video/*">
-      <div id="srtStatus" class="status">Video ရွေးပြီး စတင်ပါ။</div>
-      <button id="transcribeBtn" class="btn" disabled>🎙️ Groq Transcript</button>
-      <button id="translateBtn" class="btn green" disabled>🇲🇲 Myanmar Translation</button>
-      <textarea id="srtText" class="srt" readonly placeholder="Myanmar SRT ဒီမှာပေါ်ပါမယ်"></textarea>
-      <button id="downloadSrt" class="btn" disabled>⬇️ Download Myanmar SRT</button>
+  <section class="card">
+    <div class="cardhead" onclick="toggleCard(this)"><span>🇲🇲 Myanmar Subtitle</span><span class="arrow">⌄</span></div>
+    <div class="cardbody">
+      <div class="step"><h3>🎙️ Video → Groq Transcript</h3><div class="drop"><label class="pick">📁 Video ရွေးပါ<input id="srtVideo" type="file" accept="video/*"></label><div id="srtName" class="hint">MP4 / MOV / MKV / WEBM • အများဆုံး 5 မိနစ်</div></div><button class="btn secondary" id="transcribeBtn">🎙️ Groq Transcript</button></div>
+      <div class="step"><h3>📝 Myanmar Translation</h3><button class="btn" id="translateBtn" disabled>🇲🇲 Translate to Myanmar</button><textarea id="srtOutput" class="textarea srtarea" placeholder="Myanmar SRT ဒီနေရာမှာ ထွက်ပါမယ်"></textarea><div class="srtActions"><button class="btn green" id="downloadSrt" disabled>⬇️ Download SRT</button><button class="btn secondary" id="copySrt" disabled>📋 Copy SRT</button></div></div>
+      <div id="srtStatus" class="status"></div>
     </div>
   </section>
 
-  <section class="card open" id="thumbCard">
-    <div class="head" onclick="toggleCard('thumbCard')"><strong>✨ Thumbnail Maker</strong><span class="arrow">⌃</span></div>
-    <div class="body">
-      <div class="sectionTitle">1. 🎬 Video ထည့်ပါ — AI က Title ရေးပေးမယ်</div>
-      <div class="hint">Title အတွက် Video ကိုပဲ AI က ဖတ်မယ်။ Thumbnail ပုံကို AI က မရွေးပါ။</div>
-      <input id="titleVideo" class="file" type="file" accept="video/*">
-      <button id="makeTitle" class="btn" disabled>🧠 Analyze Video & Generate Title</button>
-      <div id="titleStatus" class="status">Video ရွေးပါ။</div>
-
-      <div class="sectionTitle">2. 🖼️ ကိုယ်တိုင် Thumbnail ပုံထည့်ပါ</div>
-      <div class="hint">Final Thumbnail မှာ ဒီပုံကို အဓိကအသုံးပြုမယ်။ AI က အဓိကဇာတ်ကောင်ကို ရှာပြီး ဝိုင်းပြပေးမယ်။</div>
-      <input id="thumbImage" class="file" type="file" accept="image/*">
-      <div id="imageStatus" class="status">🖼️ Thumbnail ပုံကိုပဲ ထည့်ပါ။ Video မလိုပါ။</div>
-
-      <div class="divider"></div>
-      <div class="sectionTitle">3. ⚙️ Thumbnail Settings</div>
-      <div class="row">
-        <div class="box"><label class="label">🤖 AI Title</label><input id="aiTitle" placeholder="Video Analyze ပြီးရင် ဒီမှာပေါ်မယ်"></div>
-        <div class="box"><label class="label">📐 Size</label><select id="ratio"><option value="16:9">16:9 — YouTube</option><option value="9:16">9:16 — Shorts / TikTok</option><option value="1:1">1:1 — Square</option></select></div>
+  <section class="card">
+    <div class="cardhead"><span>✨ AI Drama Recap Thumbnail</span><span>AI</span></div>
+    <div class="cardbody">
+      <div class="step">
+        <h3>1. 🎬 Video</h3>
+        <div class="drop"><label class="pick">📁 Video Upload<input id="thumbVideo" type="file" accept="video/*"></label><div id="videoName" class="hint">Video ကို AI က ဇာတ်လမ်းနဲ့ scene တွေကို နားလည်ဖို့သုံးမယ်</div></div>
       </div>
-      <label class="epToggle"><input id="epEnabled" type="checkbox" checked> EP Box ထည့်မယ်</label>
-      <div class="box" style="margin-top:9px"><label class="label">🏷️ EP</label><input id="ep" value="EP. 01" placeholder="EP. 01"></div>
 
-      <div id="previewWrap" class="thumbPreview">
-        <div id="previewPlaceholder" class="placeholder">🖼️ Thumbnail Preview</div>
-        <img id="uploadedPreview" class="hidden" alt="Uploaded thumbnail image">
+      <div class="step">
+        <h3>2. 👤 Character Reference (Optional • 0–4 ပုံ)</h3>
+        <div class="drop"><label class="pick">🖼️ Character ပုံထည့်ပါ<input id="charInput" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><div class="hint">မျက်နှာ/character တူအောင် ထိန်းချင်ရင် reference ပုံ 1–4 ပုံထည့်ပါ</div></div>
+        <div id="charFiles" class="files"></div>
       </div>
-      <div id="detectStatus" class="small"></div>
-      <div id="serverStatus" class="small">⏳ Server version စစ်နေပါတယ်...</div>
-      <button id="generate" class="btn" disabled>✨ Generate Final Thumbnail</button>
-      <a id="download" class="download hidden" href="#" download>⬇️ Download Thumbnail</a>
+
+      <div class="step">
+        <h3>3. 🎨 Style Reference (Optional)</h3>
+        <div class="drop"><label class="pick">🎨 Style ပုံထည့်ပါ<input id="styleInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="hint">မင်းပို့ထားတဲ့ drama recap thumbnail လို composition / font feel ကို reference အဖြစ်သုံးနိုင်မယ်</div></div>
+        <div id="stylePreview" class="stylePreview" style="display:none"><img></div>
+      </div>
+
+      <div class="step">
+        <h3>4. 📝 AI Title</h3>
+        <input id="title" class="input" placeholder="AI က Video ကြည့်ပြီး Title ရေးပေးမယ် — မကြိုက်ရင် ကိုယ်တိုင်ပြင်နိုင်တယ်">
+        <button class="btn secondary" id="titleBtn">🧠 Generate AI Title</button>
+        <div id="titleHint" class="titlePreview"></div>
+      </div>
+
+      <div class="step">
+        <h3>5. ⚙️ Thumbnail Settings</h3>
+        <div class="row">
+          <div class="field"><label>📐 Size</label><select id="ratio" class="select"><option value="16:9">16:9 — YouTube</option><option value="9:16">9:16 — Shorts / TikTok</option><option value="1:1">1:1 — Square</option></select></div>
+          <div class="field"><label>🏷️ EP</label><input id="epText" class="input" value="EP. 01"></div>
+        </div>
+        <label class="check" style="margin-top:12px"><input id="epEnabled" type="checkbox" checked> EP Box / EP စာထည့်မယ်</label>
+      </div>
+
+      <details class="api"><summary>🔑 API Key (Render ENV မသုံးရင် ဒီမှာထည့်နိုင်)</summary><div class="field"><label>Gemini API Key</label><input id="geminiKey" class="input" type="password" placeholder="Gemini API Key"></div><div class="field"><label>Groq API Key</label><input id="groqKey" class="input" type="password" placeholder="Groq API Key"></div><div class="note" style="margin-top:8px">Key တွေကို Browser localStorage ထဲမှာသာ သိမ်းထားမယ်။ Public website အတွက် shared key မထည့်တာပိုလုံခြုံပါတယ်။</div></details>
+
+      <button class="btn" id="generateBtn">✨ Generate Final AI Thumbnail</button>
+      <div class="progress" id="progress"><div class="bar"><i></i></div><div class="status" id="progressText">AI ကလုပ်နေပါတယ်…</div></div>
+      <div class="result" id="result"><img id="resultImage"><div id="resultTitle" class="titlePreview"></div><a id="download" class="download">⬇️ Download Final Thumbnail</a></div>
     </div>
   </section>
 </div>
 <script>
 const $=id=>document.getElementById(id);
-fetch('/api/thumbnail/version').then(r=>r.json()).then(v=>{ if(v?.thumbnailInput==='IMAGE_ONLY') $('serverStatus').textContent='✅ Thumbnail = Image Only • Generate လုပ်ရန် Video မလိုပါ'; else $('serverStatus').textContent='❌ Server version အဟောင်း ဖြစ်နေပါတယ် — GitHub/Render update လုပ်ပါ'; }).catch(()=>{$('serverStatus').textContent='❌ Server version မစစ်နိုင်ပါ'});
-let titleVideo=null,imageFile=null,faceBox=null,imageUrl='';
-function toggleCard(id){$(id).classList.toggle('open')}
-function gkey(){return localStorage.getItem('gemini_api_key')||localStorage.getItem('byn_gemini')||''}
-function qkey(){return localStorage.getItem('groq_api_key')||localStorage.getItem('byn_groq')||''}
-async function json(r){const d=await r.json().catch(()=>null);if(!r.ok||!d?.ok)throw new Error(d?.error||`Server Error ${r.status}`);return d}
-function canGenerate(){$('generate').disabled=!(imageFile&&faceBox&&$('aiTitle').value.trim())}
-$('srtVideo').addEventListener('change',e=>{const f=e.target.files[0]||null;$('transcribeBtn').disabled=!f;$('translateBtn').disabled=true;$('downloadSrt').disabled=true;$('srtText').value='';$('srtStatus').textContent=f?`✅ ${f.name}`:'Video ရွေးပါ'});
-$('transcribeBtn').onclick=async()=>{const f=$('srtVideo').files[0],k=qkey();if(!f)return;if(!k)return $('srtStatus').textContent='❌ Groq API Key မရှိပါ';$('transcribeBtn').disabled=true;$('srtStatus').textContent='⏳ Groq Transcript လုပ်နေပါတယ်...';try{const fd=new FormData();fd.append('video',f);const d=await json(await fetch('/api/transcribe',{method:'POST',headers:{'x-groq-api-key':k},body:fd}));window.transcript=d.transcript;$('translateBtn').disabled=false;$('srtStatus').textContent='✅ Transcript ပြီးပါပြီ။'}catch(e){$('srtStatus').textContent='❌ '+e.message}finally{$('transcribeBtn').disabled=false}};
-$('translateBtn').onclick=async()=>{const k=gkey();if(!k)return $('srtStatus').textContent='❌ Gemini API Key မရှိပါ';$('translateBtn').disabled=true;$('srtStatus').textContent='⏳ Myanmar Translation လုပ်နေပါတယ်...';try{const d=await json(await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json','x-gemini-api-key':k},body:JSON.stringify({transcript:window.transcript||[]})}));$('srtText').value=d.srt;$('downloadSrt').disabled=false;$('srtStatus').textContent='✅ Myanmar Subtitle ပြီးပါပြီ။'}catch(e){$('srtStatus').textContent='❌ '+e.message}finally{$('translateBtn').disabled=false}};
-$('downloadSrt').onclick=()=>{const b=new Blob([$('srtText').value],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Myanmar-SRT.srt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
-$('titleVideo').addEventListener('change',e=>{titleVideo=e.target.files[0]||null;$('makeTitle').disabled=!titleVideo;$('titleStatus').textContent=titleVideo?`🎬 ${titleVideo.name}`:'Video ရွေးပါ'});
-$('makeTitle').onclick=async()=>{const k=gkey();if(!titleVideo)return;if(!k)return $('titleStatus').textContent='❌ Gemini API Key မရှိပါ';$('makeTitle').disabled=true;$('titleStatus').textContent='🧠 AI က Video တစ်ပုဒ်လုံးကို ဖတ်ပြီး Title ရေးနေပါတယ်...';try{const fd=new FormData();fd.append('video',titleVideo);const d=await json(await fetch('/api/thumbnail/title',{method:'POST',headers:{'x-gemini-api-key':k},body:fd}));$('aiTitle').value=d.title;$('titleStatus').textContent='✅ AI Title ရပါပြီ — လိုရင် ပြင်နိုင်ပါတယ်။';canGenerate()}catch(e){$('titleStatus').textContent='❌ '+e.message}finally{$('makeTitle').disabled=false}};
-$('aiTitle').addEventListener('input',canGenerate);
-$('thumbImage').addEventListener('change',async e=>{imageFile=e.target.files[0]||null;faceBox=null;canGenerate();$('download').classList.add('hidden');if(imageUrl)URL.revokeObjectURL(imageUrl);$('uploadedPreview').classList.add('hidden');$('previewPlaceholder').classList.remove('hidden');if(!imageFile)return;$('imageStatus').textContent=`🖼️ ${imageFile.name}`;imageUrl=URL.createObjectURL(imageFile);$('uploadedPreview').src=imageUrl;$('uploadedPreview').classList.remove('hidden');$('previewPlaceholder').classList.add('hidden');const k=gkey();if(!k){$('imageStatus').textContent='❌ Gemini API Key မရှိပါ';return}$('detectStatus').textContent='⭕ AI က အဓိကဇာတ်ကောင်ကို ရှာနေပါတယ်...';try{const fd=new FormData();fd.append('image',imageFile);const d=await json(await fetch('/api/thumbnail/face-image',{method:'POST',headers:{'x-gemini-api-key':k},body:fd}));faceBox=d.box;$('detectStatus').textContent='✅ Main Character ကို သတ်မှတ်ပြီးပါပြီ။';canGenerate()}catch(err){$('detectStatus').textContent='❌ '+err.message}});
-$('generate').onclick=async()=>{const k=gkey();if(!imageFile||!faceBox||!$('aiTitle').value.trim()||!k)return;$('generate').disabled=true;$('generate').textContent='⏳ Final Thumbnail ထုတ်နေပါတယ်...';$('download').classList.add('hidden');try{const fd=new FormData();fd.append('image',imageFile);fd.append('title',$('aiTitle').value.trim());fd.append('ep',$('epEnabled').checked?$('ep').value.trim():'');fd.append('ratio',$('ratio').value);fd.append('x',faceBox.x);fd.append('y',faceBox.y);fd.append('bw',faceBox.w);fd.append('bh',faceBox.h);const d=await json(await fetch('/api/thumbnail/generate-image',{method:'POST',body:fd}));$('download').href=d.downloadUrl;$('download').download=d.filename;$('download').classList.remove('hidden');$('imageStatus').textContent='🔥 Final Thumbnail ပြီးပါပြီ — Download လုပ်နိုင်ပါပြီ။'}catch(e){$('imageStatus').textContent='❌ '+e.message}finally{$('generate').disabled=false;$('generate').textContent='✨ Generate Final Thumbnail';canGenerate()}};
-$('ratio').addEventListener('change',()=>{});
-$('epEnabled').addEventListener('change',()=>{});
+function toggleCard(el){el.parentElement.classList.toggle('collapsed')}
+const geminiKey=$('geminiKey'),groqKey=$('groqKey');
+geminiKey.value=localStorage.getItem('gemini_api_key')||localStorage.getItem('byn_gemini')||'';groqKey.value=localStorage.getItem('groq_api_key')||localStorage.getItem('byn_groq')||'';
+geminiKey.addEventListener('change',()=>localStorage.setItem('gemini_api_key',geminiKey.value.trim()));groqKey.addEventListener('change',()=>localStorage.setItem('groq_api_key',groqKey.value.trim()));
+let chars=[];let styleFile=null;let transcript=[];
+function showError(el,msg){el.textContent='❌ '+msg;el.style.color='#ff7b8c'}
+$('thumbVideo').onchange=()=>{const f=$('thumbVideo').files[0];$('videoName').textContent=f?`✅ ${f.name}`:'Video ကို AI က ဇာတ်လမ်းနဲ့ scene တွေကို နားလည်ဖို့သုံးမယ်'};
+$('srtVideo').onchange=()=>{const f=$('srtVideo').files[0];$('srtName').textContent=f?`✅ ${f.name}`:'MP4 / MOV / MKV / WEBM • အများဆုံး 5 မိနစ်'};
+$('charInput').onchange=()=>{chars=[...$('charInput').files].slice(0,4);const box=$('charFiles');box.innerHTML='';chars.forEach(f=>{const d=document.createElement('div');d.className='thumb';const img=document.createElement('img');img.src=URL.createObjectURL(f);d.appendChild(img);box.appendChild(d)})};
+$('styleInput').onchange=()=>{styleFile=$('styleInput').files[0]||null;const box=$('stylePreview');if(!styleFile){box.style.display='none';return}box.style.display='block';box.querySelector('img').src=URL.createObjectURL(styleFile)};
+async function postJson(url,body,headers={}){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||'Request failed');return j}
+$('titleBtn').onclick=async()=>{const video=$('thumbVideo').files[0];if(!video)return alert('Video အရင်ထည့်ပါ');const fd=new FormData();fd.append('video',video);const key=geminiKey.value.trim();$('titleBtn').disabled=true;$('titleBtn').textContent='🧠 AI Title ရေးနေပါတယ်…';$('titleHint').textContent='';try{const r=await fetch('/api/thumbnail/title',{method:'POST',headers:key?{'x-gemini-api-key':key}:{},body:fd});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'AI Title Error');$('title').value=j.title;$('titleHint').textContent='✅ AI Title ရပါပြီ — မကြိုက်ရင် ပြင်နိုင်ပါတယ်'}catch(e){showError($('titleHint'),e.message)}finally{$('titleBtn').disabled=false;$('titleBtn').textContent='🧠 Generate AI Title'}};
+$('generateBtn').onclick=async()=>{const video=$('thumbVideo').files[0];if(!video)return alert('🎬 Video အရင်ထည့်ပါ');const fd=new FormData();fd.append('video',video);chars.forEach(f=>fd.append('character',f));if(styleFile)fd.append('style',styleFile);fd.append('title',$('title').value.trim());fd.append('ratio',$('ratio').value);fd.append('epEnabled',$('epEnabled').checked?'true':'false');fd.append('epText',$('epText').value.trim());const key=geminiKey.value.trim();$('generateBtn').disabled=true;$('progress').style.display='block';$('result').style.display='none';$('progressText').textContent='🎬 Video ကို AI က analyze လုပ်နေပါတယ်…';try{const r=await fetch('/api/thumbnail/generate-ai',{method:'POST',headers:key?{'x-gemini-api-key':key}:{},body:fd});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'AI Thumbnail Error');$('title').value=j.title;$('resultTitle').textContent='📝 '+j.title;$('resultImage').src=j.download+'?t='+Date.now();$('download').href=j.download;$('result').style.display='block';$('progressText').textContent='✅ Final Thumbnail ပြီးပါပြီ'}catch(e){showError($('progressText'),e.message)}finally{$('generateBtn').disabled=false}};
+$('transcribeBtn').onclick=async()=>{const video=$('srtVideo').files[0];if(!video)return alert('SRT အတွက် Video အရင်ထည့်ပါ');const fd=new FormData();fd.append('video',video);const key=groqKey.value.trim();$('transcribeBtn').disabled=true;$('translateBtn').disabled=true;$('srtStatus').textContent='🎙️ Groq က Transcript ထုတ်နေပါတယ်…';try{const r=await fetch('/api/transcribe',{method:'POST',headers:key?{'x-groq-api-key':key}:{},body:fd});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'Transcript Error');transcript=j.transcript||[];$('translateBtn').disabled=!transcript.length;$('srtStatus').textContent=`✅ Transcript ရပါပြီ — ${transcript.length} segments`;}catch(e){showError($('srtStatus'),e.message)}finally{$('transcribeBtn').disabled=false}};
+$('translateBtn').onclick=async()=>{const key=geminiKey.value.trim();$('translateBtn').disabled=true;$('srtStatus').textContent='🇲🇲 Gemini က မြန်မာဘာသာပြန်နေပါတယ်…';try{const j=await postJson('/api/translate',{transcript},{'x-gemini-api-key':key});$('srtOutput').value=j.srt;$('downloadSrt').disabled=false;$('copySrt').disabled=false;$('srtStatus').textContent='✅ Myanmar SRT ပြီးပါပြီ'}catch(e){showError($('srtStatus'),e.message)}finally{$('translateBtn').disabled=false}};
+$('downloadSrt').onclick=()=>{const blob=new Blob([$('srtOutput').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Myanmar-SRT.srt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
+$('copySrt').onclick=async()=>{await navigator.clipboard.writeText($('srtOutput').value);$('srtStatus').textContent='✅ SRT copied'};
 </script>
 </body>
 </html>
