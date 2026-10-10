@@ -262,13 +262,48 @@ app.post('/api/transcribe',uploadVideo.single('video'),async(req,res)=>{
   }catch(e){console.error('TRANSCRIBE',e);res.status(400).json({ok:false,error:e?.message||'Groq Transcript Error'});}finally{cleanup(video);cleanup(audio);}
 });
 
+// Safely extract a JSON array from Gemini output. Handles markdown fences and
+// ignores square brackets that appear inside quoted strings.
+function parseTranslationArray(text){
+  const raw=String(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+  try{const value=JSON.parse(raw);if(Array.isArray(value))return value;}catch{}
+  let start=-1,depth=0,inString=false,escaped=false;
+  for(let i=0;i<raw.length;i++){
+    const ch=raw[i];
+    if(inString){if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')inString=false;continue;}
+    if(ch==='"'){inString=true;continue;}
+    if(ch==='['){if(start<0)start=i;depth++;}
+    else if(ch===']'&&start>=0){depth--;if(depth===0){try{const value=JSON.parse(raw.slice(start,i+1));if(Array.isArray(value))return value;}catch{}start=-1;}}
+  }
+  return null;
+}
+
 app.post('/api/translate',async(req,res)=>{
   try{
-    const key=getKey(req,'x-gemini-api-key','geminiApiKey','GEMINI_API_KEY','Gemini API Key');const list=Array.isArray(req.body?.transcript)?req.body.transcript:[];if(!list.length)throw new Error('Transcript မရှိပါ');
-    const ai=new GoogleGenAI({apiKey:key});const prompt=`Translate these subtitle lines into natural Myanmar Unicode. Return ONLY a JSON array with the same ids: [{"id":1,"translation":"မြန်မာစာ"}]. Do not omit, merge, reorder or invent lines. Myanmar only.\n${JSON.stringify(list.map(x=>({id:x.id,text:x.text})))}`;
-    const r=await retry(()=>ai.models.generateContent({model:GEMINI_TEXT_MODEL,contents:prompt,config:{temperature:0.1,maxOutputTokens:12000,responseMimeType:'application/json'}}));
-    const parsed=JSON.parse(r.text||'[]');const map=new Map((Array.isArray(parsed)?parsed:[]).map(x=>[Number(x.id),keepMyanmarOnly(x.translation)]));const out=list.map(x=>({...x,text:map.get(Number(x.id))||''})).filter(x=>x.text);res.json({ok:true,transcript:out,srt:makeSrt(out)});
-  }catch(e){console.error('TRANSLATE',e);res.status(400).json({ok:false,error:e?.message||'Gemini Translation Error'});}
+    const key=getKey(req,'x-gemini-api-key','geminiApiKey','GEMINI_API_KEY','Gemini API Key');
+    const list=Array.isArray(req.body?.transcript)?req.body.transcript:[];
+    if(!list.length)throw new Error('Transcript မရှိပါ');
+    const ai=new GoogleGenAI({apiKey:key});
+    const source=list.map((x,i)=>({id:Number(x.id)||i+1,text:cleanText(x.text)}));
+    const prompt=`You are a subtitle translator. Translate each input line into natural Myanmar Burmese Unicode. Preserve the meaning and keep each line separate. Return ONLY a valid JSON array, no markdown or commentary. Every item must have exactly two fields: id (number) and translation (string). Escape all quotation marks and special characters correctly. Do not put literal line breaks inside JSON strings. Do not omit, merge, reorder, duplicate, or invent ids. Translation text must be Myanmar only.\nINPUT JSON:\n${JSON.stringify(source)}`;
+    let response=await retry(()=>ai.models.generateContent({model:GEMINI_TEXT_MODEL,contents:prompt,config:{temperature:0,maxOutputTokens:12000,responseMimeType:'application/json'}}));
+    let parsed=parseTranslationArray(response?.text||'');
+    // If Gemini returns malformed JSON, ask it once to repair its own output.
+    if(!parsed){
+      const repairPrompt=`Convert the following content into valid JSON only. Return a JSON array of objects with numeric id and string translation fields. Keep all translation wording and ids, escape quotes and control characters correctly, and do not add commentary.\nEXPECTED IDS: ${JSON.stringify(source.map(x=>x.id))}\nBROKEN OUTPUT:\n${String(response?.text||'').slice(0,24000)}`;
+      response=await retry(()=>ai.models.generateContent({model:GEMINI_TEXT_MODEL,contents:repairPrompt,config:{temperature:0,maxOutputTokens:12000,responseMimeType:'application/json'}}));
+      parsed=parseTranslationArray(response?.text||'');
+    }
+    if(!parsed)throw new Error('Gemini ဘာသာပြန်အဖြေ JSON ပုံစံမမှန်ပါ။ ထပ်စမ်းကြည့်ပါ။');
+    const translatedMap=new Map();
+    for(const item of parsed){
+      const id=Number(item?.id);const value=keepMyanmarOnly(item?.translation);
+      if(Number.isFinite(id)&&value)translatedMap.set(id,value);
+    }
+    const out=list.map((x,i)=>({...x,text:translatedMap.get(Number(x.id)||i+1)||''})).filter(x=>x.text);
+    if(!out.length)throw new Error('မြန်မာစာ ဘာသာပြန်ရလဒ် မရပါ။ ထပ်စမ်းကြည့်ပါ။');
+    res.json({ok:true,transcript:out,srt:makeSrt(out)});
+  }catch(e){console.error('TRANSLATE ERROR:',e);res.status(400).json({ok:false,error:e?.message||'Gemini Translation Error'});}
 });
 
 app.use((err,_req,res,_next)=>{console.error('REQUEST ERROR',err);res.status(400).json({ok:false,error:err?.message||'Request Error'});});
