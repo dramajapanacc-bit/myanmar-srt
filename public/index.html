@@ -3,89 +3,234 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>YNT Thumbnail & SRT</title>
+<meta name="theme-color" content="#6c3df4">
+<title>YNT SRT Tool</title>
 <style>
-:root{--bg:#070a16;--card:#0e1529;--card2:#111a31;--line:#26385f;--text:#f4f7ff;--muted:#9aa8c7;--accent:#6c5cff;--accent2:#21d4a6;--danger:#ff5368}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#15163a 0,#070a16 38%);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Myanmar",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{width:min(760px,100%);margin:auto;padding:18px 14px 50px}.head{padding:12px 6px 20px}.brand{font-size:25px;font-weight:900}.sub{color:var(--muted);margin-top:5px;font-size:13px}.card{background:linear-gradient(180deg,#10172c,#0b1223);border:1px solid var(--line);border-radius:22px;margin:14px 0;box-shadow:0 14px 45px #0005;overflow:hidden}.cardhead{padding:18px 18px;display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:18px}.cardbody{padding:0 18px 20px}.collapsed .cardbody{display:none}.arrow{color:#93a3c8}.step{border:1px solid #26375c;background:#0a1121;border-radius:18px;padding:14px;margin:12px 0}.step h3{font-size:15px;margin:0 0 10px}.hint{font-size:12px;color:var(--muted);line-height:1.6}.drop{border:1.5px dashed #40598d;border-radius:15px;padding:16px;text-align:center;background:#0b1428}.drop input{display:none}.pick{display:inline-block;background:#202e52;border:1px solid #3b5384;border-radius:12px;padding:10px 14px;font-weight:700}.files{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.thumb{aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid #30466f;background:#090e1b}.thumb img{width:100%;height:100%;object-fit:cover}.stylePreview{height:120px;margin-top:10px;border-radius:13px;overflow:hidden;border:1px solid #30466f}.stylePreview img{width:100%;height:100%;object-fit:cover}.field{margin-top:12px}.field label{display:block;color:#aebbd5;margin-bottom:7px;font-size:14px}.input,.select,.textarea{width:100%;background:#10192e;color:#fff;border:1px solid #354c7d;border-radius:13px;padding:12px 13px;outline:none}.input:focus,.select:focus{border-color:#766cff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{display:flex;align-items:center;gap:9px;color:#c5d0e8}.check input{width:20px;height:20px;accent-color:#6c5cff}.btn{width:100%;border:0;border-radius:15px;padding:14px 16px;font-weight:900;margin-top:12px;color:white;background:linear-gradient(135deg,#6356ff,#8b4fff);box-shadow:0 8px 25px #5b50ff33}.btn.secondary{background:#182542;border:1px solid #38527f}.btn.green{background:linear-gradient(135deg,#11b98e,#1c83c5)}.btn:disabled{opacity:.45;cursor:not-allowed}.progress{display:none;margin-top:14px}.bar{height:8px;background:#17233c;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;width:20%;background:linear-gradient(90deg,#6c5cff,#20d6a7);animation:load 1.5s infinite}@keyframes load{50%{width:85%}}.status{margin-top:10px;color:#aebbd5;font-size:13px;white-space:pre-wrap}.result{display:none;margin-top:15px}.result img{display:block;width:100%;border-radius:18px;border:1px solid #3a4e78}.download{display:block;text-align:center;margin-top:12px;padding:13px;border-radius:13px;background:#21cfa5;color:#04130f;text-decoration:none;font-weight:900}.danger{color:#ff7b8c}.api{font-size:12px}.api summary{cursor:pointer;color:#aebbd5}.note{font-size:12px;color:#8e9bbb;line-height:1.6}.srtarea{min-height:220px;resize:vertical}.srtActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.small{font-size:12px}.titlePreview{font-size:13px;color:#9fdacb;margin-top:8px;min-height:20px}
-@media(max-width:520px){.wrap{padding:10px 10px 40px}.row{grid-template-columns:1fr}.files{grid-template-columns:repeat(4,1fr)}.brand{font-size:22px}}
+:root{color-scheme:dark;--bg:#101226;--panel:#191c37;--panel2:#202448;--text:#fbfaff;--muted:#b8bad6;--line:#373b68;--purple:#8b5cf6;--pink:#f05ca8;--cyan:#36d9e8;--green:#32d6a0;--yellow:#ffd166;--red:#ff6b7a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans Myanmar",sans-serif;background:radial-gradient(ellipse at 10% 0%,#392064 0,transparent 34%),radial-gradient(ellipse at 95% 12%,#123e56 0,transparent 30%),linear-gradient(145deg,#101226,#11182c 55%,#18132e)}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{width:min(920px,100%);margin:auto;padding:20px 15px 48px}.hero{position:relative;overflow:hidden;padding:25px 23px 22px;border:1px solid #ffffff20;border-radius:26px;background:linear-gradient(120deg,#743be8e8,#d4439de0 58%,#087f9be8);box-shadow:0 18px 55px #0004}.hero:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-50px;top:-80px;border:30px solid #ffffff18;pointer-events:none}.brandrow{display:flex;align-items:center;gap:14px;position:relative;z-index:1}.logo{display:grid;place-items:center;flex:0 0 56px;height:56px;border-radius:18px;background:#ffffff25;border:1px solid #ffffff50;font-size:29px;box-shadow:inset 0 1px #ffffff55}.brand{font-size:clamp(25px,5vw,36px);font-weight:950;letter-spacing:-.8px;line-height:1.18}.tag{display:inline-block;margin-top:9px;padding:5px 10px;border-radius:99px;background:#190d3c55;border:1px solid #ffffff40;font-size:11px;font-weight:800;letter-spacing:.5px}.hero p{position:relative;z-index:1;max-width:650px;color:#fff9;margin:13px 0 0;font-size:14px;line-height:1.75}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.stepchip{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #ffffff20;border-radius:16px;background:#ffffff09}.num{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:12px;color:#fff;font-weight:950;background:linear-gradient(135deg,var(--purple),var(--pink))}.stepchip:nth-child(2) .num{background:linear-gradient(135deg,#08a9d8,#36d9a5)}.stepchip:nth-child(3) .num{background:linear-gradient(135deg,#ff9f43,#ef4f87)}.stepchip b{display:block;font-size:12px}.stepchip small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.card{overflow:hidden;margin-top:15px;border:1px solid #ffffff20;border-radius:23px;background:linear-gradient(145deg,#1d2040f5,#15182ff5);box-shadow:0 14px 40px #0003}.cardhead{display:flex;align-items:center;gap:12px;padding:17px 18px;border-bottom:1px solid #ffffff12}.icon{display:grid;place-items:center;flex:0 0 43px;height:43px;border-radius:14px;font-size:22px;background:linear-gradient(135deg,#9b5cf6,#ec4899)}.card:nth-of-type(2) .icon{background:linear-gradient(135deg,#05b8d2,#2dd4a3)}.card:nth-of-type(3) .icon{background:linear-gradient(135deg,#ff9d42,#ed5d87)}.cardhead h2{margin:0;font-size:17px}.cardhead p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.cardbody{padding:18px}.drop{border:1.5px dashed #8581d9;border-radius:19px;padding:22px 15px;text-align:center;background:linear-gradient(135deg,#7c3aed13,#ec489913,#06b6d413);transition:.2s}.drop.drag{border-color:var(--cyan);background:#22d3ee18}.dropicon{font-size:34px}.drop b{display:block;margin:5px 0 4px;font-size:15px}.drop p{margin:0 auto 13px;max-width:480px;color:var(--muted);font-size:12px;line-height:1.65}.fileinput{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.filebtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:13px;padding:11px 17px;color:#fff;font-weight:900;background:linear-gradient(110deg,#8056f6,#d946a8);box-shadow:0 7px 20px #8b5cf633}.filename{margin-top:11px;color:var(--cyan);font-size:12px;overflow-wrap:anywhere}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-top:14px}.field label{display:block;margin-bottom:7px;color:#d8d8ef;font-size:12px;font-weight:800}.input{width:100%;min-width:0;padding:12px 13px;border:1px solid #414675;border-radius:13px;outline:none;background:#101329;color:#fff}.input:focus,textarea:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 3px #36d9e822}.api details{padding:13px 14px;border:1px solid #ffffff18;border-radius:15px;background:#0e1227}.api summary{cursor:pointer;font-size:13px;font-weight:800;color:#d9d5ff}.api .note{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.7}.btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding:13px 15px;border:0;border-radius:14px;color:#fff;font-weight:900;transition:transform .15s,filter .15s}.btn:not(:disabled):active{transform:scale(.99)}.btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.3)}.btn.purple{background:linear-gradient(110deg,#8056f6,#d946a8);box-shadow:0 8px 20px #a855f733}.btn.cyan{background:linear-gradient(110deg,#0891b2,#20c997);box-shadow:0 8px 20px #06b6d433}.btn.orange{background:linear-gradient(110deg,#ff9e42,#ef4f87);box-shadow:0 8px 20px #f9731633}.btn.ghost{background:#292d50;border:1px solid #464b79}.status{margin-top:13px;padding:12px 13px;border:1px solid #ffffff14;border-radius:13px;background:#0e1226;color:#c6c9e6;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}.status.good{border-color:#32d6a055;color:#9af3d2}.status.bad{border-color:#ff6b7a66;color:#ffadb5}.status.busy{border-color:#36d9e866;color:#9beef4}.progress{height:7px;overflow:hidden;margin-top:10px;border-radius:99px;background:#2d3155;display:none}.progress i{display:block;width:35%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));animation:move 1.25s ease-in-out infinite alternate}@keyframes move{from{transform:translateX(-10%)}to{transform:translateX(190%)}}.transcriptbox{margin-top:13px}.transcriptbox label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:13px;font-weight:850}.pill{padding:4px 8px;border-radius:99px;background:#713ee933;color:#cbbcff;font-size:10px}.textoutput{display:block;width:100%;min-height:180px;resize:vertical;padding:13px;border:1px solid #3c426c;border-radius:14px;outline:none;background:#0d1124;color:#eef0ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.75}.textoutput.srt{min-height:250px;border-color:#2d9c9a66}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.footer{text-align:center;margin:23px 0 0;color:#888eaf;font-size:11px;line-height:1.8}.footer strong{color:#c9b7ff}.hidden{display:none!important}
+@media(max-width:580px){.wrap{padding:12px 10px 32px}.hero{padding:20px 16px;border-radius:21px}.logo{flex-basis:48px;height:48px;border-radius:15px}.brand{font-size:27px}.steps{gap:6px}.stepchip{display:block;text-align:center;padding:10px 5px}.num{margin:0 auto 7px}.stepchip b{font-size:10px}.stepchip small{font-size:9px}.cardhead{padding:15px}.cardbody{padding:14px}.row{grid-template-columns:1fr}.drop{padding:18px 10px}.actions{grid-template-columns:1fr}.textoutput{min-height:160px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="head"><div class="brand">🎬 YNT Thumbnail & SRT</div><div class="sub">Video → AI Story → Character Reference → Style → Final Thumbnail</div></div>
+<main class="wrap">
+  <header class="hero">
+    <div class="brandrow"><div class="logo">မ</div><div><div class="brand">YNT SRT Tool</div><span class="tag">GROQ WHISPER · MYANMAR SUBTITLE</span></div></div>
+    <p>Video ထဲက စကားပြောကို Transcript ထုတ်ပြီး မြန်မာဘာသာပြန်ကာ <b>Myanmar SRT</b> အဖြစ် ဒေါင်းလုဒ်လုပ်နိုင်ပါတယ်။</p>
+  </header>
+
+  <div class="steps" aria-label="SRT workflow">
+    <div class="stepchip"><span class="num">01</span><div><b>Video Transcript</b><small>Groq Whisper</small></div></div>
+    <div class="stepchip"><span class="num">02</span><div><b>Myanmar Translation</b><small>Gemini</small></div></div>
+    <div class="stepchip"><span class="num">03</span><div><b>Download SRT</b><small>Save / Copy</small></div></div>
+  </div>
 
   <section class="card">
-    <div class="cardhead" onclick="toggleCard(this)"><span>🇲🇲 Myanmar Subtitle</span><span class="arrow">⌄</span></div>
+    <div class="cardhead"><div class="icon">🎬</div><div><h2>၁။ Video ရွေးပါ</h2><p>မူလ Transcript ထုတ်ဖို့ အသုံးပြုမယ့် video ကို ရွေးပါ။</p></div></div>
     <div class="cardbody">
-      <div class="step"><h3>🎙️ Video → Groq Transcript</h3><div class="drop"><label class="pick">📁 Video ရွေးပါ<input id="srtVideo" type="file" accept="video/*"></label><div id="srtName" class="hint">MP4 / MOV / MKV / WEBM • အများဆုံး 5 မိနစ်</div></div><button class="btn secondary" id="transcribeBtn">🎙️ Groq Transcript</button></div>
-      <div class="step"><h3>📝 Myanmar Translation</h3><button class="btn" id="translateBtn" disabled>🇲🇲 Translate to Myanmar</button><textarea id="srtOutput" class="textarea srtarea" placeholder="Myanmar SRT ဒီနေရာမှာ ထွက်ပါမယ်"></textarea><div class="srtActions"><button class="btn green" id="downloadSrt" disabled>⬇️ Download SRT</button><button class="btn secondary" id="copySrt" disabled>📋 Copy SRT</button></div></div>
-      <div id="srtStatus" class="status"></div>
+      <div class="drop" id="dropZone"><div class="dropicon">📂</div><b>Video ဖိုင်ကို ရွေးချယ်ပါ</b><p>MP4, MOV, MKV, WEBM စတဲ့ video format များ။ လက်ရှိ server က သတ်မှတ်ထားတဲ့ အချိန်/ဖိုင်အရွယ် ကန့်သတ်ချက်အတိုင်း အသုံးပြုပါ။</p><label class="filebtn" for="srtVideo">📁 Choose Video</label><input class="fileinput" id="srtVideo" type="file" accept="video/*"><div class="filename" id="srtName">ဖိုင်မရွေးရသေးပါ</div></div>
+      <div class="row">
+        <div class="field api"><details><summary>🔑 Groq API Key</summary><div class="field"><label for="groqKey">Groq Key (မထည့်ထားလျှင် server ENV ကို သုံးပါမယ်)</label><input id="groqKey" class="input" type="password" autocomplete="off" placeholder="gsk_…"></div><p class="note">Key ကို ဒီ browser ရဲ့ localStorage ထဲမှာ သိမ်းထားနိုင်ပါတယ်။ Shared/public device မှာ မသိမ်းပါနဲ့။</p></details></div>
+        <div class="field api"><details><summary>🔑 Gemini API Key</summary><div class="field"><label for="geminiKey">Gemini Key (မထည့်ထားလျှင် server ENV ကို သုံးပါမယ်)</label><input id="geminiKey" class="input" type="password" autocomplete="off" placeholder="AIza…"></div><p class="note">Key ကို ဒီ browser ရဲ့ localStorage ထဲမှာ သိမ်းထားနိုင်ပါတယ်။ Shared/public device မှာ မသိမ်းပါနဲ့။</p></details></div>
+      </div>
+      <button class="btn purple" id="transcribeBtn" disabled>🎙️ Groq Transcript ထုတ်မယ်</button>
+      <div class="progress" id="transcribeProgress"><i></i></div>
+      <div id="srtStatus" class="status" role="status" aria-live="polite">Video ဖိုင်ရွေးပြီး “Groq Transcript ထုတ်မယ်” ကိုနှိပ်ပါ။</div>
     </div>
   </section>
 
   <section class="card">
-    <div class="cardhead"><span>✨ AI Drama Recap Thumbnail</span><span>AI</span></div>
+    <div class="cardhead"><div class="icon">📝</div><div><h2>၂။ Transcript စစ်ဆေးပါ</h2><p>Groq က ထုတ်ပေးတဲ့ မူရင်း transcript ကို ဒီမှာကြည့်နိုင်ပါတယ်။</p></div></div>
     <div class="cardbody">
-      <div class="step">
-        <h3>1. 🎬 Video</h3>
-        <div class="drop"><label class="pick">📁 Video Upload<input id="thumbVideo" type="file" accept="video/*"></label><div id="videoName" class="hint">Video ကို AI က ဇာတ်လမ်းနဲ့ scene တွေကို နားလည်ဖို့သုံးမယ်</div></div>
-      </div>
-
-      <div class="step">
-        <h3>2. 👤 Character Reference (Optional • 0–4 ပုံ)</h3>
-        <div class="drop"><label class="pick">🖼️ Character ပုံထည့်ပါ<input id="charInput" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><div class="hint">မျက်နှာ/character တူအောင် ထိန်းချင်ရင် reference ပုံ 1–4 ပုံထည့်ပါ</div></div>
-        <div id="charFiles" class="files"></div>
-      </div>
-
-      <div class="step">
-        <h3>3. 🎨 Style Reference (Optional)</h3>
-        <div class="drop"><label class="pick">🎨 Style ပုံထည့်ပါ<input id="styleInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="hint">မင်းပို့ထားတဲ့ drama recap thumbnail လို composition / font feel ကို reference အဖြစ်သုံးနိုင်မယ်</div></div>
-        <div id="stylePreview" class="stylePreview" style="display:none"><img></div>
-      </div>
-
-      <div class="step">
-        <h3>4. 📝 AI Title</h3>
-        <input id="title" class="input" placeholder="AI က Video ကြည့်ပြီး Title ရေးပေးမယ် — မကြိုက်ရင် ကိုယ်တိုင်ပြင်နိုင်တယ်">
-        <button class="btn secondary" id="titleBtn">🧠 Generate AI Title</button>
-        <div id="titleHint" class="titlePreview"></div>
-      </div>
-
-      <div class="step">
-        <h3>5. ⚙️ Thumbnail Settings</h3>
-        <div class="row">
-          <div class="field"><label>📐 Size</label><select id="ratio" class="select"><option value="16:9">16:9 — YouTube</option><option value="9:16">9:16 — Shorts / TikTok</option><option value="1:1">1:1 — Square</option></select></div>
-          <div class="field"><label>🏷️ EP</label><input id="epText" class="input" value="EP. 01"></div>
-        </div>
-        <label class="check" style="margin-top:12px"><input id="epEnabled" type="checkbox" checked> EP Box / EP စာထည့်မယ်</label>
-      </div>
-
-      <details class="api"><summary>🔑 API Key (Render ENV မသုံးရင် ဒီမှာထည့်နိုင်)</summary><div class="field"><label>Gemini API Key</label><input id="geminiKey" class="input" type="password" placeholder="Gemini API Key"></div><div class="field"><label>Groq API Key</label><input id="groqKey" class="input" type="password" placeholder="Groq API Key"></div><div class="note" style="margin-top:8px">Key တွေကို Browser localStorage ထဲမှာသာ သိမ်းထားမယ်။ Public website အတွက် shared key မထည့်တာပိုလုံခြုံပါတယ်။</div></details>
-
-      <button class="btn" id="generateBtn">✨ Generate Final AI Thumbnail</button>
-      <div class="progress" id="progress"><div class="bar"><i></i></div><div class="status" id="progressText">AI ကလုပ်နေပါတယ်…</div></div>
-      <div class="result" id="result"><img id="resultImage"><div id="resultTitle" class="titlePreview"></div><a id="download" class="download">⬇️ Download Final Thumbnail</a></div>
+      <div class="transcriptbox"><label for="originalText">Original Transcript <span class="pill" id="segmentCount">0 segments</span></label><textarea class="textoutput" id="originalText" placeholder="Transcript ရလာတဲ့အခါ ဒီနေရာမှာ ပြပါမယ်။" readonly></textarea></div>
+      <button class="btn ghost" id="downloadOriginal" disabled>⬇️ Download Original Transcript</button>
+      <button class="btn cyan" id="translateBtn" disabled>🇲🇲 Gemini နဲ့ မြန်မာဘာသာပြန်မယ်</button>
+      <div class="progress" id="translateProgress"><i></i></div>
     </div>
   </section>
-</div>
+
+  <section class="card">
+    <div class="cardhead"><div class="icon">🌈</div><div><h2>၃။ Myanmar SRT</h2><p>ဘာသာပြန်ပြီးတဲ့ subtitle ကို စစ်ဆေး၊ Copy သို့မဟုတ် Download လုပ်ပါ။</p></div></div>
+    <div class="cardbody">
+      <textarea class="textoutput srt" id="srtOutput" placeholder="Myanmar SRT ရလာတဲ့အခါ ဒီနေရာမှာ ပြပါမယ်။" spellcheck="false"></textarea>
+      <div class="actions"><button class="btn orange" id="downloadSrt" disabled>⬇️ Download Myanmar SRT</button><button class="btn ghost" id="copySrt" disabled>📋 Copy SRT</button></div>
+      <div class="status" id="downloadStatus">Myanmar Translation ပြီးတဲ့အခါ SRT ကို Download / Copy လုပ်နိုင်ပါမယ်။</div>
+    </div>
+  </section>
+
+  <footer class="footer"><strong>YNT SRT Tool</strong><br>Transcript → Myanmar Translation → Download Myanmar SRT</footer>
+</main>
 <script>
-const $=id=>document.getElementById(id);
-function toggleCard(el){el.parentElement.classList.toggle('collapsed')}
-const geminiKey=$('geminiKey'),groqKey=$('groqKey');
-geminiKey.value=localStorage.getItem('gemini_api_key')||localStorage.getItem('byn_gemini')||'';groqKey.value=localStorage.getItem('groq_api_key')||localStorage.getItem('byn_groq')||'';
-geminiKey.addEventListener('change',()=>localStorage.setItem('gemini_api_key',geminiKey.value.trim()));groqKey.addEventListener('change',()=>localStorage.setItem('groq_api_key',groqKey.value.trim()));
-let chars=[];let styleFile=null;let transcript=[];
-function showError(el,msg){el.textContent='❌ '+msg;el.style.color='#ff7b8c'}
-$('thumbVideo').onchange=()=>{const f=$('thumbVideo').files[0];$('videoName').textContent=f?`✅ ${f.name}`:'Video ကို AI က ဇာတ်လမ်းနဲ့ scene တွေကို နားလည်ဖို့သုံးမယ်'};
-$('srtVideo').onchange=()=>{const f=$('srtVideo').files[0];$('srtName').textContent=f?`✅ ${f.name}`:'MP4 / MOV / MKV / WEBM • အများဆုံး 5 မိနစ်'};
-$('charInput').onchange=()=>{chars=[...$('charInput').files].slice(0,4);const box=$('charFiles');box.innerHTML='';chars.forEach(f=>{const d=document.createElement('div');d.className='thumb';const img=document.createElement('img');img.src=URL.createObjectURL(f);d.appendChild(img);box.appendChild(d)})};
-$('styleInput').onchange=()=>{styleFile=$('styleInput').files[0]||null;const box=$('stylePreview');if(!styleFile){box.style.display='none';return}box.style.display='block';box.querySelector('img').src=URL.createObjectURL(styleFile)};
-async function postJson(url,body,headers={}){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||'Request failed');return j}
-$('titleBtn').onclick=async()=>{const video=$('thumbVideo').files[0];if(!video)return alert('Video အရင်ထည့်ပါ');const fd=new FormData();fd.append('video',video);const key=geminiKey.value.trim();$('titleBtn').disabled=true;$('titleBtn').textContent='🧠 AI Title ရေးနေပါတယ်…';$('titleHint').textContent='';try{const r=await fetch('/api/thumbnail/title',{method:'POST',headers:key?{'x-gemini-api-key':key}:{},body:fd});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'AI Title Error');$('title').value=j.title;$('titleHint').textContent='✅ AI Title ရပါပြီ — မကြိုက်ရင် ပြင်နိုင်ပါတယ်'}catch(e){showError($('titleHint'),e.message)}finally{$('titleBtn').disabled=false;$('titleBtn').textContent='🧠 Generate AI Title'}};
-$('generateBtn').onclick=async()=>{const video=$('thumbVideo').files[0];if(!video)return alert('🎬 Video အရင်ထည့်ပါ');const fd=new FormData();fd.append('video',video);chars.forEach(f=>fd.append('character',f));if(styleFile)fd.append('style',styleFile);fd.append('title',$('title').value.trim());fd.append('ratio',$('ratio').value);fd.append('epEnabled',$('epEnabled').checked?'true':'false');fd.append('epText',$('epText').value.trim());const key=geminiKey.value.trim();$('generateBtn').disabled=true;$('progress').style.display='block';$('result').style.display='none';$('progressText').textContent='🎬 Video ကို AI က analyze လုပ်နေပါတယ်…';try{const r=await fetch('/api/thumbnail/generate-ai',{method:'POST',headers:key?{'x-gemini-api-key':key}:{},body:fd});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'AI Thumbnail Error');$('title').value=j.title;$('resultTitle').textContent='📝 '+j.title;$('resultImage').src=j.download+'?t='+Date.now();$('download').href=j.download;$('result').style.display='block';$('progressText').textContent='✅ Final Thumbnail ပြီးပါပြီ'}catch(e){showError($('progressText'),e.message)}finally{$('generateBtn').disabled=false}};
-$('transcribeBtn').onclick=async()=>{const video=$('srtVideo').files[0];if(!video)return alert('SRT အတွက် Video အရင်ထည့်ပါ');const fd=new FormData();fd.append('video',video);const key=groqKey.value.trim();$('transcribeBtn').disabled=true;$('translateBtn').disabled=true;$('srtStatus').textContent='🎙️ Groq က Transcript ထုတ်နေပါတယ်…';try{const r=await fetch('/api/transcribe',{method:'POST',headers:key?{'x-groq-api-key':key}:{},body:fd});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'Transcript Error');transcript=j.transcript||[];$('translateBtn').disabled=!transcript.length;$('srtStatus').textContent=`✅ Transcript ရပါပြီ — ${transcript.length} segments`;}catch(e){showError($('srtStatus'),e.message)}finally{$('transcribeBtn').disabled=false}};
-$('translateBtn').onclick=async()=>{const key=geminiKey.value.trim();$('translateBtn').disabled=true;$('srtStatus').textContent='🇲🇲 Gemini က မြန်မာဘာသာပြန်နေပါတယ်…';try{const j=await postJson('/api/translate',{transcript},{'x-gemini-api-key':key});$('srtOutput').value=j.srt;$('downloadSrt').disabled=false;$('copySrt').disabled=false;$('srtStatus').textContent='✅ Myanmar SRT ပြီးပါပြီ'}catch(e){showError($('srtStatus'),e.message)}finally{$('translateBtn').disabled=false}};
-$('downloadSrt').onclick=()=>{const blob=new Blob([$('srtOutput').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Myanmar-SRT.srt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
-$('copySrt').onclick=async()=>{await navigator.clipboard.writeText($('srtOutput').value);$('srtStatus').textContent='✅ SRT copied'};
+'use strict';
+const $ = id => document.getElementById(id);
+let selectedVideo = null;
+let transcript = [];
+let finalSrt = '';
+
+function setStatus(message, kind='') {
+  const el = $('srtStatus');
+  el.textContent = message;
+  el.className = 'status' + (kind ? ' ' + kind : '');
+}
+function setDownloadStatus(message, kind='') {
+  const el = $('downloadStatus');
+  el.textContent = message;
+  el.className = 'status' + (kind ? ' ' + kind : '');
+}
+function getKey(inputId, storageKey) {
+  return $(inputId).value.trim() || localStorage.getItem(storageKey) || '';
+}
+function persistKey(inputId, storageKey) {
+  const value = $(inputId).value.trim();
+  if (value) localStorage.setItem(storageKey, value);
+  else localStorage.removeItem(storageKey);
+}
+$('groqKey').value = localStorage.getItem('groq_api_key') || localStorage.getItem('byn_groq') || '';
+$('geminiKey').value = localStorage.getItem('gemini_api_key') || localStorage.getItem('byn_gemini') || '';
+$('groqKey').addEventListener('change', () => { persistKey('groqKey','groq_api_key'); if ($('groqKey').value.trim()) localStorage.setItem('byn_groq',$('groqKey').value.trim()); });
+$('geminiKey').addEventListener('change', () => { persistKey('geminiKey','gemini_api_key'); if ($('geminiKey').value.trim()) localStorage.setItem('byn_gemini',$('geminiKey').value.trim()); });
+
+function formatTime(seconds) {
+  const n = Math.max(0, Math.round(Number(seconds || 0) * 1000));
+  const h = Math.floor(n / 3600000);
+  const m = Math.floor((n % 3600000) / 60000);
+  const s = Math.floor((n % 60000) / 1000);
+  const ms = n % 1000;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
+}
+function transcriptAsText(items) {
+  return (items || []).map((item, index) => {
+    const start = item.start ?? item.start_time ?? item.startTime ?? 0;
+    const end = item.end ?? item.end_time ?? item.endTime ?? start;
+    const text = String(item.text ?? item.transcript ?? '');
+    return `${index + 1}\n${formatTime(start)} --> ${formatTime(end)}\n${text}`;
+  }).join('\n\n');
+}
+async function readJson(response) {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.ok === false || data.error) {
+    const message = typeof data.error === 'string' ? data.error : (data.error?.message || JSON.stringify(data.error) || `HTTP ${response.status}`);
+    throw new Error(message);
+  }
+  return data;
+}
+function setBusy(buttonId, progressId, busy, busyLabel, normalLabel) {
+  $(buttonId).disabled = busy;
+  $(buttonId).textContent = busy ? busyLabel : normalLabel;
+  $(progressId).style.display = busy ? 'block' : 'none';
+}
+function resetResults() {
+  transcript = [];
+  finalSrt = '';
+  $('originalText').value = '';
+  $('srtOutput').value = '';
+  $('segmentCount').textContent = '0 segments';
+  $('translateBtn').disabled = true;
+  $('downloadOriginal').disabled = true;
+  $('downloadSrt').disabled = true;
+  $('copySrt').disabled = true;
+  setDownloadStatus('Myanmar Translation ပြီးတဲ့အခါ SRT ကို Download / Copy လုပ်နိုင်ပါမယ်။');
+}
+$('srtVideo').addEventListener('change', event => {
+  selectedVideo = event.target.files?.[0] || null;
+  $('srtName').textContent = selectedVideo ? `✅ ${selectedVideo.name} · ${(selectedVideo.size / 1024 / 1024).toFixed(1)} MB` : 'ဖိုင်မရွေးရသေးပါ';
+  $('transcribeBtn').disabled = !selectedVideo;
+  resetResults();
+  setStatus(selectedVideo ? 'Video ရွေးပြီးပါပြီ။ Groq Transcript ကို စတင်နိုင်ပါပြီ။' : 'Video ဖိုင်ရွေးပြီး စတင်ပါ။', selectedVideo ? 'good' : '');
+});
+
+const dropZone = $('dropZone');
+dropZone.addEventListener('dragover', event => { event.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', event => {
+  event.preventDefault(); dropZone.classList.remove('drag');
+  const file = [...(event.dataTransfer?.files || [])].find(f => f.type.startsWith('video/'));
+  if (!file) { setStatus('Video ဖိုင်ကိုသာ ရွေးပါ။', 'bad'); return; }
+  try {
+    const transfer = new DataTransfer(); transfer.items.add(file); $('srtVideo').files = transfer.files;
+    $('srtVideo').dispatchEvent(new Event('change', {bubbles:true}));
+  } catch (_) { setStatus('ဖိုင်ကို အပေါ်က Choose Video ခလုတ်နဲ့ ရွေးပေးပါ။'); }
+});
+
+$('transcribeBtn').addEventListener('click', async () => {
+  if (!selectedVideo) { setStatus('အရင်ဆုံး Video ဖိုင်ရွေးပါ။', 'bad'); return; }
+  const key = getKey('groqKey','groq_api_key') || localStorage.getItem('byn_groq') || '';
+  setBusy('transcribeBtn','transcribeProgress',true,'⏳ Transcript ထုတ်နေပါတယ်…','🎙️ Groq Transcript ထုတ်မယ်');
+  $('translateBtn').disabled = true;
+  setStatus('🎙️ Groq Whisper က စကားပြောနဲ့ timestamp တွေကို боловсруулжနေပါတယ်…','busy');
+  try {
+    const form = new FormData(); form.append('video', selectedVideo);
+    const headers = key ? {'x-groq-api-key': key} : {};
+    const response = await fetch('/api/transcribe', {method:'POST', headers, body:form});
+    const data = await readJson(response);
+    transcript = Array.isArray(data.transcript) ? data.transcript : [];
+    if (!transcript.length) throw new Error('Transcript မရရှိပါ။ အသံပါဝင်တဲ့ Video ကို စမ်းကြည့်ပါ။');
+    $('originalText').value = data.text || transcriptAsText(transcript);
+    $('segmentCount').textContent = `${transcript.length} segments`;
+    $('translateBtn').disabled = false;
+    $('downloadOriginal').disabled = false;
+    setStatus(`✅ Transcript ပြီးပါပြီ — ${transcript.length} segments ရရှိပါတယ်။ နောက်တစ်ဆင့် Myanmar Translation ကိုနှိပ်ပါ။`,'good');
+  } catch (error) {
+    setStatus('❌ Transcript Error: ' + (error?.message || 'မသိရှိသော အမှား'), 'bad');
+  } finally {
+    setBusy('transcribeBtn','transcribeProgress',false,'⏳ Transcript ထုတ်နေပါတယ်…','🎙️ Groq Transcript ထုတ်မယ်');
+  }
+});
+
+$('translateBtn').addEventListener('click', async () => {
+  if (!transcript.length) { setStatus('Transcript အရင်ထုတ်ပေးပါ။','bad'); return; }
+  const key = getKey('geminiKey','gemini_api_key') || localStorage.getItem('byn_gemini') || '';
+  setBusy('translateBtn','translateProgress',true,'⏳ မြန်မာဘာသာပြန်နေပါတယ်…','🇲🇲 Gemini နဲ့ မြန်မာဘာသာပြန်မယ်');
+  setStatus('🇲🇲 Gemini က Transcript ကို မြန်မာဘာသာပြန်ပြီး SRT ပြုလုပ်နေပါတယ်…','busy');
+  try {
+    const headers = {'Content-Type':'application/json'};
+    if (key) headers['x-gemini-api-key'] = key;
+    const response = await fetch('/api/translate', {method:'POST',headers,body:JSON.stringify({transcript})});
+    const data = await readJson(response);
+    finalSrt = String(data.srt || '');
+    if (!finalSrt.trim()) throw new Error('Myanmar SRT မရရှိပါ။ ထပ်မံကြိုးစားပါ။');
+    $('srtOutput').value = finalSrt;
+    $('downloadSrt').disabled = false;
+    $('copySrt').disabled = false;
+    setStatus('✅ Myanmar Translation ပြီးပါပြီ။ အောက်က SRT ကို စစ်ဆေးပြီး Download / Copy လုပ်နိုင်ပါပြီ။','good');
+    setDownloadStatus('🎉 Myanmar SRT အဆင်သင့်ဖြစ်ပါပြီ။','good');
+    $('srtOutput').scrollIntoView({behavior:'smooth',block:'center'});
+  } catch (error) {
+    setStatus('❌ Translation Error: ' + (error?.message || 'မသိရှိသော အမှား'), 'bad');
+  } finally {
+    setBusy('translateBtn','translateProgress',false,'⏳ မြန်မာဘာသာပြန်နေပါတယ်…','🇲🇲 Gemini နဲ့ မြန်မာဘာသာပြန်မယ်');
+  }
+});
+
+function downloadText(text, filename, mime='text/plain;charset=utf-8') {
+  const blob = new Blob(['\ufeff', text], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = url; link.download = filename;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('downloadOriginal').addEventListener('click', () => {
+  const text = $('originalText').value;
+  if (text) downloadText(text, 'Original-Transcript.txt');
+});
+$('downloadSrt').addEventListener('click', () => {
+  const text = $('srtOutput').value.trim();
+  if (!text) return;
+  downloadText(text, 'Myanmar-SRT.srt', 'application/x-subrip;charset=utf-8');
+  setDownloadStatus('⬇️ Myanmar-SRT.srt ဒေါင်းလုဒ်လုပ်ရန် စတင်လိုက်ပါပြီ။','good');
+});
+$('copySrt').addEventListener('click', async () => {
+  const text = $('srtOutput').value;
+  if (!text.trim()) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    setDownloadStatus('✅ Myanmar SRT ကို Clipboard ထဲ Copy လုပ်ပြီးပါပြီ။','good');
+  } catch (_) {
+    $('srtOutput').focus(); $('srtOutput').select();
+    const ok = document.execCommand('copy');
+    setDownloadStatus(ok ? '✅ Myanmar SRT ကို Copy လုပ်ပြီးပါပြီ။' : 'SRT စာသားကို ရွေးပြီး Copy လုပ်ပါ။', ok ? 'good' : 'bad');
+  }
+});
 </script>
 </body>
 </html>
