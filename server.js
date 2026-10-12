@@ -194,7 +194,22 @@ OUTPUT: One finished thumbnail image only. Aspect ratio: ${ratio}.`}
 
 async function transcribeGroq(audioPath,key){
   const groq=new Groq({apiKey:key});
-  return groq.audio.transcriptions.create({file:createReadStream(audioPath),model:GROQ_MODEL,response_format:'verbose_json',timestamp_granularities:['word','segment'],temperature:0});
+  // Groq sometimes returns transient 500/503. Retry with a fresh stream each time,
+  // then fall back to the turbo model if the main model keeps failing.
+  const models=[GROQ_MODEL,'whisper-large-v3-turbo'];
+  let last;
+  for(const model of models){
+    for(let i=0;i<3;i++){
+      try{
+        return await groq.audio.transcriptions.create({file:createReadStream(audioPath),model,response_format:'verbose_json',timestamp_granularities:['word','segment'],temperature:0});
+      }catch(e){
+        last=e;const m=String(e?.message||e).toLowerCase();
+        if(!/429|500|502|503|504|internal|unavailable|overloaded|timeout|connection|econnreset/.test(m))throw e;
+        await sleep(1500*(i+1));
+      }
+    }
+  }
+  throw new Error('Groq server ဘက်က ခဏပြဿနာဖြစ်နေပါတယ် (500)။ ခဏနေပြီး ပြန်စမ်းပါ။ '+String(last?.message||'').slice(0,160));
 }
 async function extractAudio(video){
   const out=path.join(TMP,`${crypto.randomUUID()}.wav`);
