@@ -11,6 +11,7 @@ import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
 import ffmpegStatic from 'ffmpeg-static';
 import ffprobeStatic from 'ffprobe-static';
+import { ensureFont, parseSrt, buildAss, buildFilterGraph, buildFfmpegArgs, FONT_FAMILY } from './burn.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 10000);
@@ -21,11 +22,14 @@ const ROOT = process.cwd();
 const PUBLIC = path.join(ROOT, 'public');
 const TMP = path.join(os.tmpdir(), 'ynt-thumbnail-srt');
 await fs.mkdir(TMP, { recursive: true });
+const FONTS=path.join(ROOT,'fonts');
+let fontState=await ensureFont(FONTS);
+if(!fontState.ok)console.warn('Myanmar font download failed - put a Myanmar .ttf in ./fonts');
 
 const GROQ_MODEL = 'whisper-large-v3';
 const GEMINI_TEXT_MODEL = 'gemini-3.5-flash';
 const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image';
-const APP_VERSION = '4.0.0-video-reference-ai-thumbnail';
+const APP_VERSION = '4.1.0-burn-in-subtitles';
 
 const videoExt = new Set(['.mp4','.mov','.mkv','.webm','.avi','.m4v','.flv','.wmv','.mpeg','.mpg']);
 const imageExt = new Set(['.jpg','.jpeg','.png','.webp']);
@@ -212,7 +216,7 @@ const downloads=new Map();
 function registerDownload(file,filename){const token=crypto.randomUUID();downloads.set(token,{file,filename,expires:Date.now()+30*60*1000});return token;}
 setInterval(()=>{const now=Date.now();for(const [t,v] of downloads){if(v.expires<=now){downloads.delete(t);cleanup(v.file);}}},60000).unref();
 
-app.get('/api/health',(_req,res)=>res.json({ok:true,version:APP_VERSION,geminiTextModel:GEMINI_TEXT_MODEL,geminiImageModel:GEMINI_IMAGE_MODEL,thumbnail:'VIDEO+CHARACTER+STYLE->AI_IMAGE',ffmpegThumbnail:false}));
+app.get('/api/health',(_req,res)=>res.json({ok:true,version:APP_VERSION,geminiTextModel:GEMINI_TEXT_MODEL,geminiImageModel:GEMINI_IMAGE_MODEL,thumbnail:'VIDEO+CHARACTER+STYLE->AI_IMAGE',ffmpegThumbnail:false,burnIn:true,fontReady:fontState.ok}));
 app.get('/api/download/:token',(req,res)=>{const v=downloads.get(req.params.token);if(!v)return res.status(404).send('Download expired');downloads.delete(req.params.token);res.download(v.file,v.filename,()=>cleanup(v.file));});
 
 app.post('/api/thumbnail/title',uploadVideo.single('video'),async(req,res)=>{
@@ -304,6 +308,66 @@ app.post('/api/translate',async(req,res)=>{
     if(!out.length)throw new Error('မြန်မာစာ ဘာသာပြန်ရလဒ် မရပါ။ ထပ်စမ်းကြည့်ပါ။');
     res.json({ok:true,transcript:out,srt:makeSrt(out)});
   }catch(e){console.error('TRANSLATE ERROR:',e);res.status(400).json({ok:false,error:e?.message||'Gemini Translation Error'});}
+});
+
+
+// ---------- Burn-in: blur original text + Myanmar subtitles -> final MP4 ----------
+const burnJobs=new Map();
+const uploadBurn=multer({storage:videoStorage,limits:{fileSize:MAX_BYTES,files:1},fileFilter:(_req,file,cb)=>{
+  const ext=path.extname(file.originalname||'').toLowerCase();
+  if(!videoExt.has(ext))return cb(new Error('Video format မမှန်ပါ'));cb(null,true);
+}});
+setInterval(()=>{const now=Date.now();for(const [id,j] of burnJobs)if(now-j.created>60*60*1000)burnJobs.delete(id);},60000).unref();
+
+async function runBurnJob(job,{video,srtText,settings}){
+  let assPath=null,output=null;
+  try{
+    const info=await probeVideo(video);
+    if(info.duration>MAX_SECONDS)throw new Error('Video က 5 မိနစ်ထက်မကျော်ရပါ');
+    const W=info.width-info.width%2,H=info.height-info.height%2;
+    const probe=await runProcess(ffprobeStatic.path,['-v','error','-select_streams','a','-show_entries','stream=index','-of','csv=p=0',video]).catch(()=>({stdout:''}));
+    const hasAudio=Boolean(String(probe.stdout||'').trim());
+    const sub=settings?.sub||{};
+    const cues=sub.enabled===false?[]:parseSrt(srtText);
+    if(cues.length){
+      if(!fontState.ok)fontState=await ensureFont(FONTS);
+      if(!fontState.ok)throw new Error('Myanmar font မရှိပါ။ server ရဲ့ ./fonts ထဲမှာ Myanmar .ttf ထည့်ပါ (ဥပမာ NotoSansMyanmar-Bold.ttf)');
+      assPath=path.join(TMP,`${crypto.randomUUID()}.ass`);
+      await fs.writeFile(assPath,buildAss(cues,W,H,sub,FONT_FAMILY),'utf8');
+    }
+    const boxes=Array.isArray(settings?.blurs)?settings.blurs.slice(0,12):[];
+    const {graph}=buildFilterGraph({W,H,boxes,strength:settings?.blurStrength,assPath,fontsDir:FONTS});
+    output=path.join(TMP,`${crypto.randomUUID()}-YNT-Final.mp4`);
+    const args=buildFfmpegArgs({input:video,output,graph,hasAudio});
+    await new Promise((resolve,reject)=>{
+      const child=spawn(ffmpegStatic,args);let err='',buf='';
+      child.stdout.on('data',d=>{buf+=d.toString();const lines=buf.split('\n');buf=lines.pop();for(const l of lines){const m=l.match(/^out_time_(?:us|ms)=(\d+)/);if(m){const sec=Number(m[1])/1e6;job.progress=Math.min(99,Math.round(sec/info.duration*100));}}});
+      child.stderr.on('data',d=>{err=(err+d.toString()).slice(-4000);});
+      child.on('error',reject);
+      child.on('close',code=>code===0?resolve():reject(new Error('ffmpeg error: '+err.split('\n').slice(-6).join(' ').trim())));
+    });
+    const token=registerDownload(output,'YNT-Final-Myanmar-Subtitle.mp4');
+    job.status='done';job.progress=100;job.download=`/api/download/${token}`;output=null;
+  }catch(e){console.error('BURN ERROR',e);job.status='error';job.error=e?.message||'Burn-in Error';}
+  finally{cleanup(video);cleanup(assPath);cleanup(output);}
+}
+
+app.post('/api/burn',uploadBurn.single('video'),(req,res)=>{
+  const video=req.file?.path;
+  try{
+    if(!video)throw new Error('Video file မရှိပါ');
+    let settings={};try{settings=JSON.parse(String(req.body?.settings||'{}'));}catch{}
+    const id=crypto.randomUUID();
+    const job={id,status:'running',progress:0,created:Date.now()};
+    burnJobs.set(id,job);
+    runBurnJob(job,{video,srtText:String(req.body?.srt||''),settings});
+    res.json({ok:true,jobId:id});
+  }catch(e){cleanup(video);res.status(400).json({ok:false,error:e?.message||'Burn-in Error'});}
+});
+app.get('/api/burn/:id',(req,res)=>{
+  const j=burnJobs.get(req.params.id);
+  if(!j)return res.status(404).json({ok:false,error:'Job မတွေ့ပါ (သက်တမ်းကုန်သွားနိုင်ပါတယ်)'});
+  res.json({ok:true,status:j.status,progress:j.progress,error:j.error,download:j.download});
 });
 
 app.use((err,_req,res,_next)=>{console.error('REQUEST ERROR',err);res.status(400).json({ok:false,error:err?.message||'Request Error'});});
