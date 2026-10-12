@@ -6,26 +6,162 @@
 <meta name="theme-color" content="#6c3df4">
 <title>YNT SRT Tool</title>
 <style>
-:root{color-scheme:dark;--bg:#101226;--panel:#191c37;--panel2:#202448;--text:#fbfaff;--muted:#b8bad6;--line:#373b68;--purple:#8b5cf6;--pink:#f05ca8;--cyan:#36d9e8;--green:#32d6a0;--yellow:#ffd166;--red:#ff6b7a}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans Myanmar",sans-serif;background:radial-gradient(ellipse at 10% 0%,#392064 0,transparent 34%),radial-gradient(ellipse at 95% 12%,#123e56 0,transparent 30%),linear-gradient(145deg,#101226,#11182c 55%,#18132e)}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{width:min(920px,100%);margin:auto;padding:20px 15px 48px}.hero{position:relative;overflow:hidden;padding:25px 23px 22px;border:1px solid #ffffff20;border-radius:26px;background:linear-gradient(120deg,#743be8e8,#d4439de0 58%,#087f9be8);box-shadow:0 18px 55px #0004}.hero:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-50px;top:-80px;border:30px solid #ffffff18;pointer-events:none}.brandrow{display:flex;align-items:center;gap:14px;position:relative;z-index:1}.logo{display:grid;place-items:center;flex:0 0 56px;height:56px;border-radius:18px;background:#ffffff25;border:1px solid #ffffff50;font-size:29px;box-shadow:inset 0 1px #ffffff55}.brand{font-size:clamp(25px,5vw,36px);font-weight:950;letter-spacing:-.8px;line-height:1.18}.tag{display:inline-block;margin-top:9px;padding:5px 10px;border-radius:99px;background:#190d3c55;border:1px solid #ffffff40;font-size:11px;font-weight:800;letter-spacing:.5px}.hero p{position:relative;z-index:1;max-width:650px;color:#fff9;margin:13px 0 0;font-size:14px;line-height:1.75}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.stepchip{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #ffffff20;border-radius:16px;background:#ffffff09}.num{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:12px;color:#fff;font-weight:950;background:linear-gradient(135deg,var(--purple),var(--pink))}.stepchip:nth-child(2) .num{background:linear-gradient(135deg,#08a9d8,#36d9a5)}.stepchip:nth-child(3) .num{background:linear-gradient(135deg,#ff9f43,#ef4f87)}.stepchip b{display:block;font-size:12px}.stepchip small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.card{overflow:hidden;margin-top:15px;border:1px solid #ffffff20;border-radius:23px;background:linear-gradient(145deg,#1d2040f5,#15182ff5);box-shadow:0 14px 40px #0003}.cardhead{display:flex;align-items:center;gap:12px;padding:17px 18px;border-bottom:1px solid #ffffff12}.icon{display:grid;place-items:center;flex:0 0 43px;height:43px;border-radius:14px;font-size:22px;background:linear-gradient(135deg,#9b5cf6,#ec4899)}.card:nth-of-type(2) .icon{background:linear-gradient(135deg,#05b8d2,#2dd4a3)}.card:nth-of-type(3) .icon{background:linear-gradient(135deg,#ff9d42,#ed5d87)}.cardhead h2{margin:0;font-size:17px}.cardhead p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.55}.cardbody{padding:18px}.drop{border:1.5px dashed #8581d9;border-radius:19px;padding:22px 15px;text-align:center;background:linear-gradient(135deg,#7c3aed13,#ec489913,#06b6d413);transition:.2s}.drop.drag{border-color:var(--cyan);background:#22d3ee18}.dropicon{font-size:34px}.drop b{display:block;margin:5px 0 4px;font-size:15px}.drop p{margin:0 auto 13px;max-width:480px;color:var(--muted);font-size:12px;line-height:1.65}.fileinput{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.filebtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:13px;padding:11px 17px;color:#fff;font-weight:900;background:linear-gradient(110deg,#8056f6,#d946a8);box-shadow:0 7px 20px #8b5cf633}.filename{margin-top:11px;color:var(--cyan);font-size:12px;overflow-wrap:anywhere}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-top:14px}.field label{display:block;margin-bottom:7px;color:#d8d8ef;font-size:12px;font-weight:800}.input{width:100%;min-width:0;padding:12px 13px;border:1px solid #414675;border-radius:13px;outline:none;background:#101329;color:#fff}.input:focus,textarea:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 3px #36d9e822}.api details{padding:13px 14px;border:1px solid #ffffff18;border-radius:15px;background:#0e1227}.api summary{cursor:pointer;font-size:13px;font-weight:800;color:#d9d5ff}.api .note{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.7}.btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding:13px 15px;border:0;border-radius:14px;color:#fff;font-weight:900;transition:transform .15s,filter .15s}.btn:not(:disabled):active{transform:scale(.99)}.btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.3)}.btn.purple{background:linear-gradient(110deg,#8056f6,#d946a8);box-shadow:0 8px 20px #a855f733}.btn.cyan{background:linear-gradient(110deg,#0891b2,#20c997);box-shadow:0 8px 20px #06b6d433}.btn.orange{background:linear-gradient(110deg,#ff9e42,#ef4f87);box-shadow:0 8px 20px #f9731633}.btn.ghost{background:#292d50;border:1px solid #464b79}.status{margin-top:13px;padding:12px 13px;border:1px solid #ffffff14;border-radius:13px;background:#0e1226;color:#c6c9e6;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}.status.good{border-color:#32d6a055;color:#9af3d2}.status.bad{border-color:#ff6b7a66;color:#ffadb5}.status.busy{border-color:#36d9e866;color:#9beef4}.progress{height:7px;overflow:hidden;margin-top:10px;border-radius:99px;background:#2d3155;display:none}.progress i{display:block;width:35%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));animation:move 1.25s ease-in-out infinite alternate}@keyframes move{from{transform:translateX(-10%)}to{transform:translateX(190%)}}.transcriptbox{margin-top:13px}.transcriptbox label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:13px;font-weight:850}.pill{padding:4px 8px;border-radius:99px;background:#713ee933;color:#cbbcff;font-size:10px}.textoutput{display:block;width:100%;min-height:180px;resize:vertical;padding:13px;border:1px solid #3c426c;border-radius:14px;outline:none;background:#0d1124;color:#eef0ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.75}.textoutput.srt{min-height:250px;border-color:#2d9c9a66}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.footer{text-align:center;margin:23px 0 0;color:#888eaf;font-size:11px;line-height:1.8}.footer strong{color:#c9b7ff}.hidden{display:none!important}
-@media(max-width:580px){.wrap{padding:12px 10px 32px}.hero{padding:20px 16px;border-radius:21px}.logo{flex-basis:48px;height:48px;border-radius:15px}.brand{font-size:27px}.steps{gap:6px}.stepchip{display:block;text-align:center;padding:10px 5px}.num{margin:0 auto 7px}.stepchip b{font-size:10px}.stepchip small{font-size:9px}.cardhead{padding:15px}.cardbody{padding:14px}.row{grid-template-columns:1fr}.drop{padding:18px 10px}.actions{grid-template-columns:1fr}.textoutput{min-height:160px}}
+:root{color-scheme:dark;--bg:#0d0f24;--text:#fbfaff;--muted:#b9bcdc;--purple:#8b5cf6;--pink:#f05ca8;--cyan:#36d9e8;--green:#32e0a1;--yellow:#ffd166;--orange:#ff9f43;--red:#ff6b7a;--blue:#4d8dff;--accent:var(--purple);--accent2:var(--pink)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans Myanmar","Padauk",sans-serif;line-height:1.6;background:
+radial-gradient(ellipse 60% 40% at 8% 0%,#7c3aed55,transparent 70%),
+radial-gradient(ellipse 50% 35% at 100% 8%,#06b6d444,transparent 70%),
+radial-gradient(ellipse 55% 40% at 90% 55%,#ec489933,transparent 70%),
+radial-gradient(ellipse 55% 40% at 0% 85%,#22c55e2b,transparent 70%),
+linear-gradient(160deg,#0d0f24,#10142b 55%,#160f2c);background-attachment:fixed}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.wrap{width:min(940px,100%);margin:auto;padding:18px 14px 52px}
+.hidden{display:none!important}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:26px 24px 24px;border:1px solid #ffffff2e;border-radius:28px;background:linear-gradient(120deg,#7c3aed,#d946a8 40%,#f97316 75%,#06b6d4);background-size:220% 220%;animation:flow 12s ease-in-out infinite alternate;box-shadow:0 20px 60px #7c3aed44,0 0 0 1px #ffffff12 inset}
+@keyframes flow{from{background-position:0 50%}to{background-position:100% 50%}}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.hero:after{width:210px;height:210px;right:-60px;top:-90px;border:34px solid #ffffff1c}
+.hero:before{width:130px;height:130px;left:42%;bottom:-70px;background:#ffffff18}
+.brandrow{display:flex;align-items:center;gap:15px;position:relative;z-index:1}
+.logo{display:grid;place-items:center;flex:0 0 60px;height:60px;border-radius:20px;background:linear-gradient(135deg,#fff3,#fff1);border:1px solid #ffffff66;font-size:31px;font-weight:900;box-shadow:inset 0 1px #fff6,0 8px 22px #0003;backdrop-filter:blur(6px)}
+.brand{font-size:clamp(26px,5.4vw,38px);font-weight:950;letter-spacing:-.8px;line-height:1.2;text-shadow:0 2px 14px #0004}
+.tag{display:inline-block;margin-top:9px;padding:5px 11px;border-radius:99px;background:#1a0b3a66;border:1px solid #ffffff4d;font-size:11px;font-weight:800;letter-spacing:.5px;backdrop-filter:blur(4px)}
+.hero p{position:relative;z-index:1;max-width:660px;color:#fffe;margin:14px 0 0;font-size:14px;line-height:1.8}
+
+/* STEPS */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.stepchip{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #ffffff1f;border-radius:18px;background:linear-gradient(145deg,#ffffff12,#ffffff05);backdrop-filter:blur(6px);transition:transform .2s,border-color .2s;text-decoration:none;color:inherit}
+.stepchip:hover{transform:translateY(-2px);border-color:#ffffff55}
+.num{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:12px;color:#fff;font-weight:950;font-size:13px;box-shadow:0 6px 16px #0004}
+.stepchip:nth-child(1) .num{background:linear-gradient(135deg,#8b5cf6,#ec4899)}
+.stepchip:nth-child(2) .num{background:linear-gradient(135deg,#06b6d4,#34d399)}
+.stepchip:nth-child(3) .num{background:linear-gradient(135deg,#fb923c,#ef4444)}
+.stepchip:nth-child(4) .num{background:linear-gradient(135deg,#3b82f6,#a855f7)}
+.stepchip b{display:block;font-size:12px}.stepchip small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+
+/* CARDS */
+.card{position:relative;overflow:hidden;margin-top:16px;border:1px solid #ffffff1f;border-radius:24px;background:linear-gradient(150deg,#1f2347f2,#141830f2);box-shadow:0 16px 44px #0004}
+.card:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.card.c1{--accent:#8b5cf6;--accent2:#ec4899}.card.c2{--accent:#06b6d4;--accent2:#34d399}.card.c3{--accent:#fb923c;--accent2:#ef4444}.card.c4{--accent:#3b82f6;--accent2:#a855f7}
+.cardhead{display:flex;align-items:center;gap:13px;padding:19px 18px 15px;border-bottom:1px solid #ffffff12}
+.icon{display:grid;place-items:center;flex:0 0 46px;height:46px;border-radius:15px;font-size:23px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 40%,transparent)}
+.cardhead h2{margin:0;font-size:17px}.cardhead p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.cardbody{padding:18px}
+
+/* DROP */
+.drop{border:1.5px dashed #9a8cff;border-radius:20px;padding:24px 15px;text-align:center;background:linear-gradient(135deg,#7c3aed1a,#ec489914,#06b6d41a);transition:.2s}
+.drop.drag{border-color:var(--cyan);background:#22d3ee22;transform:scale(1.01)}
+.dropicon{font-size:36px}.drop b{display:block;margin:5px 0 4px;font-size:15px}.drop p{margin:0 auto 14px;max-width:480px;color:var(--muted);font-size:12px;line-height:1.7}
+.fileinput{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.filebtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 18px;color:#fff;font-weight:900;background:linear-gradient(110deg,#8056f6,#d946a8,#fb923c);background-size:200% 100%;box-shadow:0 8px 22px #8b5cf644;transition:background-position .4s}
+.filebtn:hover{background-position:100% 0}
+.filename{margin-top:12px;color:var(--cyan);font-size:12px;overflow-wrap:anywhere}
+
+/* FORM */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{margin-top:14px}.field label{display:block;margin-bottom:7px;color:#dcdcf3;font-size:12px;font-weight:800}
+.input{width:100%;min-width:0;padding:12px 13px;border:1px solid #454b80;border-radius:13px;outline:none;background:#0d1127;color:#fff}
+.input:focus,textarea:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 3px #36d9e822}
+.api details{padding:13px 14px;border:1px solid #ffffff1a;border-radius:15px;background:#0c1026}
+.api summary{cursor:pointer;font-size:13px;font-weight:800;color:#dcd8ff}.api .note{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
+
+/* BUTTONS */
+.btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding:14px 15px;border:0;border-radius:15px;color:#fff;font-weight:900;transition:transform .15s,filter .15s,box-shadow .15s}
+.btn:not(:disabled):hover{filter:brightness(1.1)}.btn:not(:disabled):active{transform:scale(.985)}
+.btn:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.35)}
+.btn.purple{background:linear-gradient(110deg,#8056f6,#d946a8);box-shadow:0 10px 24px #a855f73a}
+.btn.cyan{background:linear-gradient(110deg,#0891b2,#20c997);box-shadow:0 10px 24px #06b6d43a}
+.btn.orange{background:linear-gradient(110deg,#ff9e42,#ef4f87);box-shadow:0 10px 24px #f973163a}
+.btn.blue{background:linear-gradient(110deg,#3b82f6,#a855f7);box-shadow:0 10px 24px #3b82f63a}
+.btn.green{background:linear-gradient(110deg,#16a34a,#22d3ee);box-shadow:0 10px 24px #22c55e3a}
+.btn.ghost{background:#2a2e56;border:1px solid #4a5083}
+.btn.small{width:auto;margin-top:0;padding:10px 14px;font-size:13px;border-radius:12px}
+
+/* STATUS / PROGRESS */
+.status{margin-top:13px;padding:12px 13px;border:1px solid #ffffff16;border-radius:14px;background:#0c1025;color:#cbcde9;font-size:12px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
+.status.good{border-color:#32e0a166;color:#9ff5d6}.status.bad{border-color:#ff6b7a77;color:#ffb3ba}.status.busy{border-color:#36d9e877;color:#a0eff5}
+.progress{height:7px;overflow:hidden;margin-top:10px;border-radius:99px;background:#2d3155;display:none}
+.progress i{display:block;width:35%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--cyan));animation:move 1.25s ease-in-out infinite alternate}
+@keyframes move{from{transform:translateX(-10%)}to{transform:translateX(190%)}}
+.progress.det i{animation:none;width:0;transition:width .4s}
+
+/* TRANSCRIPT */
+.transcriptbox{margin-top:13px}.transcriptbox label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:13px;font-weight:850}
+.pill{padding:4px 9px;border-radius:99px;background:#713ee93a;color:#d5c9ff;font-size:10px}
+.textoutput{display:block;width:100%;min-height:180px;resize:vertical;padding:13px;border:1px solid #40466f;border-radius:15px;outline:none;background:#0b0f22;color:#eef0ff;font-family:ui-monospace,SFMono-Regular,Consolas,"Noto Sans Myanmar",monospace;font-size:12px;line-height:1.8}
+.textoutput.srt{min-height:250px;border-color:#fb923c66}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* EDITOR */
+.editor{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+.stagecol{display:flex;flex-direction:column;align-items:center;gap:10px}
+.stagebox{width:100%;display:flex;justify-content:center}
+.stage{position:relative;background:#000;border-radius:16px;overflow:hidden;box-shadow:0 12px 34px #0007,0 0 0 2px #ffffff22;max-width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:fill;pointer-events:none}
+.layer{position:absolute;inset:0;touch-action:none}
+.layer.draw{cursor:crosshair}
+.blurbox{position:absolute;border:2px dashed #fff;border-radius:6px;backdrop-filter:blur(var(--bp,9px));-webkit-backdrop-filter:blur(var(--bp,9px));background:#ffffff14;cursor:move;touch-action:none}
+.blurbox.sel{border-color:#36d9e8;box-shadow:0 0 0 2px #36d9e866,0 0 18px #36d9e855}
+.blurbox .lbl{position:absolute;left:-2px;top:-22px;padding:2px 7px;border-radius:7px 7px 7px 0;background:#36d9e8;color:#00262c;font-size:10px;font-weight:900;white-space:nowrap}
+.blurbox:not(.sel) .lbl{background:#fff;color:#222}
+.blurbox .del{position:absolute;right:-12px;top:-12px;width:26px;height:26px;border:0;border-radius:50%;background:#ff4d6a;color:#fff;font-weight:900;font-size:14px;line-height:1;display:none;box-shadow:0 3px 10px #0006}
+.blurbox.sel .del{display:block}
+.blurbox .hnd{position:absolute;right:-13px;bottom:-13px;width:28px;height:28px;border-radius:50%;background:#36d9e8;border:3px solid #fff;display:none;box-shadow:0 3px 10px #0006;touch-action:none;cursor:nwse-resize}
+.blurbox.sel .hnd{display:block}
+.subprev{position:absolute;transform:translate(-50%,-50%);text-align:center;font-family:"Noto Sans Myanmar","Padauk","Myanmar Text",sans-serif;font-weight:700;line-height:1.5;cursor:move;touch-action:none;padding:2px 6px;border:1px dashed #ffffff00;border-radius:6px;paint-order:stroke fill;word-break:break-word}
+.subprev.sel{border-color:#ffd166}
+.subprev.sample{opacity:.55}
+.hint{position:absolute;left:8px;right:8px;top:8px;padding:6px 9px;border-radius:10px;background:#000a;color:#fff;font-size:11px;text-align:center;pointer-events:none;backdrop-filter:blur(4px)}
+.player{width:100%;display:flex;align-items:center;gap:9px}
+.player input[type=range]{flex:1;accent-color:#ec4899}
+.player .t{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:86px;text-align:right}
+.ctlcol{display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel{padding:14px;border:1px solid #ffffff1c;border-radius:18px;background:linear-gradient(145deg,#ffffff0d,#ffffff04)}
+.panel h3{margin:0 0 10px;font-size:13px;display:flex;align-items:center;gap:8px}
+.panel h3 .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.toolrow{display:flex;flex-wrap:wrap;gap:8px}
+.tool{border:1px solid #ffffff2a;background:#252a52;color:#fff;border-radius:12px;padding:10px 13px;font-size:13px;font-weight:800}
+.tool.on{background:linear-gradient(110deg,#06b6d4,#3b82f6);border-color:#fff6;box-shadow:0 6px 16px #06b6d44a}
+.tool.danger{background:#4a2234;border-color:#ff6b7a66}
+.sl{display:grid;grid-template-columns:78px 1fr 46px;align-items:center;gap:8px;margin-top:9px;font-size:12px;color:#dcdcf3}
+.sl input[type=range]{width:100%;accent-color:#36d9e8}
+.sl output{text-align:right;color:var(--cyan);font-variant-numeric:tabular-nums;font-size:11px}
+.colors{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:11px}
+.colors small{color:var(--muted);font-size:11px;margin-right:2px}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid #ffffff55;padding:0}
+.sw.on{border-color:#fff;box-shadow:0 0 0 3px #ec489988}
+input[type=color]{width:34px;height:34px;padding:0;border:2px solid #ffffff55;border-radius:50%;background:none;overflow:hidden;cursor:pointer}
+.chk{display:flex;align-items:center;gap:8px;font-size:12px;color:#dcdcf3;margin-top:10px}
+.chk input{width:18px;height:18px;accent-color:#ec4899}
+.note2{margin:10px 0 0;color:var(--muted);font-size:11px;line-height:1.7}
+.empty{padding:26px 14px;text-align:center;color:var(--muted);font-size:13px;border:1.5px dashed #ffffff30;border-radius:16px}
+.dl{display:flex;gap:10px;flex-wrap:wrap}
+.dl a.btn{text-decoration:none;flex:1;min-width:200px}
+.footer{text-align:center;margin:26px 0 0;color:#8e94b6;font-size:11px;line-height:1.9}.footer strong{background:linear-gradient(90deg,#c9b7ff,#ff9bd0,#ffcf8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+@media(max-width:760px){.editor{grid-template-columns:1fr}.stagebox{max-width:340px;margin:auto}}
+@media(max-width:620px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.wrap{padding:12px 10px 34px}.hero{padding:20px 16px;border-radius:22px}.logo{flex-basis:50px;height:50px;border-radius:16px}.brand{font-size:27px}.cardhead{padding:16px 15px 13px}.cardbody{padding:14px}.row{grid-template-columns:1fr}.drop{padding:19px 10px}.actions{grid-template-columns:1fr}.textoutput{min-height:160px}.sl{grid-template-columns:70px 1fr 42px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <main class="wrap">
   <header class="hero">
-    <div class="brandrow"><div class="logo">မ</div><div><div class="brand">YNT SRT Tool</div><span class="tag">GROQ WHISPER · MYANMAR SUBTITLE</span></div></div>
-    <p>Video ထဲက စကားပြောကို Transcript ထုတ်ပြီး မြန်မာဘာသာပြန်ကာ <b>Myanmar SRT</b> အဖြစ် ဒေါင်းလုဒ်လုပ်နိုင်ပါတယ်။</p>
+    <div class="brandrow"><div class="logo">မ</div><div><div class="brand">YNT SRT Tool</div><span class="tag">GROQ WHISPER · GEMINI · FFMPEG</span></div></div>
+    <p>Video ထဲက စကားပြောကို Transcript ထုတ်ပြီး မြန်မာဘာသာပြန်ကာ <b>Myanmar SRT</b> ထုတ်နိုင်သလို၊ မူရင်းစာကို <b>Blur အုပ်ပြီး မြန်မာစာတန်းကို video ပေါ် တိုက်ရိုက်ထည့်</b> ကာ Final MP4 ဒေါင်းလုဒ်လုပ်နိုင်ပါတယ်။</p>
   </header>
 
-  <div class="steps" aria-label="SRT workflow">
-    <div class="stepchip"><span class="num">01</span><div><b>Video Transcript</b><small>Groq Whisper</small></div></div>
-    <div class="stepchip"><span class="num">02</span><div><b>Myanmar Translation</b><small>Gemini</small></div></div>
-    <div class="stepchip"><span class="num">03</span><div><b>Download SRT</b><small>Save / Copy</small></div></div>
+  <div class="steps" aria-label="Workflow">
+    <a class="stepchip" href="#card1"><span class="num">01</span><div><b>Video Transcript</b><small>Groq Whisper</small></div></a>
+    <a class="stepchip" href="#card2"><span class="num">02</span><div><b>Myanmar Translation</b><small>Gemini</small></div></a>
+    <a class="stepchip" href="#card3"><span class="num">03</span><div><b>Download SRT</b><small>Save / Copy</small></div></a>
+    <a class="stepchip" href="#card4"><span class="num">04</span><div><b>Blur + Subtitle</b><small>Final MP4</small></div></a>
   </div>
 
-  <section class="card">
+  <section class="card c1" id="card1">
     <div class="cardhead"><div class="icon">🎬</div><div><h2>၁။ Video ရွေးပါ</h2><p>မူလ Transcript ထုတ်ဖို့ အသုံးပြုမယ့် video ကို ရွေးပါ။</p></div></div>
     <div class="cardbody">
       <div class="drop" id="dropZone"><div class="dropicon">📂</div><b>Video ဖိုင်ကို ရွေးချယ်ပါ</b><p>MP4, MOV, MKV, WEBM စတဲ့ video format များ။ လက်ရှိ server က သတ်မှတ်ထားတဲ့ အချိန်/ဖိုင်အရွယ် ကန့်သတ်ချက်အတိုင်း အသုံးပြုပါ။</p><label class="filebtn" for="srtVideo">📁 Choose Video</label><input class="fileinput" id="srtVideo" type="file" accept="video/*"><div class="filename" id="srtName">ဖိုင်မရွေးရသေးပါ</div></div>
@@ -39,7 +175,7 @@
     </div>
   </section>
 
-  <section class="card">
+  <section class="card c2" id="card2">
     <div class="cardhead"><div class="icon">📝</div><div><h2>၂။ Transcript စစ်ဆေးပါ</h2><p>Groq က ထုတ်ပေးတဲ့ မူရင်း transcript ကို ဒီမှာကြည့်နိုင်ပါတယ်။</p></div></div>
     <div class="cardbody">
       <div class="transcriptbox"><label for="originalText">Original Transcript <span class="pill" id="segmentCount">0 segments</span></label><textarea class="textoutput" id="originalText" placeholder="Transcript ရလာတဲ့အခါ ဒီနေရာမှာ ပြပါမယ်။" readonly></textarea></div>
@@ -49,7 +185,7 @@
     </div>
   </section>
 
-  <section class="card">
+  <section class="card c3" id="card3">
     <div class="cardhead"><div class="icon">🌈</div><div><h2>၃။ Myanmar SRT</h2><p>ဘာသာပြန်ပြီးတဲ့ subtitle ကို စစ်ဆေး၊ Copy သို့မဟုတ် Download လုပ်ပါ။</p></div></div>
     <div class="cardbody">
       <textarea class="textoutput srt" id="srtOutput" placeholder="Myanmar SRT ရလာတဲ့အခါ ဒီနေရာမှာ ပြပါမယ်။" spellcheck="false"></textarea>
@@ -58,7 +194,54 @@
     </div>
   </section>
 
-  <footer class="footer"><strong>YNT SRT Tool</strong><br>Transcript → Myanmar Translation → Download Myanmar SRT</footer>
+  <section class="card c4" id="card4">
+    <div class="cardhead"><div class="icon">✨</div><div><h2>၄။ Blur + မြန်မာစာတန်း Video ပေါ်တိုက်ရိုက်ထည့်မယ်</h2><p>မူရင်းစာကို လက်နဲ့ဆွဲရွေးပြီး Blur အုပ်၊ မြန်မာစာတန်းကို ဆွဲရွှေ့ကာ နေရာ/အရောင်/အရွယ်ချိန်ပြီး Final MP4 ထုတ်ပါ။</p></div></div>
+    <div class="cardbody">
+      <div id="editorEmpty" class="empty">၁။ မှာ Video အရင်ရွေးပါ။ ရွေးပြီးတာနဲ့ ဒီမှာ preview ပေါ်လာပါမယ်။</div>
+      <div id="editorMain" class="editor hidden">
+        <div class="stagecol">
+          <div class="stagebox"><div class="stage" id="stage"><video id="pv" playsinline preload="metadata"></video><div class="layer" id="layer"></div></div></div>
+          <div class="player"><button class="tool" id="playBtn" type="button" aria-label="Play">▶</button><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Seek"><span class="t" id="timeTxt">0:00 / 0:00</span></div>
+        </div>
+        <div class="ctlcol">
+          <div class="panel">
+            <h3><span class="dot"></span>Blur (မူရင်းစာ ဖုံးမယ်)</h3>
+            <div class="toolrow">
+              <button class="tool on" id="drawBtn" type="button">✏️ ဆွဲရွေးမယ်</button>
+              <button class="tool" id="addBtn" type="button">➕ Box ထည့်မယ်</button>
+              <button class="tool danger" id="clearBlur" type="button">🗑️ အားလုံးဖျက်</button>
+            </div>
+            <div class="sl"><span>Blur အား</span><input type="range" id="blurStrength" min="4" max="40" value="16"><output id="blurOut">16</output></div>
+            <p class="note2">Video ပေါ်မှာ လက်နဲ့ဆွဲပြီး Blur box ရွေးပါ။ Box ကိုနှိပ်ပြီး ရွှေ့ပါ၊ ညာအောက်ထောင့်ကွင်းနဲ့ အရွယ်ချိန်ပါ။ Box အများကြီးထည့်လို့ရပါတယ်။</p>
+          </div>
+          <div class="panel">
+            <h3><span class="dot"></span>မြန်မာစာတန်း</h3>
+            <label class="chk"><input type="checkbox" id="subOn" checked> စာတန်းထည့်မယ်</label>
+            <div class="sl"><span>အရွယ်</span><input type="range" id="subSize" min="15" max="90" value="36"><output id="subSizeOut">3.6</output></div>
+            <div class="sl"><span>ဘောင်</span><input type="range" id="subOutline" min="0" max="12" value="3"><output id="subOutlineOut">3</output></div>
+            <div class="colors"><small>စာအရောင်</small>
+              <button class="sw on" type="button" data-c="#ffe600" style="background:#ffe600" aria-label="yellow"></button>
+              <button class="sw" type="button" data-c="#ffffff" style="background:#ffffff" aria-label="white"></button>
+              <button class="sw" type="button" data-c="#ff5fa8" style="background:#ff5fa8" aria-label="pink"></button>
+              <button class="sw" type="button" data-c="#36d9e8" style="background:#36d9e8" aria-label="cyan"></button>
+              <button class="sw" type="button" data-c="#7dff6b" style="background:#7dff6b" aria-label="green"></button>
+              <input type="color" id="subColor" value="#ffe600" aria-label="custom text colour">
+            </div>
+            <div class="colors"><small>ဘောင်အရောင်</small><input type="color" id="subOutlineColor" value="#000000" aria-label="outline colour"></div>
+            <label class="chk"><input type="checkbox" id="subBold" checked> စာလုံးထူ</label>
+            <div class="toolrow" style="margin-top:12px"><button class="tool" id="resetSub" type="button">↺ စာတန်းနေရာ Reset</button></div>
+            <p class="note2">Video ပေါ်က စာတန်း (အဝါရောင်) ကို ဆွဲရွှေ့ပြီး နေရာချပါ။ Play လုပ်ကြည့်ရင် စာတန်းအချိန်အတိုင်း ပြောင်းပြပါမယ်။</p>
+          </div>
+        </div>
+      </div>
+      <button class="btn blue" id="burnBtn" disabled>🎞️ Final Video ထုတ်မယ် (FFmpeg)</button>
+      <div class="progress det" id="burnProgress"><i id="burnBar"></i></div>
+      <div id="burnStatus" class="status" role="status" aria-live="polite">Video ရွေးပြီး Blur / စာတန်း သတ်မှတ်ပြီးတဲ့အခါ “Final Video ထုတ်မယ်” ကိုနှိပ်ပါ။ SRT မရှိသေးရင် Blur တစ်ခုတည်း ထုတ်လို့ရပါတယ်။</div>
+      <div class="dl hidden" id="burnDl"><a class="btn green" id="burnLink" href="#" download>⬇️ Final Video (MP4) Download</a></div>
+    </div>
+  </section>
+
+  <footer class="footer"><strong>YNT SRT Tool</strong><br>Transcript → Myanmar Translation → SRT → Blur + Subtitle → Final MP4</footer>
 </main>
 <script>
 'use strict';
@@ -157,7 +340,7 @@ $('transcribeBtn').addEventListener('click', async () => {
   const key = getKey('groqKey','groq_api_key') || localStorage.getItem('byn_groq') || '';
   setBusy('transcribeBtn','transcribeProgress',true,'⏳ Transcript ထုတ်နေပါတယ်…','🎙️ Groq Transcript ထုတ်မယ်');
   $('translateBtn').disabled = true;
-  setStatus('🎙️ Groq Whisper က စကားပြောနဲ့ timestamp တွေကို боловсруулжနေပါတယ်…','busy');
+  setStatus('🎙️ Groq Whisper က စကားပြောနဲ့ timestamp တွေကို ဆောင်ရွက်နေပါတယ်…','busy');
   try {
     const form = new FormData(); form.append('video', selectedVideo);
     const headers = key ? {'x-groq-api-key': key} : {};
@@ -231,6 +414,211 @@ $('copySrt').addEventListener('click', async () => {
     setDownloadStatus(ok ? '✅ Myanmar SRT ကို Copy လုပ်ပြီးပါပြီ။' : 'SRT စာသားကို ရွေးပြီး Copy လုပ်ပါ။', ok ? 'good' : 'bad');
   }
 });
+
+/* ================= Step 4 : Blur + Subtitle editor ================= */
+const PREVIEW_SAMPLE = 'မြန်မာစာတန်းထိုး နမူနာ';
+const ed = {
+  url: null, ar: 9/16, blurs: [], sel: -1, draw: true, subSel: false,
+  sub: { enabled: true, x: 0.5, y: 0.8, sizePct: 3.6, outlinePct: 0.3, color: '#ffe600', outlineColor: '#000000', bold: true },
+  cues: []
+};
+const pv = $('pv'), stage = $('stage'), layer = $('layer');
+const subEl = document.createElement('div'); subEl.className = 'subprev'; layer.appendChild(subEl);
+
+function fmtClock(t){ t = Math.max(0, t||0); const m = Math.floor(t/60), s = Math.floor(t%60); return `${m}:${String(s).padStart(2,'0')}`; }
+function parseSrtClient(text) {
+  const out = [];
+  String(text||'').replace(/\r/g,'').replace(/^\ufeff/,'').trim().split(/\n{2,}/).forEach(block => {
+    const lines = block.split('\n'); const ti = lines.findIndex(l => l.includes('-->')); if (ti < 0) return;
+    const m = lines[ti].match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)/); if (!m) return;
+    const t = (h,mi,s,ms) => +h*3600 + +mi*60 + +s + +String(ms).padEnd(3,'0').slice(0,3)/1000;
+    const txt = lines.slice(ti+1).join(' ').replace(/\s+/g,' ').trim();
+    if (txt) out.push({ start: t(m[1],m[2],m[3],m[4]), end: t(m[5],m[6],m[7],m[8]), text: txt });
+  });
+  return out;
+}
+function refreshCues(){ ed.cues = parseSrtClient($('srtOutput').value); renderSub(); updateBurnBtn(); }
+$('srtOutput').addEventListener('input', refreshCues);
+
+function fitStage() {
+  const box = stage.parentElement; const maxW = Math.min(box.clientWidth || 340, 340);
+  const maxH = Math.max(280, window.innerHeight * 0.68);
+  let w = maxW, h = w / ed.ar; if (h > maxH) { h = maxH; w = h * ed.ar; }
+  stage.style.width = w + 'px'; stage.style.height = h + 'px';
+  renderSub(); renderBlurs();
+}
+window.addEventListener('resize', fitStage);
+
+function loadPreview(file) {
+  if (ed.url) URL.revokeObjectURL(ed.url);
+  ed.url = null; ed.blurs = []; ed.sel = -1;
+  if (!file) { $('editorEmpty').classList.remove('hidden'); $('editorMain').classList.add('hidden'); pv.removeAttribute('src'); updateBurnBtn(); return; }
+  ed.url = URL.createObjectURL(file); pv.src = ed.url;
+  $('editorEmpty').classList.add('hidden'); $('editorMain').classList.remove('hidden');
+  pv.onloadedmetadata = () => { ed.ar = (pv.videoWidth / pv.videoHeight) || 9/16; fitStage(); pv.currentTime = 0.05; };
+  fitStage(); renderBlurs(); updateBurnBtn();
+}
+$('srtVideo').addEventListener('change', () => loadPreview($('srtVideo').files?.[0] || null));
+
+/* player */
+$('playBtn').addEventListener('click', () => { if (pv.paused) pv.play(); else pv.pause(); });
+pv.addEventListener('play', () => $('playBtn').textContent = '⏸');
+pv.addEventListener('pause', () => $('playBtn').textContent = '▶');
+pv.addEventListener('timeupdate', () => {
+  if (pv.duration) $('seek').value = Math.round(pv.currentTime / pv.duration * 1000);
+  $('timeTxt').textContent = `${fmtClock(pv.currentTime)} / ${fmtClock(pv.duration)}`;
+  renderSub();
+});
+$('seek').addEventListener('input', () => { if (pv.duration) pv.currentTime = $('seek').value / 1000 * pv.duration; });
+
+/* subtitle preview */
+function renderSub() {
+  const H = stage.clientHeight || 1, W = stage.clientWidth || 1;
+  const t = pv.currentTime || 0;
+  const cue = ed.cues.find(c => t >= c.start && t <= c.end);
+  const show = ed.sub.enabled;
+  subEl.style.display = show ? '' : 'none';
+  subEl.textContent = cue ? cue.text : (ed.cues[0]?.text || PREVIEW_SAMPLE);
+  subEl.classList.toggle('sample', !cue);
+  subEl.classList.toggle('sel', ed.subSel);
+  const fs = H * ed.sub.sizePct / 100;
+  subEl.style.left = (ed.sub.x * 100) + '%'; subEl.style.top = (ed.sub.y * 100) + '%';
+  subEl.style.maxWidth = '88%'; subEl.style.width = 'max-content';
+  subEl.style.fontSize = fs + 'px'; subEl.style.color = ed.sub.color;
+  subEl.style.fontWeight = ed.sub.bold ? '700' : '400';
+  const ow = H * ed.sub.outlinePct / 100 * 2;
+  subEl.style.webkitTextStroke = ow + 'px ' + ed.sub.outlineColor;
+  subEl.style.textShadow = 'none';
+  stage.style.setProperty('--bp', Math.max(4, Math.round($('blurStrength').value * (H / 2460) * 2.2 + 3)) + 'px');
+}
+
+/* blur boxes */
+function renderBlurs() {
+  layer.querySelectorAll('.blurbox').forEach(n => n.remove());
+  ed.blurs.forEach((b, i) => {
+    const d = document.createElement('div'); d.className = 'blurbox' + (i === ed.sel ? ' sel' : ''); d.dataset.i = i;
+    d.style.left = b.x * 100 + '%'; d.style.top = b.y * 100 + '%'; d.style.width = b.w * 100 + '%'; d.style.height = b.h * 100 + '%';
+    d.innerHTML = `<span class="lbl">Blur ${i+1}</span><button class="del" type="button" aria-label="Delete">✕</button><span class="hnd"></span>`;
+    layer.insertBefore(d, subEl);
+  });
+  layer.classList.toggle('draw', ed.draw);
+  updateBurnBtn();
+}
+const clamp01 = v => Math.min(1, Math.max(0, v));
+function norm(e) { const r = layer.getBoundingClientRect(); return { x: clamp01((e.clientX - r.left) / r.width), y: clamp01((e.clientY - r.top) / r.height) }; }
+
+let drag = null;
+layer.addEventListener('pointerdown', e => {
+  const delBtn = e.target.closest('.del');
+  const boxEl = e.target.closest('.blurbox');
+  const p = norm(e);
+  if (delBtn && boxEl) { ed.blurs.splice(+boxEl.dataset.i, 1); ed.sel = -1; renderBlurs(); e.preventDefault(); return; }
+  layer.setPointerCapture(e.pointerId);
+  if (e.target.closest('.hnd') && boxEl) {
+    ed.sel = +boxEl.dataset.i; drag = { type: 'resize', i: ed.sel }; ed.subSel = false; renderBlurs(); e.preventDefault(); return;
+  }
+  if (e.target === subEl) {
+    drag = { type: 'sub', dx: p.x - ed.sub.x, dy: p.y - ed.sub.y }; ed.subSel = true; ed.sel = -1; renderBlurs(); renderSub(); e.preventDefault(); return;
+  }
+  if (boxEl) {
+    const i = +boxEl.dataset.i, b = ed.blurs[i]; ed.sel = i; ed.subSel = false;
+    drag = { type: 'move', i, dx: p.x - b.x, dy: p.y - b.y }; renderBlurs(); renderSub(); e.preventDefault(); return;
+  }
+  ed.subSel = false; renderSub();
+  if (ed.draw) {
+    ed.blurs.push({ x: p.x, y: p.y, w: 0.001, h: 0.001 }); ed.sel = ed.blurs.length - 1;
+    drag = { type: 'new', i: ed.sel, sx: p.x, sy: p.y }; renderBlurs(); e.preventDefault();
+  } else { ed.sel = -1; renderBlurs(); }
+});
+layer.addEventListener('pointermove', e => {
+  if (!drag) return; const p = norm(e); const b = ed.blurs[drag.i];
+  if (drag.type === 'sub') { ed.sub.x = clamp01(p.x - drag.dx); ed.sub.y = clamp01(p.y - drag.dy); renderSub(); return; }
+  if (!b) return;
+  if (drag.type === 'new') { b.x = Math.min(p.x, drag.sx); b.y = Math.min(p.y, drag.sy); b.w = Math.abs(p.x - drag.sx); b.h = Math.abs(p.y - drag.sy); }
+  else if (drag.type === 'move') { b.x = Math.min(1 - b.w, Math.max(0, p.x - drag.dx)); b.y = Math.min(1 - b.h, Math.max(0, p.y - drag.dy)); }
+  else if (drag.type === 'resize') { b.w = Math.max(0.03, Math.min(1 - b.x, p.x - b.x)); b.h = Math.max(0.02, Math.min(1 - b.y, p.y - b.y)); }
+  const el = layer.querySelector(`.blurbox[data-i="${drag.i}"]`);
+  if (el) { el.style.left = b.x*100+'%'; el.style.top = b.y*100+'%'; el.style.width = b.w*100+'%'; el.style.height = b.h*100+'%'; }
+});
+const endDrag = () => {
+  if (drag?.type === 'new') { const b = ed.blurs[drag.i]; if (b && (b.w < 0.03 || b.h < 0.015)) { ed.blurs.splice(drag.i, 1); ed.sel = -1; } }
+  drag = null; renderBlurs();
+};
+layer.addEventListener('pointerup', endDrag); layer.addEventListener('pointercancel', endDrag);
+
+$('drawBtn').addEventListener('click', () => { ed.draw = !ed.draw; $('drawBtn').classList.toggle('on', ed.draw); layer.classList.toggle('draw', ed.draw); });
+$('addBtn').addEventListener('click', () => {
+  ed.blurs.push({ x: 0.1, y: 0.72, w: 0.8, h: 0.1 }); ed.sel = ed.blurs.length - 1; renderBlurs();
+});
+$('clearBlur').addEventListener('click', () => { ed.blurs = []; ed.sel = -1; renderBlurs(); });
+$('blurStrength').addEventListener('input', () => { $('blurOut').textContent = $('blurStrength').value; renderSub(); });
+
+/* subtitle style controls */
+$('subOn').addEventListener('change', () => { ed.sub.enabled = $('subOn').checked; renderSub(); });
+$('subSize').addEventListener('input', () => { ed.sub.sizePct = $('subSize').value / 10; $('subSizeOut').textContent = ed.sub.sizePct.toFixed(1); renderSub(); });
+$('subOutline').addEventListener('input', () => { ed.sub.outlinePct = $('subOutline').value / 10; $('subOutlineOut').textContent = $('subOutline').value; renderSub(); });
+$('subBold').addEventListener('change', () => { ed.sub.bold = $('subBold').checked; renderSub(); });
+$('subOutlineColor').addEventListener('input', () => { ed.sub.outlineColor = $('subOutlineColor').value; renderSub(); });
+function setTextColor(c) {
+  ed.sub.color = c; $('subColor').value = c;
+  document.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', b.dataset.c.toLowerCase() === c.toLowerCase()));
+  renderSub();
+}
+document.querySelectorAll('.sw').forEach(b => b.addEventListener('click', () => setTextColor(b.dataset.c)));
+$('subColor').addEventListener('input', () => setTextColor($('subColor').value));
+$('resetSub').addEventListener('click', () => { ed.sub.x = 0.5; ed.sub.y = 0.8; renderSub(); });
+
+/* export */
+function setBurnStatus(msg, kind='') { const el = $('burnStatus'); el.textContent = msg; el.className = 'status' + (kind ? ' ' + kind : ''); }
+function updateBurnBtn() {
+  const hasVideo = !!selectedVideo;
+  const hasWork = ed.blurs.length > 0 || (ed.sub.enabled && ed.cues.length > 0);
+  $('burnBtn').disabled = !(hasVideo && hasWork) || burning;
+}
+let burning = false;
+$('burnBtn').addEventListener('click', async () => {
+  if (!selectedVideo) return;
+  burning = true; $('burnBtn').disabled = true; $('burnDl').classList.add('hidden');
+  $('burnProgress').style.display = 'block'; $('burnBar').style.width = '2%';
+  $('burnBtn').textContent = '⏳ Video ထုတ်နေပါတယ်…';
+  setBurnStatus('📤 Video ကို server ပေါ်တင်နေပါတယ်…','busy');
+  try {
+    const form = new FormData();
+    form.append('video', selectedVideo);
+    form.append('srt', $('srtOutput').value || '');
+    form.append('settings', JSON.stringify({
+      blurs: ed.blurs.map(b => ({ x: +b.x.toFixed(5), y: +b.y.toFixed(5), w: +b.w.toFixed(5), h: +b.h.toFixed(5) })),
+      blurStrength: Number($('blurStrength').value),
+      sub: ed.sub
+    }));
+    const start = await readJson(await fetch('/api/burn', { method: 'POST', body: form }));
+    setBurnStatus('🎞️ FFmpeg က Blur + စာတန်း ထည့်ပြီး Video ထုတ်နေပါတယ်…','busy');
+    for (;;) {
+      await new Promise(r => setTimeout(r, 1200));
+      const st = await readJson(await fetch('/api/burn/' + start.jobId));
+      $('burnBar').style.width = Math.max(3, st.progress || 0) + '%';
+      if (st.status === 'error') throw new Error(st.error || 'Export မအောင်မြင်ပါ');
+      if (st.status === 'done') {
+        $('burnLink').href = st.download; $('burnDl').classList.remove('hidden');
+        setBurnStatus('🎉 Final Video အဆင်သင့်ပါပြီ။ အောက်က ခလုတ်နဲ့ Download လုပ်ပါ (Link က ၃၀ မိနစ်သာ သက်တမ်းရှိပြီး တစ်ကြိမ်သာ ဒေါင်းလို့ရပါမယ်)။','good');
+        break;
+      }
+      setBurnStatus(`🎞️ Video ထုတ်နေပါတယ်… ${st.progress || 0}%`,'busy');
+    }
+  } catch (error) {
+    setBurnStatus('❌ Export Error: ' + (error?.message || 'မသိရှိသော အမှား'), 'bad');
+  } finally {
+    burning = false; $('burnBtn').textContent = '🎞️ Final Video ထုတ်မယ် (FFmpeg)';
+    $('burnProgress').style.display = 'none'; updateBurnBtn();
+  }
+});
+
+/* refresh cues after translation finishes */
+$('translateBtn').addEventListener('click', () => {
+  const iv = setInterval(() => { if (!$('translateBtn').disabled || $('srtOutput').value.trim()) { refreshCues(); } if (!$('translateBtn').disabled) clearInterval(iv); }, 600);
+  setTimeout(() => clearInterval(iv), 120000);
+});
+fitStage(); renderBlurs(); renderSub();
 </script>
 </body>
 </html>
