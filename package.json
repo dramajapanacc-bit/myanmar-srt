@@ -1,13 +1,8 @@
 {
-  "name": "myanmar-movie-recap-studio",
-  "version": "5.0.0",
+  "name": "storywave-studio-vercel",
+  "version": "6.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "start": "node server.js", "dev": "node --watch server.js" },
-  "dependencies": {
-    "@google/genai": "latest",
-    "dotenv": "latest",
-    "express": "^5.1.0",
-    "multer": "^2.0.2"
-  }
+  "scripts": { "dev": "vercel dev" },
+  "engines": { "node": ">=20" }
 }
