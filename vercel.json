@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/script/generate.js": { "maxDuration": 300 },
+    "api/upload/start.js": { "maxDuration": 30 }
+  }
+}
