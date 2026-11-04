@@ -2,159 +2,389 @@ import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
 import fs from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
+import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
+import ffmpegStatic from 'ffmpeg-static';
+import ffprobeStatic from 'ffprobe-static';
+import { ensureFont, parseSrt, buildAss, buildFilterGraph, buildFfmpegArgs, FONT_FAMILY } from './burn.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 10000);
-const MAX_BYTES = Number(process.env.MAX_VIDEO_SIZE || 500) * 1024 * 1024;
-const MAX_SECONDS = Number(process.env.MAX_VIDEO_SECONDS || 1800);
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-const TMP = path.join(os.tmpdir(), 'myanmar-movie-script');
+const MAX_BYTES = 300 * 1024 * 1024;
+const MAX_SECONDS = 5 * 60;
+const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
+const ROOT = process.cwd();
+const PUBLIC = path.join(ROOT, 'public');
+const TMP = path.join(os.tmpdir(), 'ynt-thumbnail-srt');
 await fs.mkdir(TMP, { recursive: true });
+const FONTS=path.join(ROOT,'fonts');
+let fontState=await ensureFont(FONTS);
+if(!fontState.ok)console.warn('Myanmar font download failed - put a Myanmar .ttf in ./fonts');
 
-const videoExt = new Set(['.mp4','.mov','.mkv','.webm','.avi','.m4v','.mpeg','.mpg','.wmv','.flv','.3gp']);
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, TMP),
-  filename: (_req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${path.extname(file.originalname || '').toLowerCase()}`)
+const GROQ_MODEL = 'whisper-large-v3';
+const GEMINI_TEXT_MODEL = 'gemini-3.5-flash';
+const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image';
+const APP_VERSION = '4.1.0-burn-in-subtitles';
+
+const videoExt = new Set(['.mp4','.mov','.mkv','.webm','.avi','.m4v','.flv','.wmv','.mpeg','.mpg']);
+const imageExt = new Set(['.jpg','.jpeg','.png','.webp']);
+
+const videoStorage = multer.diskStorage({
+  destination: (_req,_file,cb)=>cb(null,TMP),
+  filename: (_req,file,cb)=>cb(null,`${Date.now()}-${crypto.randomBytes(8).toString('hex')}${path.extname(file.originalname||'').toLowerCase()||'.mp4'}`)
 });
+const imageStorage = multer.memoryStorage();
 const uploadVideo = multer({
-  storage,
-  limits: { fileSize: MAX_BYTES, files: 1 },
-  fileFilter: (_req, file, cb) => videoExt.has(path.extname(file.originalname || '').toLowerCase())
-    ? cb(null, true) : cb(new Error('MP4, MOV, MKV, WEBM, AVI video ဖိုင်ကိုသာ အသုံးပြုပါ။'))
+  storage: videoStorage,
+  limits:{fileSize:MAX_BYTES,files:1},
+  fileFilter:(_req,file,cb)=>{
+    const ext=path.extname(file.originalname||'').toLowerCase();
+    if(!videoExt.has(ext)) return cb(new Error('MP4 / MOV / MKV / WEBM video ကိုသုံးပါ။'));
+    cb(null,true);
+  }
 });
-app.use(express.json({ limit: '15mb' }));
-app.use(express.static(path.join(process.cwd(), 'public')));
+const uploadImages = multer({
+  storage:imageStorage,
+  limits:{fileSize:MAX_IMAGE_BYTES,files:5},
+  fileFilter:(_req,file,cb)=>{
+    const ext=path.extname(file.originalname||'').toLowerCase();
+    if(!imageExt.has(ext)) return cb(new Error('JPG / PNG / WEBP image ကိုသုံးပါ။'));
+    cb(null,true);
+  }
+});
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const remove = file => file && fs.rm(file, { force: true }).catch(() => {});
-function getApiKey(req) {
-  const key = String(req.get('x-gemini-api-key') || process.env.GEMINI_API_KEY || '').trim();
-  if (!key) throw new Error('Gemini API Key မထည့်ရသေးပါ။ Settings မှာ API Key ထည့်ပါ။');
-  return key;
+app.use(express.json({limit:'20mb'}));
+app.use(express.urlencoded({extended:true,limit:'20mb'}));
+app.use(express.static(PUBLIC));
+
+function getKey(req, headerName, bodyName, envName, label){
+  const value=String(req.get(headerName)||req.body?.[bodyName]||process.env[envName]||'').trim();
+  if(!value) throw new Error(`${label} မရှိပါ`);
+  return value;
 }
-function getMime(file) {
-  const ext = path.extname(file.originalname || '').toLowerCase();
-  return ({ '.mp4':'video/mp4', '.mov':'video/quicktime', '.mkv':'video/x-matroska', '.webm':'video/webm', '.avi':'video/avi', '.m4v':'video/mp4', '.mpeg':'video/mpeg', '.mpg':'video/mpg', '.wmv':'video/x-ms-wmv', '.flv':'video/x-flv', '.3gp':'video/3gpp' })[ext] || 'video/mp4';
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function cleanText(v){return String(v??'').replace(/\r/g,' ').replace(/\n+/g,' ').replace(/\s+/g,' ').trim();}
+function cleanup(file){if(file)fs.rm(file,{force:true}).catch(()=>{});}
+function runProcess(command,args){
+  return new Promise((resolve,reject)=>{
+    const child=spawn(command,args); let stdout='',stderr='';
+    child.stdout.on('data',d=>stdout+=d.toString());
+    child.stderr.on('data',d=>stderr+=d.toString());
+    child.on('error',reject);
+    child.on('close',code=>code===0?resolve({stdout,stderr}):reject(new Error(stderr||`${command} exited with code ${code}`)));
+  });
 }
-function cleanError(error) {
-  const message = String(error?.message || error || 'Unknown error');
-  if (/429|resource.?exhausted|quota/i.test(message)) return 'Gemini API quota ပြည့်နေပါတယ်။ Google AI Studio မှာ quota ပြန်စစ်ပြီး နောက်မှ ပြန်ကြိုးစားပါ။';
-  if (/api.?key|unauthenticated|permission.?denied|403/i.test(message)) return 'Gemini API Key မမှန်ပါ သို့မဟုတ် API အသုံးပြုခွင့်မရှိပါ။';
-  if (/503|unavailable|overloaded/i.test(message)) return 'Gemini server ခဏအလုပ်များနေပါတယ်။ ခဏနားပြီး ပြန်ကြိုးစားပါ။';
-  return message.slice(0, 700);
-}
-
-function buildScriptPrompt(mode) {
-  const base = `သင်သည် မြန်မာဘာသာဖြင့် Movie Recap / ဇာတ်လမ်းပြန်လည်ပြောပြသည့် Script ရေးသားရာတွင် ကျွမ်းကျင်သော ဇာတ်လမ်းပြောသူတစ်ဦးဖြစ်သည်။ ပေးထားသော VIDEO တစ်ခုလုံးကို အသံနှင့် ရုပ်ပုံနှစ်မျိုးလုံးအပေါ် အခြေခံ၍ သေချာကြည့်ရှုနားလည်ပြီး အောက်ပါစည်းမျဉ်းများအတိုင်း မြန်မာလို Script ရေးပါ။
-
-အရေးကြီးသော စည်းမျဉ်းများ
-1. Video ထဲတွင် တကယ်ဖြစ်ပျက်သော အကြောင်းအရာ၊ ဇာတ်ကောင်၊ ဆက်ဆံရေး၊ နေရာနှင့် အဖြစ်အပျက်များကိုသာ အသုံးပြုပါ။ မမြင်ရ၊ မကြားရသော အချက်အလက်များကို မတီထွင်ပါနှင့်။ မသေချာလျှင် သတိထားရေးပါ။
-2. စကားလုံးချင်း ဘာသာပြန်ခြင်းမဟုတ်ပါ။ မြန်မာလူမျိုးတစ်ယောက်က ရုပ်ရှင်ဇာတ်လမ်းကို ပရိသတ်အား ပြန်ပြောပြနေသကဲ့သို့ သဘာဝကျကျ၊ ချောမွေ့စွာ၊ နားထောင်ကောင်းအောင် ရေးပါ။
-3. ဇာတ်လမ်းအစမှ Video ထဲရှိ နောက်ဆုံးအထိ ဖြစ်စဉ်အစီအစဉ်မပျက် ရေးပါ။ အရေးကြီးသော အဖြစ်အပျက်၊ အကြောင်းရင်း၊ အကျိုးဆက်၊ ဇာတ်ကောင်တုံ့ပြန်မှုနှင့် အလှည့်အပြောင်းများကို မကျော်ပါနှင့်။
-4. ဇာတ်ကောင်အမည်ကို သိရှိပါက တစ်သမတ်တည်းသုံးပါ။ မသိလျှင် သင့်တော်သည့် ဖော်ပြချက်ကို သုံးပါ။
-5. Dialogue များကို စာကြောင်းလိုက် တိုက်ရိုက်မကူးဘဲ အဓိပ္ပာယ်နှင့် ခံစားချက်ကို ဇာတ်ကြောင်းထဲ သဘာဝကျကျ ပေါင်းစပ်ပါ။
-6. မြန်မာ Unicode ဖြင့်သာ ရေးပါ။ AI မှတ်ချက်၊ အချိန်တံဆိပ်၊ SRT ပုံစံ မထည့်ပါနှင့်။
-7. အကျဉ်းချုပ်လွန်းခြင်းမလုပ်ပါနှင့်။ အရေးကြီးသော scene များကို ပရိသတ်နားလည်နိုင်အောင် ဖော်ပြပါ။ မလိုအပ်သော ထပ်ကျော့မှုကိုသာ လျှော့ပါ။
-8. Video အတွင်း အစပိုင်းက စိတ်ဝင်စားစေမည့် Hook တစ်ခု ထည့်ပါ။ Video ထဲက အဆုံးသတ်အတိုင်းသာ ရေးပြီး အပိုဇာတ်သိမ်း မတီထွင်ပါနှင့်။
-9. ဇာတ်လမ်းထဲက အကြမ်းဖက်မှု သို့မဟုတ် အရွယ်ရောက်အကြောင်းအရာများကို လိုအပ်သည့်အတိုင်း သင့်တော်စွာဖော်ပြပါ။
-
-အသေးစိတ် Recap ပုံစံ: အဖြစ်အပျက်များကို အစဉ်လိုက် အသေးစိတ်ရှင်းပြပါ။ ဇာတ်ကောင်များ ဘာကြောင့် ထိုသို့လုပ်ဆောင်သည်၊ အဖြစ်အပျက်တစ်ခုက နောက်တစ်ခုကို မည်သို့ဖြစ်စေသည်ကို နားလည်လွယ်အောင် ဆက်စပ်ရေးပါ။
-
-YouTube Recap ပုံစံ: ပထမစာပိုဒ်မှာ စိတ်ဝင်စားစရာ Hook ပါရမည်။ စကားပြောသံစဉ်ဖြင့် နားထောင်ကောင်းအောင် ရေးပါ။ စာကြောင်းများကို သွက်လက်စွာ ဆက်စပ်ပြီး ပရိသတ်ကို နောက်တစ်ဆင့် ဘာဖြစ်မလဲ သိချင်စေပါ။ သို့သော် မူရင်း Video ထဲမရှိသော အချက်အလက် မထည့်ပါနှင့်။
-
-ထုတ်ပေးမည့် Script အမျိုးအစား: ${mode === 'both' ? 'အသေးစိတ် Recap နှင့် YouTube Recap နှစ်မျိုးလုံး' : mode === 'youtube' ? 'YouTube Recap တစ်မျိုးတည်း' : 'အသေးစိတ် Recap တစ်မျိုးတည်း'}။
-
-အောက်ပါ JSON ပုံစံအတိုင်းသာ ပြန်ပေးပါ။ Markdown code fence မထည့်ပါနှင့်။
-{
-  "title": "မြန်မာလို ဇာတ်လမ်းခေါင်းစဉ်တို",
-  "summary": "ဇာတ်လမ်းအကျဉ်း ၂ မှ ၄ ကြောင်း",
-  "characters": ["Video မှ အတည်ပြုနိုင်သော ဇာတ်ကောင်အမည်နှင့် အကျဉ်းဖော်ပြချက်"],
-  "detailedScript": "အသေးစိတ် Recap Script",
-  "youtubeScript": "YouTube Recap Narration Script"
+async function probeVideo(file){
+  const r=await runProcess(ffprobeStatic.path,['-v','error','-show_entries','format=duration:stream=codec_type,width,height','-of','json',file]);
+  const d=JSON.parse(r.stdout); const duration=Number(d?.format?.duration||0);
+  const video=(d?.streams||[]).find(s=>s.codec_type==='video');
+  if(!duration||!video)throw new Error('Video ကိုဖတ်မရပါ');
+  return {duration,width:Number(video.width||0),height:Number(video.height||0)};
 }
 
-မလိုအပ်သော Script field ကို mode အလိုက် စာသားအလွတ်ထားနိုင်သည်။ Script များကို စာပိုဒ်ခွဲပြီး newline ဖြင့် ရေးပါ။`;
-  return base;
+function extractJson(text){
+  const raw=String(text||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+  try{return JSON.parse(raw);}catch{}
+  const a=raw.indexOf('{'),b=raw.lastIndexOf('}');
+  if(a>=0&&b>a){try{return JSON.parse(raw.slice(a,b+1));}catch{}}
+  return null;
+}
+function keepMyanmarOnly(text){
+  return String(text||'').replace(/[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/g,'').replace(/[^\u1000-\u109F\uAA60-\uAA7F\uA9E0-\uA9FF\u104A\u104B\u104C\u104D\u104E\u104F0-9၀-၉၊။!?,.؟…'"“”‘’()\-\s]/g,'').replace(/\s{2,}/g,' ').trim();
 }
 
-function parseModelJson(raw) {
-  const text = String(raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
-  try { return JSON.parse(text); } catch {}
-  const first = text.indexOf('{');
-  const last = text.lastIndexOf('}');
-  if (first >= 0 && last > first) {
-    try { return JSON.parse(text.slice(first, last + 1)); } catch {}
+async function retry(fn){
+  let last;
+  for(let i=0;i<4;i++){
+    try{return await fn();}catch(e){last=e;const m=String(e?.message||e).toLowerCase();if(!/429|resource_exhausted|503|unavailable|500|502|504|timeout/.test(m)||i===3)throw e;await sleep(1000*(i+1));}
+  }
+  throw last;
+}
+
+async function uploadGeminiFile(ai,filePath,mimeType){
+  return retry(()=>ai.files.upload({file:filePath,config:{mimeType,displayName:path.basename(filePath)}}));
+}
+async function waitActive(ai,file){
+  for(let i=0;i<90;i++){
+    const current=await ai.files.get({name:file.name});
+    const state=String(current?.state||'').toUpperCase();
+    if(state==='ACTIVE'||!state)return current;
+    if(state==='FAILED')throw new Error('Gemini video processing failed');
+    await sleep(2000);
+  }
+  throw new Error('Gemini video processing အချိန်ကြာလွန်းပါတယ်');
+}
+function mimeFromName(name){
+  const ext=path.extname(name||'').toLowerCase();
+  return ext==='.png'?'image/png':ext==='.webp'?'image/webp':'image/jpeg';
+}
+async function imageBlock(file){
+  const data=file.buffer?file.buffer:await fs.readFile(file.path);
+  return {type:'image',mime_type:file.mimetype||mimeFromName(file.originalname),data:data.toString('base64')};
+}
+
+async function generateTitleFromGemFile(ai, active, videoMime='video/mp4'){
+  const response=await retry(()=>ai.models.generateContent({
+    model:GEMINI_TEXT_MODEL,
+    contents:[
+      {fileData:{fileUri:active.uri,mimeType:active.mimeType||videoMime}},
+      {text:`Analyze this entire video carefully. Understand the actual story, main characters, relationships, conflict, turning point and most important event. Then write ONE strong Myanmar Burmese drama/recap title based ONLY on what is actually shown or said in the video. Make it catchy and emotional for a social-media recap thumbnail, but do not invent events or characters. Keep it short enough for a thumbnail. Return ONLY JSON: {"title":"..."}. No emojis, no quotes, no explanation.`}
+    ],
+    config:{temperature:0.2,maxOutputTokens:300}
+  }));
+  const parsed=extractJson(response?.text||'');
+  const title=cleanText(parsed?.title||response?.text||'').replace(/^['"“”]+|['"“”]+$/g,'');
+  if(!title)throw new Error('Gemini က Title မထုတ်ပေးနိုင်ပါ');
+  return title;
+}
+async function generateTitle(ai, videoFile){
+  const gemFile=await uploadGeminiFile(ai,videoFile.path,videoFile.mimetype||'video/mp4');
+  const active=await waitActive(ai,gemFile);
+  const title=await generateTitleFromGemFile(ai,active,videoFile.mimetype||'video/mp4');
+  return {title,gemFile:active};
+}
+
+function collectImageOutput(interaction){
+  const parts=[];
+  if(interaction?.output_image?.data)parts.push({data:interaction.output_image.data,mimeType:interaction.output_image.mime_type||'image/jpeg'});
+  for(const step of (interaction?.steps||[])){
+    for(const block of (step?.content||[])){
+      if(block?.type==='image'&&block?.data)parts.push({data:block.data,mimeType:block.mime_type||'image/jpeg'});
+    }
+  }
+  return parts[0]||null;
+}
+
+async function generateThumbnail(ai, videoGemFile, characterFiles, styleFile, title, ratio, epEnabled, epText){
+  const input=[
+    {type:'video',uri:videoGemFile.uri,mime_type:videoGemFile.mimeType||'video/mp4'},
+    ...(await Promise.all(characterFiles.map(imageBlock))),
+    ...(styleFile?[await imageBlock(styleFile)]:[]),
+    {type:'text',text:`Create a professional, high-impact Korean-drama / social-media recap thumbnail based on the entire video.
+
+STORY: Analyze the video itself and choose the most important story moment and the most important characters. Do not invent unrelated events.
+
+CHARACTER REFERENCES: The uploaded character reference images are identity references. Preserve the recognizable facial identity, hairstyle and key visual traits of each referenced person as closely as possible. Use them for the corresponding characters when appropriate. Do not replace them with random faces.
+
+STYLE REFERENCE: The final design should have the same general visual energy as the provided style reference: premium drama-recap thumbnail composition, cinematic lighting, strong facial expressions, layered character arrangement, attractive color contrast, depth, clean professional framing. Do NOT copy logos, watermarks, usernames, or exact text from the style reference.
+
+TEXT: Put ONLY this Burmese title as the main headline: "${title.replace(/"/g,'\\"')}"${epEnabled?`\nPut ONLY this episode label: "${cleanText(epText||'EP. 01').replace(/"/g,'\\"')}"`:''}
+Do not add any other words, labels, captions, hashtags, logos, watermarks, channel names or decorative text.
+
+TYPOGRAPHY: Use a bold, premium, highly readable Burmese display font style suitable for a viral drama recap thumbnail. Make the headline visually striking with strong contrast, tasteful outline/shadow and polished placement. Keep Burmese letters correctly shaped and readable.
+
+COMPOSITION: Main characters large and clearly visible, faces unobstructed, emotionally expressive. Use cinematic depth, foreground/background separation, dramatic lighting and polished poster-like composition. The result should feel like a professionally designed drama recap cover, not a generic AI collage.
+
+OUTPUT: One finished thumbnail image only. Aspect ratio: ${ratio}.`}
+  ];
+  const interaction=await retry(()=>ai.interactions.create({
+    model:GEMINI_IMAGE_MODEL,
+    input,
+    response_format:{type:'image',mime_type:'image/jpeg',aspect_ratio:ratio,image_size:'1K'}
+  }));
+  const image=collectImageOutput(interaction);
+  if(!image)throw new Error('Gemini က Final Thumbnail ပုံ မပြန်ပါ');
+  return image;
+}
+
+async function transcribeGroq(audioPath,key){
+  const groq=new Groq({apiKey:key});
+  // Groq sometimes returns transient 500/503. Retry with a fresh stream each time,
+  // then fall back to the turbo model if the main model keeps failing.
+  const models=[GROQ_MODEL,'whisper-large-v3-turbo'];
+  let last;
+  for(const model of models){
+    for(let i=0;i<3;i++){
+      try{
+        return await groq.audio.transcriptions.create({file:createReadStream(audioPath),model,response_format:'verbose_json',timestamp_granularities:['word','segment'],temperature:0});
+      }catch(e){
+        last=e;const m=String(e?.message||e).toLowerCase();
+        if(!/429|500|502|503|504|internal|unavailable|overloaded|timeout|connection|econnreset/.test(m))throw e;
+        await sleep(1500*(i+1));
+      }
+    }
+  }
+  throw new Error('Groq server ဘက်က ခဏပြဿနာဖြစ်နေပါတယ် (500)။ ခဏနေပြီး ပြန်စမ်းပါ။ '+String(last?.message||'').slice(0,160));
+}
+async function extractAudio(video){
+  const out=path.join(TMP,`${crypto.randomUUID()}.wav`);
+  await runProcess(ffmpegStatic,['-y','-i',video,'-map','0:a:0','-vn','-ar','16000','-ac','1','-c:a','pcm_s16le',out]);
+  return out;
+}
+function normalizeWord(x){const word=cleanText(x?.word),start=Number(x?.start),end=Number(x?.end);return word&&Number.isFinite(start)&&Number.isFinite(end)&&end>start?{word,start,end}:null;}
+function makePreciseSegments(result,duration){
+  const words=(Array.isArray(result?.words)?result.words:[]).map(normalizeWord).filter(Boolean);
+  if(!words.length)return(Array.isArray(result?.segments)?result.segments:[]).map((s,i)=>({id:i+1,start:Number(s.start)||0,end:Number(s.end)||0,text:cleanText(s.text)})).filter(s=>s.text&&s.end>s.start);
+  const out=[];let cur=[],start=0,end=0;
+  const flush=()=>{if(!cur.length)return;const text=cur.map(x=>x.word).join(' ').replace(/\s+([,.!?;:，。！？；：])/g,'$1').trim();if(text&&end>start)out.push({id:out.length+1,start,end:Math.min(duration,end),text});cur=[];};
+  for(const w of words){if(!cur.length){cur=[w];start=w.start;end=w.end;continue;}const gap=w.start-end;const text=cur.map(x=>x.word).join(' ');if(gap>.55||w.end-start>5||text.length>55||cur.length>=11){flush();cur=[w];start=w.start;end=w.end;}else{cur.push(w);end=w.end;}}flush();return out;
+}
+function srtTime(v){const ms=Math.max(0,Math.round(Number(v||0)*1000)),h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000),x=ms%1000;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(x).padStart(3,'0')}`;}
+function makeSrt(list){return list.map((s,i)=>`${i+1}\n${srtTime(s.start)} --> ${srtTime(s.end)}\n${s.text}\n`).join('\n');}
+
+const downloads=new Map();
+function registerDownload(file,filename){const token=crypto.randomUUID();downloads.set(token,{file,filename,expires:Date.now()+30*60*1000});return token;}
+setInterval(()=>{const now=Date.now();for(const [t,v] of downloads){if(v.expires<=now){downloads.delete(t);cleanup(v.file);}}},60000).unref();
+
+app.get('/api/health',(_req,res)=>res.json({ok:true,version:APP_VERSION,geminiTextModel:GEMINI_TEXT_MODEL,geminiImageModel:GEMINI_IMAGE_MODEL,thumbnail:'VIDEO+CHARACTER+STYLE->AI_IMAGE',ffmpegThumbnail:false,burnIn:true,fontReady:fontState.ok}));
+app.get('/api/download/:token',(req,res)=>{const v=downloads.get(req.params.token);if(!v)return res.status(404).send('Download expired');downloads.delete(req.params.token);res.download(v.file,v.filename,()=>cleanup(v.file));});
+
+app.post('/api/thumbnail/title',uploadVideo.single('video'),async(req,res)=>{
+  const video=req.file?.path;
+  try{
+    if(!video)throw new Error('Video file မရှိပါ');
+    const info=await probeVideo(video);if(info.duration>MAX_SECONDS)throw new Error('Video က 5 မိနစ်ထက်မကျော်ရပါ');
+    const key=getKey(req,'x-gemini-api-key','geminiApiKey','GEMINI_API_KEY','Gemini API Key');
+    const ai=new GoogleGenAI({apiKey:key});const result=await generateTitle(ai,req.file);res.json({ok:true,title:result.title});
+  }catch(e){console.error('TITLE ERROR',e);res.status(400).json({ok:false,error:e?.message||'AI Title Error'});}finally{cleanup(video);}
+});
+
+// Combined route: video + up to 4 character refs + 1 style ref in one multipart request.
+const thumbnailUpload=multer({storage:videoStorage,limits:{fileSize:MAX_BYTES,files:6},fileFilter:(_req,file,cb)=>{
+  const ext=path.extname(file.originalname||'').toLowerCase();
+  if(file.fieldname==='video'){if(!videoExt.has(ext))return cb(new Error('Video format မမှန်ပါ'));}
+  else {if(!imageExt.has(ext))return cb(new Error('Reference image format မမှန်ပါ'));}
+  cb(null,true);
+}});
+app.post('/api/thumbnail/generate-ai',thumbnailUpload.fields([{name:'video',maxCount:1},{name:'character',maxCount:4},{name:'style',maxCount:1}]),async(req,res)=>{
+  const video=req.files?.video?.[0];const chars=req.files?.character||[];const style=req.files?.style?.[0];
+  try{
+    if(!video)throw new Error('Video file မရှိပါ');
+    const info=await probeVideo(video.path);if(info.duration>MAX_SECONDS)throw new Error('Video က 5 မိနစ်ထက်မကျော်ရပါ');
+    const key=getKey(req,'x-gemini-api-key','geminiApiKey','GEMINI_API_KEY','Gemini API Key');
+    const ai=new GoogleGenAI({apiKey:key});
+    let title=cleanText(req.body?.title);
+    const gemVideo=await uploadGeminiFile(ai,video.path,video.mimetype||'video/mp4');await waitActive(ai,gemVideo);
+    if(!title) title=await generateTitleFromGemFile(ai,gemVideo,video.mimetype||'video/mp4');
+    const ratio=['16:9','9:16','1:1'].includes(String(req.body?.ratio))?String(req.body.ratio):'16:9';
+    const epEnabled=String(req.body?.epEnabled)!=='false';
+    const epText=cleanText(req.body?.epText||'EP. 01');
+    const image=await generateThumbnail(ai,gemVideo,chars,style,title,ratio,epEnabled,epText);
+    const output=path.join(TMP,`${crypto.randomUUID()}-YNT-AI-Thumbnail.jpg`);await fs.writeFile(output,Buffer.from(image.data,'base64'));
+    const token=registerDownload(output,'YNT-AI-Thumbnail.jpg');
+    res.json({ok:true,title,ratio,download:`/api/download/${token}`,mimeType:image.mimeType});
+  }catch(e){console.error('AI THUMBNAIL ERROR',e);res.status(400).json({ok:false,error:e?.message||'AI Thumbnail Error'});}finally{
+    cleanup(video?.path);for(const f of chars)cleanup(f.path);cleanup(style?.path);
+  }
+});
+
+app.post('/api/transcribe',uploadVideo.single('video'),async(req,res)=>{
+  const video=req.file?.path;let audio=null;
+  try{
+    if(!video)throw new Error('Video file မရှိပါ');const info=await probeVideo(video);if(info.duration>MAX_SECONDS)throw new Error('Video က 5 မိနစ်ထက်မကျော်ရပါ');
+    const key=getKey(req,'x-groq-api-key','groqApiKey','GROQ_API_KEY','Groq API Key');audio=await extractAudio(video);const result=await transcribeGroq(audio,key);const transcript=makePreciseSegments(result,info.duration);res.json({ok:true,transcript,text:result?.text||''});
+  }catch(e){console.error('TRANSCRIBE',e);res.status(400).json({ok:false,error:e?.message||'Groq Transcript Error'});}finally{cleanup(video);cleanup(audio);}
+});
+
+// Safely extract a JSON array from Gemini output. Handles markdown fences and
+// ignores square brackets that appear inside quoted strings.
+function parseTranslationArray(text){
+  const raw=String(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+  try{const value=JSON.parse(raw);if(Array.isArray(value))return value;}catch{}
+  let start=-1,depth=0,inString=false,escaped=false;
+  for(let i=0;i<raw.length;i++){
+    const ch=raw[i];
+    if(inString){if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')inString=false;continue;}
+    if(ch==='"'){inString=true;continue;}
+    if(ch==='['){if(start<0)start=i;depth++;}
+    else if(ch===']'&&start>=0){depth--;if(depth===0){try{const value=JSON.parse(raw.slice(start,i+1));if(Array.isArray(value))return value;}catch{}start=-1;}}
   }
   return null;
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, app: 'Myanmar Movie Recap Script', model: MODEL, maxVideoMB: Math.round(MAX_BYTES / 1024 / 1024), maxVideoSeconds: MAX_SECONDS }));
-
-app.post('/api/script/generate', uploadVideo.single('video'), async (req, res) => {
-  const videoPath = req.file?.path;
-  let geminiFile;
-  try {
-    if (!req.file) throw new Error('Video ဖိုင်ရွေးချယ်ပါ။');
-    const mode = ['both', 'detailed', 'youtube'].includes(String(req.body?.scriptMode || 'both')) ? String(req.body?.scriptMode || 'both') : 'both';
-    const ai = new GoogleGenAI({ apiKey: getApiKey(req) });
-    const mimeType = getMime(req.file);
-    geminiFile = await ai.files.upload({ file: videoPath, config: { mimeType, displayName: req.file.originalname } });
-    for (let attempt = 0; attempt < 180; attempt++) {
-      const state = String(geminiFile?.state || '').toUpperCase();
-      if (state === 'ACTIVE') break;
-      if (state === 'FAILED') throw new Error('Gemini က Video ကို process မလုပ်နိုင်ပါ။ အခြား video format ဖြင့် ပြန်စမ်းပါ။');
-      if (attempt === 179) throw new Error('Gemini Video processing အချိန်ကြာလွန်းနေပါတယ်။');
-      await sleep(3000);
-      geminiFile = await ai.files.get({ name: geminiFile.name });
+app.post('/api/translate',async(req,res)=>{
+  try{
+    const key=getKey(req,'x-gemini-api-key','geminiApiKey','GEMINI_API_KEY','Gemini API Key');
+    const list=Array.isArray(req.body?.transcript)?req.body.transcript:[];
+    if(!list.length)throw new Error('Transcript မရှိပါ');
+    const ai=new GoogleGenAI({apiKey:key});
+    const source=list.map((x,i)=>({id:Number(x.id)||i+1,text:cleanText(x.text)}));
+    const prompt=`You are a subtitle translator. Translate each input line into natural Myanmar Burmese Unicode. Preserve the meaning and keep each line separate. Return ONLY a valid JSON array, no markdown or commentary. Every item must have exactly two fields: id (number) and translation (string). Escape all quotation marks and special characters correctly. Do not put literal line breaks inside JSON strings. Do not omit, merge, reorder, duplicate, or invent ids. Translation text must be Myanmar only.\nINPUT JSON:\n${JSON.stringify(source)}`;
+    let response=await retry(()=>ai.models.generateContent({model:GEMINI_TEXT_MODEL,contents:prompt,config:{temperature:0,maxOutputTokens:12000,responseMimeType:'application/json'}}));
+    let parsed=parseTranslationArray(response?.text||'');
+    // If Gemini returns malformed JSON, ask it once to repair its own output.
+    if(!parsed){
+      const repairPrompt=`Convert the following content into valid JSON only. Return a JSON array of objects with numeric id and string translation fields. Keep all translation wording and ids, escape quotes and control characters correctly, and do not add commentary.\nEXPECTED IDS: ${JSON.stringify(source.map(x=>x.id))}\nBROKEN OUTPUT:\n${String(response?.text||'').slice(0,24000)}`;
+      response=await retry(()=>ai.models.generateContent({model:GEMINI_TEXT_MODEL,contents:repairPrompt,config:{temperature:0,maxOutputTokens:12000,responseMimeType:'application/json'}}));
+      parsed=parseTranslationArray(response?.text||'');
     }
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: [{
-        role: 'user',
-        parts: [
-          { fileData: { fileUri: geminiFile.uri, mimeType: geminiFile.mimeType || mimeType } },
-          { text: buildScriptPrompt(mode) }
-        ]
-      }],
-      config: { temperature: 0.55, maxOutputTokens: 24000, responseMimeType: 'application/json' }
+    if(!parsed)throw new Error('Gemini ဘာသာပြန်အဖြေ JSON ပုံစံမမှန်ပါ။ ထပ်စမ်းကြည့်ပါ။');
+    const translatedMap=new Map();
+    for(const item of parsed){
+      const id=Number(item?.id);const value=keepMyanmarOnly(item?.translation);
+      if(Number.isFinite(id)&&value)translatedMap.set(id,value);
+    }
+    const out=list.map((x,i)=>({...x,text:translatedMap.get(Number(x.id)||i+1)||''})).filter(x=>x.text);
+    if(!out.length)throw new Error('မြန်မာစာ ဘာသာပြန်ရလဒ် မရပါ။ ထပ်စမ်းကြည့်ပါ။');
+    res.json({ok:true,transcript:out,srt:makeSrt(out)});
+  }catch(e){console.error('TRANSLATE ERROR:',e);res.status(400).json({ok:false,error:e?.message||'Gemini Translation Error'});}
+});
+
+
+// ---------- Burn-in: blur original text + Myanmar subtitles -> final MP4 ----------
+const burnJobs=new Map();
+const uploadBurn=multer({storage:videoStorage,limits:{fileSize:MAX_BYTES,files:1},fileFilter:(_req,file,cb)=>{
+  const ext=path.extname(file.originalname||'').toLowerCase();
+  if(!videoExt.has(ext))return cb(new Error('Video format မမှန်ပါ'));cb(null,true);
+}});
+setInterval(()=>{const now=Date.now();for(const [id,j] of burnJobs)if(now-j.created>60*60*1000)burnJobs.delete(id);},60000).unref();
+
+async function runBurnJob(job,{video,srtText,settings}){
+  let assPath=null,output=null;
+  try{
+    const info=await probeVideo(video);
+    if(info.duration>MAX_SECONDS)throw new Error('Video က 5 မိနစ်ထက်မကျော်ရပါ');
+    const W=info.width-info.width%2,H=info.height-info.height%2;
+    const probe=await runProcess(ffprobeStatic.path,['-v','error','-select_streams','a','-show_entries','stream=index','-of','csv=p=0',video]).catch(()=>({stdout:''}));
+    const hasAudio=Boolean(String(probe.stdout||'').trim());
+    const sub=settings?.sub||{};
+    const cues=sub.enabled===false?[]:parseSrt(srtText);
+    if(cues.length){
+      if(!fontState.ok)fontState=await ensureFont(FONTS);
+      if(!fontState.ok)throw new Error('Myanmar font မရှိပါ။ server ရဲ့ ./fonts ထဲမှာ Myanmar .ttf ထည့်ပါ (ဥပမာ NotoSansMyanmar-Bold.ttf)');
+      assPath=path.join(TMP,`${crypto.randomUUID()}.ass`);
+      await fs.writeFile(assPath,buildAss(cues,W,H,sub,FONT_FAMILY),'utf8');
+    }
+    const boxes=Array.isArray(settings?.blurs)?settings.blurs.slice(0,12):[];
+    const {graph}=buildFilterGraph({W,H,boxes,strength:settings?.blurStrength,assPath,fontsDir:FONTS});
+    output=path.join(TMP,`${crypto.randomUUID()}-YNT-Final.mp4`);
+    const args=buildFfmpegArgs({input:video,output,graph,hasAudio});
+    await new Promise((resolve,reject)=>{
+      const child=spawn(ffmpegStatic,args);let err='',buf='';
+      child.stdout.on('data',d=>{buf+=d.toString();const lines=buf.split('\n');buf=lines.pop();for(const l of lines){const m=l.match(/^out_time_(?:us|ms)=(\d+)/);if(m){const sec=Number(m[1])/1e6;job.progress=Math.min(99,Math.round(sec/info.duration*100));}}});
+      child.stderr.on('data',d=>{err=(err+d.toString()).slice(-4000);});
+      child.on('error',reject);
+      child.on('close',code=>code===0?resolve():reject(new Error('ffmpeg error: '+err.split('\n').slice(-6).join(' ').trim())));
     });
-    const result = parseModelJson(response?.text || '');
-    if (!result) throw new Error('Gemini က Script JSON ကို မှန်ကန်စွာ မထုတ်ပေးနိုင်ပါ။ နောက်တစ်ကြိမ် ပြန်ကြိုးစားပါ။');
-    const detailedScript = String(result.detailedScript || (mode === 'detailed' ? result.script || '' : '')).trim();
-    const youtubeScript = String(result.youtubeScript || (mode === 'youtube' ? result.script || '' : '')).trim();
-    if ((mode === 'both' && !detailedScript && !youtubeScript) || (mode === 'detailed' && !detailedScript) || (mode === 'youtube' && !youtubeScript)) {
-      throw new Error('Gemini က တောင်းဆိုထားသော Script အပြည့်အစုံ မထုတ်ပေးနိုင်ပါ။ နောက်တစ်ကြိမ် ပြန်ကြိုးစားပါ။');
-    }
-    res.json({ ok: true, model: MODEL, title: String(result.title || 'Movie Recap Script'), summary: String(result.summary || ''), characters: Array.isArray(result.characters) ? result.characters : [], detailedScript, youtubeScript, script: mode === 'youtube' ? youtubeScript : detailedScript, filename: req.file.originalname });
-  } catch (error) {
-    console.error('SCRIPT GENERATION ERROR:', error);
-    res.status(400).json({ ok: false, error: cleanError(error) });
-  } finally {
-    remove(videoPath);
-    // Gemini Files are retained temporarily by Google; delete after generation where supported.
-    if (geminiFile?.name) {
-      try { const ai = new GoogleGenAI({ apiKey: getApiKey(req) }); await ai.files.delete({ name: geminiFile.name }); } catch {}
-    }
-  }
+    const token=registerDownload(output,'YNT-Final-Myanmar-Subtitle.mp4');
+    job.status='done';job.progress=100;job.download=`/api/download/${token}`;output=null;
+  }catch(e){console.error('BURN ERROR',e);job.status='error';job.error=e?.message||'Burn-in Error';}
+  finally{cleanup(video);cleanup(assPath);cleanup(output);}
+}
+
+app.post('/api/burn',uploadBurn.single('video'),(req,res)=>{
+  const video=req.file?.path;
+  try{
+    if(!video)throw new Error('Video file မရှိပါ');
+    let settings={};try{settings=JSON.parse(String(req.body?.settings||'{}'));}catch{}
+    const id=crypto.randomUUID();
+    const job={id,status:'running',progress:0,created:Date.now()};
+    burnJobs.set(id,job);
+    runBurnJob(job,{video,srtText:String(req.body?.srt||''),settings});
+    res.json({ok:true,jobId:id});
+  }catch(e){cleanup(video);res.status(400).json({ok:false,error:e?.message||'Burn-in Error'});}
+});
+app.get('/api/burn/:id',(req,res)=>{
+  const j=burnJobs.get(req.params.id);
+  if(!j)return res.status(404).json({ok:false,error:'Job မတွေ့ပါ (သက်တမ်းကုန်သွားနိုင်ပါတယ်)'});
+  res.json({ok:true,status:j.status,progress:j.progress,error:j.error,download:j.download});
 });
 
-app.post('/api/script/export', (req, res) => {
-  const script = String(req.body?.script || '').trim();
-  const title = String(req.body?.title || 'movie-recap-script').replace(/[\\/:*?"<>|\r\n]+/g, '-').slice(0, 80);
-  if (!script) return res.status(400).json({ ok: false, error: 'Download လုပ်ရန် Script မရှိပါ။' });
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(title)}.txt"`);
-  res.send(script);
-});
-
-app.use((err, _req, res, _next) => {
-  console.error('REQUEST ERROR:', err);
-  const message = err?.code === 'LIMIT_FILE_SIZE' ? `Video ဖိုင်အရွယ်အစား ${Math.round(MAX_BYTES / 1024 / 1024)} MB ထက် မကြီးရပါ။` : cleanError(err);
-  res.status(400).json({ ok: false, error: message });
-});
-app.get('/{*splat}', (_req, res) => res.sendFile(path.join(process.cwd(), 'public', 'index.html')));
-app.listen(PORT, () => console.log(`StoryWave Studio running on port ${PORT} | model=${MODEL}`));
+app.use((err,_req,res,_next)=>{console.error('REQUEST ERROR',err);res.status(400).json({ok:false,error:err?.message||'Request Error'});});
+app.get('/{*splat}',(_req,res)=>res.sendFile(path.join(PUBLIC,'index.html')));
+app.listen(PORT,()=>console.log(`YNT Thumbnail & SRT ${APP_VERSION} listening on ${PORT}`));
